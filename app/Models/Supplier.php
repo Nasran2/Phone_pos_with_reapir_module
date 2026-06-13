@@ -17,16 +17,27 @@ class Supplier extends Model
         'address',
         'tax_number',
         'balance',
+        'opening_balance',
+        'bank_details',
+        'status',
+        'notes',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
         'balance' => 'decimal:2',
+        'opening_balance' => 'decimal:2',
+        'status' => 'boolean',
     ];
 
     public function purchases()
     {
         return $this->hasMany(Purchase::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(SupplierTransaction::class);
     }
 }

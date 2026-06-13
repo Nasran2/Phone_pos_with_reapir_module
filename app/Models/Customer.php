@@ -17,12 +17,19 @@ class Customer extends Model
         'tax_number',
         'points',
         'balance',
+        'opening_balance',
+        'credit_limit',
+        'status',
+        'notes',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
         'balance' => 'decimal:2',
+        'opening_balance' => 'decimal:2',
+        'credit_limit' => 'decimal:2',
+        'status' => 'boolean',
         'points' => 'integer',
     ];
 

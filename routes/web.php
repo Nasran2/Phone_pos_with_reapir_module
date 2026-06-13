@@ -19,6 +19,9 @@ use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\HoldSaleController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\StoreStockController;
+use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\DamagedStockController;
 
 Route::redirect('/', 'login')->name('home');
 
@@ -265,6 +268,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('customers', [CustomerController::class, 'store'])
         ->name('customers.store')
         ->middleware('permission:customers.create');
+    Route::post('customers/{customer}/payments', [CustomerController::class, 'storePayment'])
+        ->name('customers.payments.store')
+        ->middleware('permission:customers.payment');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])
         ->name('customers.show')
         ->middleware('permission:customers.view');
@@ -282,6 +288,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('suppliers', [SupplierController::class, 'store'])
         ->name('suppliers.store')
         ->middleware('permission:suppliers.create');
+    Route::post('suppliers/{supplier}/payments', [SupplierController::class, 'storePayment'])
+        ->name('suppliers.payments.store')
+        ->middleware('permission:suppliers.payment');
     Route::get('suppliers/{supplier}', [SupplierController::class, 'show'])
         ->name('suppliers.show')
         ->middleware('permission:suppliers.view');
@@ -291,6 +300,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy'])
         ->name('suppliers.destroy')
         ->middleware('permission:suppliers.delete');
+
+    // Store Stock
+    Route::get('stock', [StoreStockController::class, 'index'])
+        ->name('stock.index')
+        ->middleware('permission:stock.view');
+    Route::get('stock/history/{product}', [StoreStockController::class, 'history'])
+        ->name('stock.history')
+        ->middleware('permission:stock.history');
+
+    // Stock Adjustments
+    Route::get('stock-adjustments', [StockAdjustmentController::class, 'index'])
+        ->name('stock-adjustments.index')
+        ->middleware('permission:stock.adjustment.view');
+    Route::get('stock-adjustments/create', [StockAdjustmentController::class, 'create'])
+        ->name('stock-adjustments.create')
+        ->middleware('permission:stock.adjustment.create');
+    Route::post('stock-adjustments', [StockAdjustmentController::class, 'store'])
+        ->name('stock-adjustments.store')
+        ->middleware('permission:stock.adjustment.create');
+    Route::get('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'show'])
+        ->name('stock-adjustments.show')
+        ->middleware('permission:stock.adjustment.view');
+
+    // Damaged Stock
+    Route::get('damaged-stocks', [DamagedStockController::class, 'index'])
+        ->name('damaged-stocks.index')
+        ->middleware('permission:damaged_stock.view');
+    Route::post('damaged-stocks', [DamagedStockController::class, 'store'])
+        ->name('damaged-stocks.store')
+        ->middleware('permission:damaged_stock.create');
+    Route::put('damaged-stocks/{damagedStock}', [DamagedStockController::class, 'update'])
+        ->name('damaged-stocks.update')
+        ->middleware('permission:damaged_stock.edit');
+    Route::delete('damaged-stocks/{damagedStock}', [DamagedStockController::class, 'destroy'])
+        ->name('damaged-stocks.destroy')
+        ->middleware('permission:damaged_stock.delete');
+    Route::post('damaged-stocks/{damagedStock}/status', [DamagedStockController::class, 'updateStatus'])
+        ->name('damaged-stocks.status')
+        ->middleware('permission:damaged_stock.return');
 });
 
 require __DIR__.'/settings.php';

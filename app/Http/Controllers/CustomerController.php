@@ -4,70 +4,113 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Customer;
+use App\Models\CustomerTransaction;
+use App\Services\CustomerTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
+    protected $transactionService;
+
+    public function __construct(CustomerTransactionService $transactionService)
+    {
+        $this->transactionService = $transactionService;
+    }
+
     public function index(Request $request)
     {
         $query = Customer::withCount('sales');
 
+        // Search by name, phone, email
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('tax_number', 'like', "%{$search}%");
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             });
+        }
+
+        // Filter by active/inactive status
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            $query->where('status', $status === 'active');
         }
 
         $customers = $query->latest('id')->paginate(12)->withQueryString();
 
-        return view('customers.index', compact('customers'));
+        // Calculate Summary Card Metrics
+        $totalCustomers = Customer::count();
+        $activeCustomers = Customer::where('status', true)->count();
+        $totalDue = Customer::where('balance', '>', 0)->sum('balance');
+        
+        // Today's Payments from customer transactions (credits registered under payments)
+        $todayPayments = CustomerTransaction::whereDate('transaction_date', now()->toDateString())
+            ->where('type', 'payment')
+            ->sum('credit');
+
+        $summary = [
+            'total_customers' => $totalCustomers,
+            'active_customers' => $activeCustomers,
+            'total_due' => $totalDue,
+            'today_payments' => $todayPayments,
+        ];
+
+        return view('customers.index', compact('customers', 'summary'));
     }
 
     public function show(Customer $customer)
     {
-        $customer->load(['sales.payments', 'sales.returns']);
+        $customer->load(['sales.cashier']);
 
-        $payments = DB::table('sale_payments')
-            ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
-            ->where('sales.customer_id', $customer->id)
-            ->select(
-                'sale_payments.payment_date as date',
-                'sales.invoice_no as reference_no',
-                'sale_payments.payment_method as method',
-                'sale_payments.amount',
-                'sale_payments.note'
-            )
-            ->orderByDesc('sale_payments.payment_date')
-            ->orderByDesc('sale_payments.id')
-            ->get();
-
-        $generalPayments = DB::table('customer_payments')
-            ->where('customer_id', $customer->id)
-            ->select('payment_date as date', 'reference_no', 'payment_method as method', 'amount', 'note')
-            ->orderByDesc('payment_date')
+        // Fetch transaction history
+        $transactions = CustomerTransaction::where('customer_id', $customer->id)
+            ->orderByDesc('transaction_date')
             ->orderByDesc('id')
-            ->get();
+            ->paginate(10, ['*'], 'tx_page')
+            ->withQueryString();
 
-        $paymentHistory = $payments->merge($generalPayments)->sortByDesc('date')->values();
-        $ledger = $this->customerLedger($customer, $paymentHistory);
+        // Fetch sales history
+        $sales = $customer->sales()
+            ->latest()
+            ->paginate(10, ['*'], 'sales_page')
+            ->withQueryString();
 
-        return view('customers.show', compact('customer', 'paymentHistory', 'ledger'));
+        return view('customers.show', compact('customer', 'transactions', 'sales'));
     }
 
     public function store(Request $request)
     {
         $validated = $this->validateCustomer($request);
 
-        $customer = Customer::create($validated + [
-            'balance' => $validated['balance'] ?? 0,
-            'points' => $validated['points'] ?? 0,
-            'created_by' => auth()->id(),
-        ]);
+        $customer = DB::transaction(function () use ($validated) {
+            $openingBalance = floatval($validated['opening_balance'] ?? 0);
+            $customer = Customer::create([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'],
+                'email' => $validated['email'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'opening_balance' => $openingBalance,
+                'credit_limit' => isset($validated['credit_limit']) ? floatval($validated['credit_limit']) : null,
+                'status' => filter_var($validated['status'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'notes' => $validated['notes'] ?? null,
+                'balance' => 0.00, // adjusted next
+                'created_by' => auth()->id(),
+            ]);
+
+            if ($openingBalance > 0) {
+                $this->transactionService->recordTransaction(
+                    $customer,
+                    $openingBalance,
+                    'opening_balance',
+                    'OB-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+                    'Initial opening balance'
+                );
+            }
+
+            return $customer;
+        });
 
         ActivityLog::log('Create', 'Customers Module', "Created customer {$customer->name}");
 
@@ -77,7 +120,35 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $this->validateCustomer($request, $customer);
-        $customer->update($validated + ['updated_by' => auth()->id()]);
+
+        DB::transaction(function () use ($customer, $validated) {
+            $oldOpening = floatval($customer->opening_balance);
+            $newOpening = floatval($validated['opening_balance'] ?? 0);
+
+            $customer->update([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'],
+                'email' => $validated['email'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'opening_balance' => $newOpening,
+                'credit_limit' => isset($validated['credit_limit']) ? floatval($validated['credit_limit']) : null,
+                'status' => filter_var($validated['status'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'notes' => $validated['notes'] ?? null,
+                'updated_by' => auth()->id()
+            ]);
+
+            // Adjust balance if opening balance changed
+            if ($oldOpening !== $newOpening) {
+                $difference = $newOpening - $oldOpening;
+                $this->transactionService->recordTransaction(
+                    $customer,
+                    $difference,
+                    'opening_balance_adjustment',
+                    'OBA-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+                    "Opening balance adjusted from Rs. " . number_format($oldOpening, 2) . " to Rs. " . number_format($newOpening, 2)
+                );
+            }
+        });
 
         ActivityLog::log('Update', 'Customers Module', "Updated customer {$customer->name}");
 
@@ -87,74 +158,57 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         if ($customer->sales()->exists()) {
-            return back()->with('error', 'This customer has sales and cannot be deleted.');
+            return back()->with('error', 'This customer has sales records and cannot be deleted.');
         }
 
         $name = $customer->name;
-        $customer->delete();
+        
+        DB::transaction(function () use ($customer) {
+            // Delete associated transactions
+            $customer->transactions()->delete();
+            $customer->delete();
+        });
 
         ActivityLog::log('Delete', 'Customers Module', "Deleted customer {$name}");
 
         return back()->with('success', 'Customer deleted successfully.');
     }
 
+    public function storePayment(Request $request, Customer $customer)
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'payment_date' => ['required', 'date'],
+            'payment_method' => ['required', 'string'],
+            'reference_no' => ['nullable', 'string', 'max:255'],
+            'note' => ['nullable', 'string'],
+        ]);
+
+        $amount = floatval($validated['amount']);
+
+        $this->transactionService->recordTransaction(
+            $customer,
+            -$amount, // Negative decreases due balance
+            'payment',
+            $validated['reference_no'] ?? 'PAY-' . strtoupper(uniqid()),
+            $validated['note'] ?? ('Recorded payment via ' . $validated['payment_method']),
+            null
+        );
+
+        return back()->with('success', 'Payment of Rs. ' . number_format($amount, 2) . ' recorded successfully.');
+    }
+
     private function validateCustomer(Request $request, ?Customer $customer = null): array
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['required', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string'],
-            'tax_number' => ['nullable', 'string', 'max:255'],
-            'points' => ['nullable', 'integer', 'min:0'],
-            'balance' => ['nullable', 'numeric'],
+            'opening_balance' => ['nullable', 'numeric', 'min:0'],
+            'credit_limit' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['nullable', 'in:1,0,true,false'],
+            'notes' => ['nullable', 'string'],
         ]);
-    }
-
-    private function customerLedger(Customer $customer, $paymentHistory)
-    {
-        $rows = collect();
-
-        foreach ($customer->sales as $sale) {
-            $rows->push((object) [
-                'date' => $sale->created_at,
-                'type' => 'Sale',
-                'reference_no' => $sale->invoice_no,
-                'description' => ucfirst($sale->pos_type) . ' invoice',
-                'debit' => (float) $sale->payable_amount,
-                'credit' => 0,
-            ]);
-
-            foreach ($sale->returns as $return) {
-                $rows->push((object) [
-                    'date' => $return->created_at,
-                    'type' => 'Return',
-                    'reference_no' => $return->return_no,
-                    'description' => 'Sale return',
-                    'debit' => 0,
-                    'credit' => (float) $return->total_amount,
-                ]);
-            }
-        }
-
-        foreach ($paymentHistory as $payment) {
-            $rows->push((object) [
-                'date' => $payment->date,
-                'type' => 'Payment',
-                'reference_no' => $payment->reference_no,
-                'description' => $payment->method,
-                'debit' => 0,
-                'credit' => (float) $payment->amount,
-            ]);
-        }
-
-        $balance = 0;
-
-        return $rows->sortBy('date')->values()->map(function ($row) use (&$balance) {
-            $balance += (float) $row->debit - (float) $row->credit;
-            $row->balance = $balance;
-
-            return $row;
-        })->reverse()->values();
     }
 }

@@ -12,6 +12,12 @@ class DashboardDemoSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clear existing roles, permissions, and mappings
+        DB::table('role_permissions')->delete();
+        DB::table('user_roles')->delete();
+        DB::table('permissions')->delete();
+        DB::table('roles')->delete();
+
         // 1. Roles
         $roles = [
             ['id' => 1, 'name' => 'Administrator', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],

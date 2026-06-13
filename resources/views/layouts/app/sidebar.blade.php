@@ -173,20 +173,25 @@
                 <!-- Store Stock Dropdown -->
                 @if (auth()->user()->hasPermission('stock.view'))
                 <div>
-                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none">
+                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('stock.index') || request()->routeIs('stock-adjustments.*') || request()->routeIs('damaged-stocks.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
                             <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
                             </svg>
                             <span>Store Stock</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock.index') || request()->routeIs('stock-adjustments.*') || request()->routeIs('damaged-stocks.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
-                    <div class="hidden pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5">
-                        <a href="#" class="block py-2 text-xs font-medium text-slate-400 hover:text-white">Adjustments</a>
-                        <a href="#" class="block py-2 text-xs font-medium text-slate-400 hover:text-white">Damaged Stock</a>
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('stock.index') || request()->routeIs('stock-adjustments.*') || request()->routeIs('damaged-stocks.*') ? '' : 'hidden' }}">
+                        <a href="{{ route('stock.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('stock.index') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Current Stock</a>
+                        @if (auth()->user()->hasPermission('stock.adjustment.view'))
+                        <a href="{{ route('stock-adjustments.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('stock-adjustments.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Adjustments</a>
+                        @endif
+                        @if (auth()->user()->hasPermission('damaged_stock.view'))
+                        <a href="{{ route('damaged-stocks.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('damaged-stocks.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Damaged Stock</a>
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -442,6 +447,21 @@
                             <a href="{{ route('purchases.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('purchases.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Purchases</a>
                             @if (auth()->user()->hasPermission('purchase.return'))
                             <a href="{{ route('purchase-returns.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('purchase-returns.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Returns</a>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    @if (auth()->user()->hasPermission('stock.view'))
+                    <div class="py-1">
+                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Store Stock</span>
+                        <div class="mt-1 space-y-1 pl-3">
+                            <a href="{{ route('stock.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('stock.index') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Current Stock</a>
+                            @if (auth()->user()->hasPermission('stock.adjustment.view'))
+                            <a href="{{ route('stock-adjustments.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('stock-adjustments.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Adjustments</a>
+                            @endif
+                            @if (auth()->user()->hasPermission('damaged_stock.view'))
+                            <a href="{{ route('damaged-stocks.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('damaged-stocks.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Damaged Stock</a>
                             @endif
                         </div>
                     </div>

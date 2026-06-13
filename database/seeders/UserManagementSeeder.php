@@ -31,11 +31,13 @@ class UserManagementSeeder extends Seeder
             'sales_return.view', 'sales_return.create', 'sales_return.delete',
             'hold_sales.view', 'hold_sales.resume', 'hold_sales.delete',
             // Customers
-            'customers.view', 'customers.create', 'customers.edit', 'customers.delete',
+            'customers.view', 'customers.create', 'customers.edit', 'customers.delete', 'customers.payment', 'customers.statement',
             // Suppliers
-            'suppliers.view', 'suppliers.create', 'suppliers.edit', 'suppliers.delete',
+            'suppliers.view', 'suppliers.create', 'suppliers.edit', 'suppliers.delete', 'suppliers.payment', 'suppliers.statement',
             // Store Stock
-            'stock.view', 'stock.adjust', 'stock.transfer',
+            'stock.view', 'stock.adjust', 'stock.transfer', 'stock.history',
+            'stock.adjustment.view', 'stock.adjustment.create', 'stock.adjustment.edit', 'stock.adjustment.delete',
+            'damaged_stock.view', 'damaged_stock.create', 'damaged_stock.edit', 'damaged_stock.delete', 'damaged_stock.return',
             // Expenses
             'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
             // Accounting
@@ -86,7 +88,8 @@ class UserManagementSeeder extends Seeder
                     'dashboard.view', 'retail_pos.view', 'retail_pos.create_sale', 'retail_pos.discount', 
                     'retail_pos.hold_bill', 'wholesale_pos.view', 'wholesale_pos.create_sale',
                     'sales.view', 'sales.invoice_view', 'sales.print', 'sales.edit_payment', 'sales.return',
-                    'sales_return.view', 'sales_return.create', 'hold_sales.view', 'hold_sales.resume'
+                    'sales_return.view', 'sales_return.create', 'hold_sales.view', 'hold_sales.resume',
+                    'customers.view', 'customers.create', 'customers.edit'
                 ]
             ],
             'Stock Manager' => [
@@ -98,7 +101,10 @@ class UserManagementSeeder extends Seeder
                     'units.view', 'units.create', 'units.edit', 'units.delete',
                     'purchase.view', 'purchase.create', 'purchase.edit', 'purchase.delete',
                     'purchase.receive', 'purchase.return', 'purchase.print', 'purchase.download',
-                    'stock.view', 'stock.adjust', 'stock.transfer'
+                    'suppliers.view', 'suppliers.statement',
+                    'stock.view', 'stock.adjust', 'stock.transfer', 'stock.history',
+                    'stock.adjustment.view', 'stock.adjustment.create', 'stock.adjustment.edit', 'stock.adjustment.delete',
+                    'damaged_stock.view', 'damaged_stock.create', 'damaged_stock.edit', 'damaged_stock.delete', 'damaged_stock.return'
                 ]
             ],
             'Accountant' => [
@@ -106,7 +112,9 @@ class UserManagementSeeder extends Seeder
                 'perms' => [
                     'dashboard.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 
                     'accounting.view', 'cashbook.view', 'bank.view', 't_account.view', 'reports.view', 
-                    'sales_report.view', 'purchase_report.view', 'stock_report.view', 'profit_loss.view'
+                    'sales_report.view', 'purchase_report.view', 'stock_report.view', 'profit_loss.view',
+                    'customers.view', 'customers.statement', 'customers.payment',
+                    'suppliers.view', 'suppliers.statement', 'suppliers.payment'
                 ]
             ],
             'Sales Staff' => [
