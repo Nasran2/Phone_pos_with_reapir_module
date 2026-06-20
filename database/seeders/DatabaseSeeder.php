@@ -15,15 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@twinsofte.com',
-            'username' => 'admin',
-            'password' => 'password',
+        $this->call([
+            UserManagementSeeder::class,
+            DashboardDemoSeeder::class,
         ]);
-
-        $this->call(DashboardDemoSeeder::class);
     }
 }

@@ -83,7 +83,7 @@ class StoreStockController extends Controller
             'out_of_stock_items' => $outOfStockItems,
         ];
 
-        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
         $brands = Brand::orderBy('name')->get();
 
         return view('stock.index', compact('products', 'summary', 'categories', 'brands'));

@@ -12,36 +12,7 @@ class DashboardDemoSeeder extends Seeder
      */
     public function run(): void
     {
-        // Clear existing roles, permissions, and mappings
-        DB::table('role_permissions')->delete();
-        DB::table('user_roles')->delete();
-        DB::table('permissions')->delete();
-        DB::table('roles')->delete();
-
-        // 1. Roles
-        $roles = [
-            ['id' => 1, 'name' => 'Administrator', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'Cashier', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 3, 'name' => 'Manager', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
-        ];
-        DB::table('roles')->insert($roles);
-
-        // Seed permissions
-        $permissions = [
-            ['id' => 1, 'name' => 'view_dashboard', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'manage_sales', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 3, 'name' => 'manage_products', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
-        ];
-        DB::table('permissions')->insert($permissions);
-
-        // Assign user role
-        $adminUser = DB::table('users')->where('username', 'admin')->first();
-        if ($adminUser) {
-            DB::table('user_roles')->insert([
-                'user_id' => $adminUser->id,
-                'role_id' => 1,
-            ]);
-        }
+        // Roles and Permissions are now handled by UserManagementSeeder.
 
         // 2. Categories, Brands, Units
         $categories = [
