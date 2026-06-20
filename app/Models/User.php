@@ -74,7 +74,7 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function hasRole(string $roleName): bool
     {
-        if ($this->roles->contains('name', 'Super Admin')) {
+        if ($this->roles->contains('name', 'Super Admin') || $this->roles->contains('name', 'Admin') || $this->roles->contains('name', 'Administrator')) {
             return true;
         }
         return $this->roles->contains('name', $roleName);
@@ -85,8 +85,8 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function hasPermission(string $permissionName): bool
     {
-        // Super Admin has all permissions
-        if ($this->roles->contains('name', 'Super Admin')) {
+        // Super Admin and Admin have all permissions
+        if ($this->roles->contains('name', 'Super Admin') || $this->roles->contains('name', 'Admin') || $this->roles->contains('name', 'Administrator')) {
             return true;
         }
 

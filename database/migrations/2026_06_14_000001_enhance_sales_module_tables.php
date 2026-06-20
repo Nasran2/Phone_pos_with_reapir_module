@@ -94,7 +94,7 @@ return new class extends Migration
             Schema::create('customer_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('customer_id')->constrained()->onDelete('cascade');
-                $table->nullableMorphs('transactionable');
+                $table->nullableMorphs('transactionable', 'cust_txn_type_id_index');
                 $table->date('transaction_date')->index();
                 $table->string('type')->index();
                 $table->decimal('debit', 15, 2)->default(0);

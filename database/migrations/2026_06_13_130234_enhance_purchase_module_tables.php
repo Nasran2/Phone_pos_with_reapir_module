@@ -106,7 +106,7 @@ return new class extends Migration
             Schema::create('supplier_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
-                $table->nullableMorphs('transactionable');
+                $table->nullableMorphs('transactionable', 'supp_txn_type_id_index');
                 $table->date('transaction_date')->index();
                 $table->string('type')->index();
                 $table->decimal('debit', 15, 2)->default(0);
