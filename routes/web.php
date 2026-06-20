@@ -23,6 +23,11 @@ use App\Http\Controllers\StoreStockController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\DamagedStockController;
 
+Route::get('/link-storage', function () {
+    \Illuminate\Support\Facades\Artisan::call('storage:link');
+    return 'Storage linked successfully!';
+});
+
 Route::redirect('/', 'login')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
