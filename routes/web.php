@@ -22,6 +22,14 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StoreStockController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\DamagedStockController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DailyClosingController;
+use App\Http\Controllers\ChartOfAccountController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\JournalEntryController;
+use App\Http\Controllers\LedgerBookController;
+use App\Http\Controllers\CapitalDrawingController;
 
 Route::get('/link-storage', function () {
     \Illuminate\Support\Facades\Artisan::call('storage:link');
@@ -341,9 +349,48 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('damaged-stocks/{damagedStock}', [DamagedStockController::class, 'destroy'])
         ->name('damaged-stocks.destroy')
         ->middleware('permission:damaged_stock.delete');
+    // Damaged Stock
     Route::post('damaged-stocks/{damagedStock}/status', [DamagedStockController::class, 'updateStatus'])
         ->name('damaged-stocks.status')
         ->middleware('permission:damaged_stock.return');
+
+    // Accounting & Expenses
+    Route::prefix('accounting')->name('accounting.')->group(function () {
+        Route::resource('accounts', ChartOfAccountController::class)->middleware('permission:accounting.view');
+        Route::resource('expense-categories', ExpenseCategoryController::class)->middleware('permission:expenses.view');
+        Route::resource('expenses', ExpenseController::class)->middleware('permission:expenses.view');
+        Route::resource('journal-entries', JournalEntryController::class)->middleware('permission:accounting.view');
+        Route::get('ledger', [LedgerBookController::class, 'index'])->name('ledger.index')->middleware('permission:accounting.view');
+        Route::resource('capital-drawings', CapitalDrawingController::class)->middleware('permission:accounting.view');
+    });
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index')->middleware('permission:reports.view');
+        Route::get('/sales', [ReportController::class, 'sales'])->name('sales')->middleware('permission:reports.sales');
+        Route::get('/retail-sales', [ReportController::class, 'retailSales'])->name('retail_sales')->middleware('permission:reports.retail_sales');
+        Route::get('/wholesale-sales', [ReportController::class, 'wholesaleSales'])->name('wholesale_sales')->middleware('permission:reports.wholesale_sales');
+        Route::get('/sales-returns', [ReportController::class, 'salesReturns'])->name('sales_returns')->middleware('permission:reports.sales_returns');
+        Route::get('/purchases', [ReportController::class, 'purchases'])->name('purchases')->middleware('permission:reports.purchase');
+        Route::get('/purchase-returns', [ReportController::class, 'purchaseReturns'])->name('purchase_returns')->middleware('permission:reports.purchase_returns');
+        Route::get('/stock', [ReportController::class, 'stock'])->name('stock')->middleware('permission:reports.stock');
+        Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('low_stock')->middleware('permission:reports.low_stock');
+        Route::get('/stock-movement', [ReportController::class, 'stockMovement'])->name('stock_movement')->middleware('permission:reports.stock_movement');
+        Route::get('/damaged-stock', [ReportController::class, 'damagedStock'])->name('damaged_stock')->middleware('permission:reports.damaged_stock');
+        Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit')->middleware('permission:reports.product_profit');
+        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit_loss')->middleware('permission:reports.profit_loss');
+        Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses')->middleware('permission:reports.expense');
+        Route::get('/customer-due', [ReportController::class, 'customerDue'])->name('customer_due')->middleware('permission:reports.customer_due');
+        Route::get('/supplier-due', [ReportController::class, 'supplierDue'])->name('supplier_due')->middleware('permission:reports.supplier_due');
+        Route::get('/customer-payments', [ReportController::class, 'customerPayments'])->name('customer_payments')->middleware('permission:reports.customer_payment');
+        Route::get('/supplier-payments', [ReportController::class, 'supplierPayments'])->name('supplier_payments')->middleware('permission:reports.supplier_payment');
+        Route::get('/cash-bank', [ReportController::class, 'cashBank'])->name('cash_bank')->middleware('permission:reports.cash_bank');
+        Route::get('/tax', [ReportController::class, 'tax'])->name('tax')->middleware('permission:reports.tax');
+        Route::get('/user-activity', [ReportController::class, 'userActivity'])->name('user_activity')->middleware('permission:reports.user_activity');
+        
+        Route::get('/daily-closing', [DailyClosingController::class, 'index'])->name('daily_closing')->middleware('permission:reports.daily_closing');
+        Route::post('/daily-closing', [DailyClosingController::class, 'store'])->name('daily_closing.store')->middleware('permission:reports.daily_closing');
+    });
 });
 
 require __DIR__.'/settings.php';

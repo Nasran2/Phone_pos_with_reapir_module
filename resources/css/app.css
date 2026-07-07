@@ -45,6 +45,17 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    select,
+    textarea {
+        @apply px-3 py-2.5 min-h-[42px] leading-relaxed;
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
@@ -64,3 +75,32 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@media print {
+    aside, header, nav, footer, .no-print {
+        display: none !important;
+    }
+    body, main {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
+        box-shadow: none !important;
+    }
+    .border {
+        border-color: #000 !important;
+    }
+    .bg-white {
+        background-color: transparent !important;
+    }
+    .bg-slate-50 {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    @page {
+        margin: 1cm;
+    }
+}

@@ -43,7 +43,12 @@ class UserManagementSeeder extends Seeder
             // Accounting
             'accounting.view', 'cashbook.view', 'bank.view', 't_account.view',
             // Reports
-            'reports.view', 'sales_report.view', 'purchase_report.view', 'stock_report.view', 'profit_loss.view',
+            'reports.view', 'reports.sales', 'reports.retail_sales', 'reports.wholesale_sales',
+            'reports.sales_returns', 'reports.purchase', 'reports.purchase_returns', 'reports.stock',
+            'reports.low_stock', 'reports.stock_movement', 'reports.damaged_stock', 'reports.product_profit',
+            'reports.profit_loss', 'reports.expense', 'reports.customer_due', 'reports.supplier_due',
+            'reports.customer_payment', 'reports.supplier_payment', 'reports.cash_bank', 'reports.daily_closing',
+            'reports.tax', 'reports.user_activity', 'reports.export_pdf', 'reports.export_excel',
             // Settings
             'settings.view', 'settings.update',
             // User Management
@@ -112,7 +117,12 @@ class UserManagementSeeder extends Seeder
                 'perms' => [
                     'dashboard.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 
                     'accounting.view', 'cashbook.view', 'bank.view', 't_account.view', 'reports.view', 
-                    'sales_report.view', 'purchase_report.view', 'stock_report.view', 'profit_loss.view',
+                    'reports.sales', 'reports.retail_sales', 'reports.wholesale_sales', 'reports.sales_returns',
+                    'reports.purchase', 'reports.purchase_returns', 'reports.stock', 'reports.low_stock',
+                    'reports.stock_movement', 'reports.damaged_stock', 'reports.product_profit', 'reports.profit_loss',
+                    'reports.expense', 'reports.customer_due', 'reports.supplier_due', 'reports.customer_payment',
+                    'reports.supplier_payment', 'reports.cash_bank', 'reports.daily_closing', 'reports.tax',
+                    'reports.user_activity', 'reports.export_pdf', 'reports.export_excel',
                     'customers.view', 'customers.statement', 'customers.payment',
                     'suppliers.view', 'suppliers.statement', 'suppliers.payment'
                 ]
