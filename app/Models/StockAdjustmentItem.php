@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockAdjustmentItem extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'stock_adjustment_id',
         'product_id',

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
+    use \App\Traits\LogsActivity;
+
     use SoftDeletes;
 
     protected $fillable = ['name', 'slug', 'description', 'parent_id'];

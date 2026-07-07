@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CustomerTransaction extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'customer_id',
         'transactionable_type',

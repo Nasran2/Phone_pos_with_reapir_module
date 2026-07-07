@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SupplierTransaction extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'supplier_id',
         'transactionable_type',

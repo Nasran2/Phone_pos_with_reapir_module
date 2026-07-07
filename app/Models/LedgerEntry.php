@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class LedgerEntry extends Model
 {
+    use \App\Traits\LogsActivity;
+
     use HasFactory;
 
     protected $fillable = ['chart_of_account_id', 'journal_entry_id', 'entry_date', 'debit', 'credit', 'balance'];

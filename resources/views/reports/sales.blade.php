@@ -1,6 +1,7 @@
 <x-report-layout 
     title="Sales Report" 
     :summary="$summary ?? []" 
+    :chartData="$chartData ?? []" 
     :exportPdf="true" 
     :exportExcel="true" 
     :exportRoute="route('reports.sales')" 
@@ -11,7 +12,7 @@
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Quick Date</label>
                 <select name="date_filter" class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-                    <option value="today" {{ request('date_filter') == 'today' ? 'selected' : '' }}>Today</option>
+                    <option value="today" {{ request('date_filter', 'today') == 'today' ? 'selected' : '' }}>Today</option>
                     <option value="yesterday" {{ request('date_filter') == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                     <option value="this_week" {{ request('date_filter') == 'this_week' ? 'selected' : '' }}>This Week</option>
                     <option value="last_week" {{ request('date_filter') == 'last_week' ? 'selected' : '' }}>Last Week</option>
@@ -64,18 +65,22 @@
         </thead>
         <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @forelse($sales as $sale)
+                @php
+                    $saleType = $sale->pos_type ?? 'retail';
+                    $paymentStatus = strtolower($sale->payment_status ?? 'due');
+                @endphp
                 <tr class="hover:bg-slate-50 transition">
                     <td class="p-4 font-medium text-slate-900">{{ $sale->invoice_no }}</td>
                     <td class="p-4">{{ $sale->created_at->format('Y-m-d H:i') }}</td>
                     <td class="p-4">{{ $sale->customer->name ?? 'Walk-in Customer' }}</td>
-                    <td class="p-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $sale->type === 'retail' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">{{ ucfirst($sale->type) }}</span></td>
-                    <td class="p-4 text-right font-bold text-slate-900">Rs. {{ number_format($sale->grand_total, 2) }}</td>
+                    <td class="p-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $saleType === 'retail' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">{{ ucfirst($saleType) }}</span></td>
+                    <td class="p-4 text-right font-bold text-slate-900">Rs. {{ number_format((float) ($sale->payable_amount ?? $sale->grand_total ?? $sale->total_amount ?? 0), 2) }}</td>
                     <td class="p-4 text-right text-emerald-600 font-medium">Rs. {{ number_format($sale->paid_amount, 2) }}</td>
                     <td class="p-4 text-right text-rose-600 font-medium">Rs. {{ number_format($sale->due_amount, 2) }}</td>
                     <td class="p-4 text-center">
-                        @if($sale->payment_status === 'paid')
+                        @if($paymentStatus === 'paid')
                             <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold">Paid</span>
-                        @elseif($sale->payment_status === 'partial')
+                        @elseif($paymentStatus === 'partial')
                             <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-bold">Partial</span>
                         @else
                             <span class="px-2 py-1 bg-rose-100 text-rose-700 rounded-md text-xs font-bold">Due</span>

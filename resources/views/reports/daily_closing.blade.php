@@ -1,6 +1,7 @@
 <x-report-layout 
     title="Daily Closing Report" 
     :summary="$summary ?? []" 
+    :chartData="$chartData ?? []" 
     :exportPdf="false" 
     :exportExcel="false" 
     :exportRoute="route('reports.daily_closing')" 

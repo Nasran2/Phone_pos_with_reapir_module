@@ -10,12 +10,38 @@
     <!-- Alpine.js (standard Laravel helper or lightweight CDN if needed, but simple vanilla JS is loaded easily) -->
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased font-sans flex flex-col lg:flex-row">
+    @php
+        $reportPermissions = [
+            'reports.view',
+            'reports.sales',
+            'reports.retail_sales',
+            'reports.wholesale_sales',
+            'reports.sales_returns',
+            'reports.purchase',
+            'reports.purchase_returns',
+            'reports.stock',
+            'reports.low_stock',
+            'reports.stock_movement',
+            'reports.damaged_stock',
+            'reports.product_profit',
+            'reports.profit_loss',
+            'reports.expense',
+            'reports.cash_bank',
+            'reports.tax',
+            'reports.daily_closing',
+            'reports.customer_due',
+            'reports.supplier_due',
+            'reports.customer_payment',
+            'reports.supplier_payment',
+            'reports.user_activity',
+        ];
+        $canAccessReports = auth()->check() && collect($reportPermissions)->contains(fn ($permission) => auth()->user()->hasPermission($permission));
+    @endphp
     
     <!-- Desktop Sidebar (Hidden on mobile) -->
-    <aside class="w-64 bg-[#0c1630] text-slate-300 flex-col justify-between border-r border-[#182647] h-screen sticky top-0 left-0 hidden lg:flex shrink-0 z-40 overflow-y-auto">
-        <div>
-            <!-- Brand Logo Header -->
-            <div class="flex items-center gap-3 px-6 py-5 border-b border-[#182647] bg-[#091024]">
+    <aside class="w-64 bg-[#0c1630] text-slate-300 flex flex-col border-r border-[#182647] h-screen sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
+        <!-- Brand Logo Header -->
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-[#182647] bg-[#091024] shrink-0">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 shrink-0">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <rect x="2" y="3" width="20" height="12" rx="2" />
@@ -31,8 +57,10 @@
                     <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">Retail & Wholesale</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Sidebar Nav Links -->
+        <!-- Sidebar Nav Links -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
             <nav class="p-4 space-y-1">
                 <!-- Dashboard Link -->
                 @if (auth()->user()->hasPermission('dashboard.view'))
@@ -250,7 +278,7 @@
                 @endif
 
                 <!-- Reports Link -->
-                @if (auth()->user()->hasPermission('reports.view'))
+                @if ($canAccessReports)
                 <div>
                     <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('reports.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
@@ -260,31 +288,7 @@
                         <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="{{ request()->routeIs('reports.*') ? '' : 'hidden' }} mt-1 space-y-1 pl-11">
-                        <a href="{{ route('reports.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.index') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">All Reports Dashboard</a>
-                        
-                        @if(auth()->user()->hasPermission('reports.sales') || auth()->user()->hasPermission('reports.retail_sales') || auth()->user()->hasPermission('reports.wholesale_sales') || auth()->user()->hasPermission('reports.sales_returns'))
-                        <a href="{{ route('reports.sales') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.sales') || request()->routeIs('reports.retail_sales') || request()->routeIs('reports.wholesale_sales') || request()->routeIs('reports.sales_returns') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Sales Reports</a>
-                        @endif
-
-                        @if(auth()->user()->hasPermission('reports.purchase') || auth()->user()->hasPermission('reports.purchase_returns'))
-                        <a href="{{ route('reports.purchases') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.purchases') || request()->routeIs('reports.purchase_returns') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Purchase Reports</a>
-                        @endif
-
-                        @if(auth()->user()->hasPermission('reports.stock') || auth()->user()->hasPermission('reports.low_stock') || auth()->user()->hasPermission('reports.stock_movement') || auth()->user()->hasPermission('reports.damaged_stock'))
-                        <a href="{{ route('reports.stock') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.stock') || request()->routeIs('reports.low_stock') || request()->routeIs('reports.stock_movement') || request()->routeIs('reports.damaged_stock') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Stock Reports</a>
-                        @endif
-
-                        @if(auth()->user()->hasPermission('reports.product_profit') || auth()->user()->hasPermission('reports.profit_loss') || auth()->user()->hasPermission('reports.expense') || auth()->user()->hasPermission('reports.cash_bank') || auth()->user()->hasPermission('reports.tax'))
-                        <a href="{{ route('reports.profit_loss') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.profit_loss') || request()->routeIs('reports.product_profit') || request()->routeIs('reports.expenses') || request()->routeIs('reports.cash_bank') || request()->routeIs('reports.tax') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Finance Reports</a>
-                        @endif
-                        
-                        @if(auth()->user()->hasPermission('reports.customer_due') || auth()->user()->hasPermission('reports.supplier_due') || auth()->user()->hasPermission('reports.customer_payment') || auth()->user()->hasPermission('reports.supplier_payment'))
-                        <a href="{{ route('reports.customer_due') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.customer_due') || request()->routeIs('reports.supplier_due') || request()->routeIs('reports.customer_payments') || request()->routeIs('reports.supplier_payments') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Customer & Supplier</a>
-                        @endif
-                        
-                        @if(auth()->user()->hasPermission('reports.daily_closing'))
-                        <a href="{{ route('reports.daily_closing') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.daily_closing') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Daily Closing</a>
-                        @endif
+                        @include('layouts.app.partials.reports-nav')
                     </div>
                 </div>
                 @endif
@@ -302,10 +306,10 @@
         </div>
 
         <!-- Sidebar Bottom: POS Shortcuts & User Details -->
-        <div>
+        <div class="shrink-0 border-t border-[#182647] bg-[#091024]/20">
             <!-- POS Shortcuts Grid -->
             @if (auth()->user()->hasPermission('retail_pos.view') || auth()->user()->hasPermission('wholesale_pos.view'))
-            <div class="p-4 grid grid-cols-2 gap-2.5 border-t border-[#182647] bg-[#091024]/40">
+            <div class="p-4 grid grid-cols-2 gap-2.5">
                 @if (auth()->user()->hasPermission('retail_pos.view'))
                 <a href="{{ route('pos.retail') }}" class="flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition text-xs shadow-lg shadow-blue-500/10">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -398,14 +402,14 @@
 
     <!-- Mobile Off-Canvas Sidebar Menu overlay -->
     <div id="mobile-sidebar" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden lg:hidden">
-        <div class="w-64 bg-[#0c1630] h-full overflow-y-auto flex flex-col justify-between shadow-2xl relative border-r border-[#182647]">
-            <button onclick="toggleMobileSidebar()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer">
+        <div class="w-64 bg-[#0c1630] h-full flex flex-col shadow-2xl relative border-r border-[#182647]">
+            <button onclick="toggleMobileSidebar()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer z-50">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
             </button>
             
-            <div class="pt-12">
+            <div class="flex-1 overflow-y-auto custom-scrollbar pt-12">
                 <!-- Nav Links replicated inside mobile panel -->
                 <nav class="p-4 space-y-1">
                     @if (auth()->user()->hasPermission('dashboard.view'))
@@ -499,7 +503,7 @@
                     <a href="{{ route('accounting.expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('accounting.expenses.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Expenses</a>
                     @endif
 
-                    @if (auth()->user()->hasPermission('reports.view'))
+                    @if ($canAccessReports)
                     <div>
                         <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('reports.*') ? 'bg-[#182647]/50 text-white' : 'text-slate-350' }}">
                             <div class="flex items-center gap-3">
@@ -509,47 +513,25 @@
                             <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
                         <div class="{{ request()->routeIs('reports.*') ? '' : 'hidden' }} mt-1 space-y-1 pl-11">
-                            <a href="{{ route('reports.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.index') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">All Reports Dashboard</a>
-                            
-                            @if(auth()->user()->hasPermission('reports.sales') || auth()->user()->hasPermission('reports.retail_sales') || auth()->user()->hasPermission('reports.wholesale_sales') || auth()->user()->hasPermission('reports.sales_returns'))
-                            <a href="{{ route('reports.sales') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.sales') || request()->routeIs('reports.retail_sales') || request()->routeIs('reports.wholesale_sales') || request()->routeIs('reports.sales_returns') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Sales Reports</a>
-                            @endif
-
-                            @if(auth()->user()->hasPermission('reports.purchase') || auth()->user()->hasPermission('reports.purchase_returns'))
-                            <a href="{{ route('reports.purchases') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.purchases') || request()->routeIs('reports.purchase_returns') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Purchase Reports</a>
-                            @endif
-
-                            @if(auth()->user()->hasPermission('reports.stock') || auth()->user()->hasPermission('reports.low_stock') || auth()->user()->hasPermission('reports.stock_movement') || auth()->user()->hasPermission('reports.damaged_stock'))
-                            <a href="{{ route('reports.stock') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.stock') || request()->routeIs('reports.low_stock') || request()->routeIs('reports.stock_movement') || request()->routeIs('reports.damaged_stock') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Stock Reports</a>
-                            @endif
-
-                            @if(auth()->user()->hasPermission('reports.product_profit') || auth()->user()->hasPermission('reports.profit_loss') || auth()->user()->hasPermission('reports.expense') || auth()->user()->hasPermission('reports.cash_bank') || auth()->user()->hasPermission('reports.tax'))
-                            <a href="{{ route('reports.profit_loss') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.profit_loss') || request()->routeIs('reports.product_profit') || request()->routeIs('reports.expenses') || request()->routeIs('reports.cash_bank') || request()->routeIs('reports.tax') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Finance Reports</a>
-                            @endif
-                            
-                            @if(auth()->user()->hasPermission('reports.customer_due') || auth()->user()->hasPermission('reports.supplier_due') || auth()->user()->hasPermission('reports.customer_payment') || auth()->user()->hasPermission('reports.supplier_payment'))
-                            <a href="{{ route('reports.customer_due') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.customer_due') || request()->routeIs('reports.supplier_due') || request()->routeIs('reports.customer_payments') || request()->routeIs('reports.supplier_payments') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Customer & Supplier</a>
-                            @endif
-                            
-                            @if(auth()->user()->hasPermission('reports.daily_closing'))
-                            <a href="{{ route('reports.daily_closing') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('reports.daily_closing') ? 'text-white' : 'text-slate-400 hover:text-white transition' }}">Daily Closing</a>
-                            @endif
+                            @include('layouts.app.partials.reports-nav')
                         </div>
                     </div>
                     @endif
                 </nav>
             </div>
             
-            @if (auth()->user()->hasPermission('retail_pos.view') || auth()->user()->hasPermission('wholesale_pos.view'))
-            <div class="p-4 grid grid-cols-2 gap-2 border-t border-[#182647]">
-                @if (auth()->user()->hasPermission('retail_pos.view'))
-                <a href="{{ route('pos.retail') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">Retail POS</a>
-                @endif
-                @if (auth()->user()->hasPermission('wholesale_pos.view'))
-                <a href="{{ route('pos.wholesale') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Wholesale POS</a>
+            <div class="shrink-0 border-t border-[#182647] bg-[#091024]/20">
+                @if (auth()->user()->hasPermission('retail_pos.view') || auth()->user()->hasPermission('wholesale_pos.view'))
+                <div class="p-4 grid grid-cols-2 gap-2">
+                    @if (auth()->user()->hasPermission('retail_pos.view'))
+                    <a href="{{ route('pos.retail') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">Retail POS</a>
+                    @endif
+                    @if (auth()->user()->hasPermission('wholesale_pos.view'))
+                    <a href="{{ route('pos.wholesale') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Wholesale POS</a>
+                    @endif
+                </div>
                 @endif
             </div>
-            @endif
         </div>
     </div>
 

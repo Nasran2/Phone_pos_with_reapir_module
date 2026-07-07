@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DamagedStock extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $table = 'damaged_stocks';
 
     protected $fillable = [

@@ -1,6 +1,7 @@
 <x-report-layout 
     title="Purchase Return Report" 
     :summary="$summary ?? []" 
+    :chartData="$chartData ?? []" 
     :exportPdf="true" 
     :exportExcel="true" 
     :exportRoute="route('reports.purchase_returns')" 
@@ -11,12 +12,14 @@
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Quick Date</label>
                 <select name="date_filter" class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-                    <option value="today" {{ request('date_filter') == 'today' ? 'selected' : '' }}>Today</option>
+                    <option value="today" {{ request('date_filter', 'today') == 'today' ? 'selected' : '' }}>Today</option>
                     <option value="yesterday" {{ request('date_filter') == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                     <option value="this_week" {{ request('date_filter') == 'this_week' ? 'selected' : '' }}>This Week</option>
+                    <option value="last_week" {{ request('date_filter') == 'last_week' ? 'selected' : '' }}>Last Week</option>
                     <option value="this_month" {{ request('date_filter') == 'this_month' ? 'selected' : '' }}>This Month</option>
+                    <option value="last_month" {{ request('date_filter') == 'last_month' ? 'selected' : '' }}>Last Month</option>
                     <option value="this_year" {{ request('date_filter') == 'this_year' ? 'selected' : '' }}>This Year</option>
-                    <option value="custom" {{ request('date_filter') == 'custom' ? 'selected' : '' }}>Custom Range</option>
+                    <option value="custom" {{ request('date_filter') == 'custom' ? 'selected' : '' }}>Custom Date Range</option>
                 </select>
             </div>
             <div>
@@ -47,7 +50,7 @@
                     <td class="p-4">{{ $item->return_no }}</td>
                     <td class="p-4">{{ $item->created_at->format("Y-m-d") }}</td>
                     <td class="p-4">{{ $item->supplier->name ?? "-" }}</td>
-                    <td class="p-4">{{ $item->return_amount }}</td>
+                    <td class="p-4">Rs. {{ number_format((float) ($item->total_amount ?? $item->refund_amount ?? 0), 2) }}</td>
                     <td class="p-4">{{ $item->reason }}</td>
 
                 </tr>

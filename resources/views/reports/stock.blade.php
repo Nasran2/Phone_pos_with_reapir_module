@@ -1,6 +1,7 @@
 <x-report-layout 
     title="Stock Report" 
     :summary="$summary ?? []" 
+    :chartData="$chartData ?? []" 
     :exportPdf="true" 
     :exportExcel="true" 
     :exportRoute="route('reports.stock')" 

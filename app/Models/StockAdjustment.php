@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockAdjustment extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'adjustment_no',
         'adjustment_date',

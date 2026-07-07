@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Supplier extends Model
 {
+    use \App\Traits\LogsActivity;
+
     use SoftDeletes;
 
     protected $fillable = [

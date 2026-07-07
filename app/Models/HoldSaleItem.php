@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class HoldSaleItem extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'hold_sale_id',
         'product_id',

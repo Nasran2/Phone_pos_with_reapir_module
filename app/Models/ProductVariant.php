@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductVariant extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'product_id', 'color', 'storage', 'ram', 'sku', 
         'cost_price', 'retail_price', 'wholesale_price', 'stock_quantity', 'is_active'

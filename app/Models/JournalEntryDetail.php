@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class JournalEntryDetail extends Model
 {
+    use \App\Traits\LogsActivity;
+
     use HasFactory;
 
     protected $fillable = ['journal_entry_id', 'account_id', 'debit', 'credit', 'description'];

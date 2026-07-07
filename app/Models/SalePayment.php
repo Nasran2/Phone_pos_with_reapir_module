@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SalePayment extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'sale_id',
         'payment_date',

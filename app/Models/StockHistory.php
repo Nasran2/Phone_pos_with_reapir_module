@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockHistory extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $table = 'stock_histories';
 
     protected $fillable = [

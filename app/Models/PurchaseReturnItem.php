@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class PurchaseReturnItem extends Model
 {
+    use \App\Traits\LogsActivity;
+
     protected $fillable = [
         'purchase_return_id',
         'purchase_item_id',
