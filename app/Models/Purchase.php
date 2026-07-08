@@ -11,6 +11,7 @@ class Purchase extends Model
     protected $fillable = [
         'purchase_no',
         'supplier_id',
+        'store_id',
         'invoice_no',
         'reference_no',
         'purchase_date',
@@ -72,5 +73,10 @@ class Purchase extends Model
     public function displayNo(): string
     {
         return $this->purchase_no ?: $this->invoice_no;
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 }

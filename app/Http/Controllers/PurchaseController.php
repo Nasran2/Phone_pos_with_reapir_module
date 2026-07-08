@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Product;
-use App\Models\ProductStock;
+use App\Models\ProductStoreStock;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\PurchasePayment;
@@ -97,6 +97,7 @@ class PurchaseController extends Controller
                 'paid_amount' => $totals['paid_amount'],
                 'due_amount' => $totals['due_amount'],
                 'status' => $validated['status'],
+                'store_id' => $validated['store_id'] ?? \App\Models\Setting::get('default_store_id', 1),
                 'document_path' => $documentPath,
                 'notes' => $validated['notes'] ?? null,
                 'stock_updated' => false,
@@ -178,6 +179,7 @@ class PurchaseController extends Controller
                 'paid_amount' => $totals['paid_amount'],
                 'due_amount' => $totals['due_amount'],
                 'status' => $validated['status'],
+                'store_id' => $validated['store_id'] ?? \App\Models\Setting::get('default_store_id', 1),
                 'document_path' => $documentPath,
                 'notes' => $validated['notes'] ?? null,
                 'stock_updated' => false,
@@ -321,6 +323,8 @@ class PurchaseController extends Controller
             'products' => $products,
             'statuses' => $this->statuses,
             'paymentMethods' => ['Cash', 'Bank Transfer', 'Card', 'Cheque', 'Credit / Due'],
+            'enableMultiStore' => \App\Models\Setting::get('enable_multi_store', false),
+            'stores' => \App\Models\Setting::get('enable_multi_store', false) ? DB::table('stores')->where('status', true)->get() : [],
         ];
     }
 
@@ -351,6 +355,7 @@ class PurchaseController extends Controller
             'payment_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_reference' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
+            'store_id' => ['nullable', 'exists:stores,id'],
         ]);
     }
 
@@ -457,7 +462,10 @@ class PurchaseController extends Controller
                 continue;
             }
 
-            $stock = ProductStock::firstOrCreate(['product_id' => $product->id], ['quantity' => 0]);
+            $stock = ProductStoreStock::firstOrCreate([
+                'product_id' => $product->id,
+                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+            ], ['quantity' => 0]);
             $stock->quantity = (float) $stock->quantity + (float) $item->quantity;
             $stock->save();
 
@@ -477,6 +485,7 @@ class PurchaseController extends Controller
                 'reference_no' => $purchase->displayNo(),
                 'note' => 'Purchase received',
                 'created_by' => auth()->id(),
+                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1),
             ]);
 
             $this->recordStockMovement($product->id, (float) $item->quantity, 'purchase', $purchase->id, $purchase->displayNo());
@@ -490,7 +499,10 @@ class PurchaseController extends Controller
         $purchase->loadMissing('items.product');
 
         foreach ($purchase->items as $item) {
-            $stock = ProductStock::firstOrCreate(['product_id' => $item->product_id], ['quantity' => 0]);
+            $stock = ProductStoreStock::firstOrCreate([
+                'product_id' => $item->product_id,
+                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+            ], ['quantity' => 0]);
             $stock->quantity = max(0, (float) $stock->quantity - (float) $item->quantity);
             $stock->save();
 
@@ -502,6 +514,7 @@ class PurchaseController extends Controller
                 'reference_no' => $purchase->displayNo(),
                 'note' => $note,
                 'created_by' => auth()->id(),
+                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1),
             ]);
         }
 

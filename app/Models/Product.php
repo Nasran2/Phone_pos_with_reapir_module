@@ -40,9 +40,42 @@ class Product extends Model
         return $this->belongsTo(Unit::class);
     }
 
+    /**
+     * Get the global stock for this product (deprecated in multi-store, use getStockForStore).
+     */
     public function stock()
     {
-        return $this->hasOne(ProductStock::class);
+        return $this->hasOne(ProductStoreStock::class)->where('store_id', Setting::get('default_store_id', 1));
+    }
+
+    /**
+     * Get all store stock entries for this product.
+     */
+    public function storeStocks()
+    {
+        return $this->hasMany(ProductStoreStock::class);
+    }
+
+    /**
+     * Get stores this product is available in.
+     */
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class, 'product_store_stock')
+                    ->withPivot('quantity', 'minimum_stock', 'maximum_stock', 'last_purchase', 'last_sale')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get stock for a specific store.
+     */
+    public function getStockForStore($storeId = null)
+    {
+        if (!$storeId) {
+            $storeId = Setting::get('default_store_id', 1);
+        }
+        $stock = $this->storeStocks()->where('store_id', $storeId)->first();
+        return $stock ? $stock->quantity : 0;
     }
 
     public function variants()

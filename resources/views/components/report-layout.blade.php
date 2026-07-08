@@ -55,6 +55,9 @@
         $donutCursor = $end;
     }
     $donutBackground = $donutTotal > 0 ? 'conic-gradient('.implode(',', $donutStops).')' : 'conic-gradient(#e2e8f0 0% 100%)';
+
+    $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
+    $stores = $enableMultiStore ? \Illuminate\Support\Facades\DB::table('stores')->where('status', true)->get() : collect();
 @endphp
 
 <x-layouts::app :title="$title">
@@ -99,10 +102,10 @@
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-2.64-6.36M21 3v6h-6" /></svg>
                             Refresh
                         </a>
-                        <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-xs font-black text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v7H6z" /></svg>
-                            Print
-                        </button>
+                        <a href="{{ request()->fullUrlWithQuery(['type' => 'pdf']) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-xs font-black text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                            Print / PDF
+                        </a>
                         @if($exportPdf)
                             <a href="{{ $exportRoute ? $exportRoute . '?type=pdf&' . http_build_query(request()->except('type')) : '#' }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-black text-red-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-md dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-300">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6M12 18v-6m0 6l-3-3m3 3l3-3" /></svg>
@@ -159,6 +162,17 @@
                         </div>
 
                         <div class="[&_label]:mb-1 [&_label]:text-xs [&_label]:font-black [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-slate-500 [&_input]:rounded-xl [&_input]:border-slate-200 [&_input]:bg-slate-50 [&_input]:text-sm [&_input]:font-semibold [&_input]:shadow-sm [&_input]:transition [&_input]:focus:border-blue-400 [&_input]:focus:ring-blue-400 [&_select]:rounded-xl [&_select]:border-slate-200 [&_select]:bg-slate-50 [&_select]:text-sm [&_select]:font-semibold [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-blue-400 [&_select]:focus:ring-blue-400 dark:[&_input]:border-slate-700 dark:[&_input]:bg-slate-950 dark:[&_input]:text-slate-200 dark:[&_select]:border-slate-700 dark:[&_select]:bg-slate-950 dark:[&_select]:text-slate-200">
+                            @if($enableMultiStore)
+                                <div class="mb-4">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Store Filter</label>
+                                    <select name="store_id" class="w-full md:w-1/4 rounded-xl border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
+                                        <option value="">All Stores</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
                             {{ $filterContent ?? '' }}
                         </div>
 

@@ -114,7 +114,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search by name, phone, email..." 
-                        class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
                     />
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -127,7 +127,7 @@
                 <div>
                     <select 
                         name="status" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
                     >
                         <option value="">All Statuses</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Only</option>
@@ -302,33 +302,33 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Customer Name *</label>
-                        <input type="text" name="name" id="cust_name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Priyantha Perera">
+                        <input type="text" name="name" id="cust_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Priyantha Perera">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Phone Number *</label>
-                        <input type="text" name="phone" id="cust_phone" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 0771234567">
+                        <input type="text" name="phone" id="cust_phone" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 0771234567">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Email Address</label>
-                        <input type="email" name="email" id="cust_email" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="name@domain.com">
+                        <input type="email" name="email" id="cust_email" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="name@domain.com">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Credit Limit (Rs.)</label>
-                        <input type="number" step="0.01" name="credit_limit" id="cust_credit_limit" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 50000">
+                        <input type="number" step="0.01" name="credit_limit" id="cust_credit_limit" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 50000">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div id="openingBalanceField">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Opening Due Balance (Rs.)</label>
-                        <input type="number" step="0.01" name="opening_balance" id="cust_opening_balance" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                        <input type="number" step="0.01" name="opening_balance" id="cust_opening_balance" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Status *</label>
-                        <select name="status" id="cust_status" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                        <select name="status" id="cust_status" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                             <option value="1">Active</option>
                             <option value="0">Inactive</option>
                         </select>
@@ -337,12 +337,12 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Address</label>
-                    <input type="text" name="address" id="cust_address" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Galle Road, Colombo 03">
+                    <input type="text" name="address" id="cust_address" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Galle Road, Colombo 03">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
-                    <textarea name="notes" id="cust_notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Write any specific notes here..."></textarea>
+                    <textarea name="notes" id="cust_notes" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Write any specific notes here..."></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
@@ -375,7 +375,7 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Payment Amount (Rs.) *</label>
-                    <input type="number" step="0.01" min="0.01" name="amount" id="pay_amount" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                    <input type="number" step="0.01" min="0.01" name="amount" id="pay_amount" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -385,7 +385,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Payment Method *</label>
-                        <select name="payment_method" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white">
+                        <select name="payment_method" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="Card">Card</option>
@@ -397,12 +397,12 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Reference / Slip Number</label>
-                    <input type="text" name="reference_no" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Txn-45214">
+                    <input type="text" name="reference_no" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Txn-45214">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Note</label>
-                    <textarea name="note" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Payment receipt details..."></textarea>
+                    <textarea name="note" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Payment receipt details..."></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">

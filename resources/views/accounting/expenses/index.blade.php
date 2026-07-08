@@ -230,7 +230,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Attachment (Bill/Receipt)</label>
-                        <input type="file" name="attachment" accept="image/*,.pdf" class="w-full rounded-lg border border-slate-300 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100">
+                        <input type="file" name="attachment" accept="image/*,.pdf" class="w-full rounded-lg border border-slate-300 text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100">
                     </div>
 
                     <div class="md:col-span-2">

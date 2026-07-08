@@ -19,7 +19,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <div class="lg:col-span-2">
                     <label class="text-xs font-bold text-slate-700">Purchase Invoice <span class="text-red-500">*</span></label>
-                    <select id="purchase_id" name="purchase_id" required onchange="loadPurchase()" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select id="purchase_id" name="purchase_id" required onchange="loadPurchase()" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white">
                         <option value="">Please Select</option>
                         @foreach($purchaseData as $purchase)
                         <option value="{{ $purchase['id'] }}" @selected(old('purchase_id') == $purchase['id'])>{{ $purchase['purchase_no'] }} - {{ $purchase['supplier'] }}</option>
@@ -32,7 +32,7 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-700">Refund Method</label>
-                    <select name="refund_method" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select name="refund_method" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white">
                         @foreach(['Supplier Credit', 'Cash', 'Bank Transfer', 'Card', 'Cheque'] as $method)
                         <option value="{{ $method }}" @selected(old('refund_method', 'Supplier Credit') === $method)>{{ $method }}</option>
                         @endforeach
@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-700">Refund Status</label>
-                    <select name="refund_status" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select name="refund_status" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white">
                         @foreach(['Supplier Credit', 'Pending', 'Refunded'] as $status)
                         <option value="{{ $status }}" @selected(old('refund_status', 'Supplier Credit') === $status)>{{ $status }}</option>
                         @endforeach
@@ -48,11 +48,11 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-700">Refund Amount</label>
-                    <input id="refund_amount" name="refund_amount" value="{{ old('refund_amount', 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
+                    <input id="refund_amount" name="refund_amount" value="{{ old('refund_amount', 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
                 </div>
                 <div class="lg:col-span-2">
                     <label class="text-xs font-bold text-slate-700">Return Reason <span class="text-red-500">*</span></label>
-                    <input name="reason" value="{{ old('reason') }}" required placeholder="Damaged item, wrong product, supplier credit..." class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
+                    <input name="reason" value="{{ old('reason') }}" required placeholder="Damaged item, wrong product, supplier credit..." class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
                 </div>
             </div>
 
@@ -117,7 +117,7 @@
                     <td class="px-4 py-3 text-right font-bold">${Number(item.remaining_quantity).toFixed(2)}</td>
                     <td class="px-4 py-3 text-right">${money(item.cost_price)}</td>
                     <td class="px-4 py-3 text-right">
-                        <input name="items[${index}][quantity]" type="number" min="0" max="${item.remaining_quantity}" step="0.01" value="0" data-cost="${item.cost_price}" data-max="${item.remaining_quantity}" class="return-qty w-24 px-2 py-2 border border-slate-200 rounded-lg text-right" oninput="calculateReturn()">
+                        <input name="items[${index}][quantity]" type="number" min="0" max="${item.remaining_quantity}" step="0.01" value="0" data-cost="${item.cost_price}" data-max="${item.remaining_quantity}" class="return-qty w-24 px-2 py-2.5 border border-slate-200 rounded-lg text-right" oninput="calculateReturn()">
                     </td>
                     <td class="px-4 py-3 text-right font-black line-total">Rs. 0.00</td>
                 </tr>

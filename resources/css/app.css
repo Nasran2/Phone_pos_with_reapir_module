@@ -76,6 +76,18 @@ select:focus[data-flux-control] {
     @apply size-4;
 } */
 
+@layer utilities {
+    .scrollbar-hide {
+        /* IE and Edge */
+        -ms-overflow-style: none;
+        /* Firefox */
+        scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 @media print {
     aside, header, nav, footer, .no-print {
         display: none !important;

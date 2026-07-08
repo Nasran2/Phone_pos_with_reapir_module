@@ -40,7 +40,7 @@
                         id="adjustment_type" 
                         required 
                         onchange="recalculateAllRows()"
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
                     >
                         <option value="increase">Stock Increase</option>
                         <option value="decrease">Stock Decrease</option>
@@ -67,7 +67,7 @@
                         name="reason" 
                         required 
                         placeholder="e.g. Stock count audit discrepancy" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850"
                     >
                 </div>
 
@@ -76,7 +76,7 @@
                     <input 
                         type="file" 
                         name="document" 
-                        class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5.5 file:px-3.5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                     >
                 </div>
 
@@ -85,7 +85,7 @@
                     <textarea 
                         name="notes" 
                         rows="3" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850"
                         placeholder="Extra notes about this adjustment..."
                     ></textarea>
                 </div>
@@ -107,7 +107,7 @@
                         <select 
                             id="productSelector" 
                             onchange="addProductRow(this)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white"
+                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white"
                         >
                             <option value="">-- Add Product to Adjust --</option>
                             @foreach($products as $prod)
@@ -195,7 +195,7 @@
                         step="0.01" 
                         min="0.01"
                         name="items[${rowIndex}][quantity]" 
-                        class="qty-input w-24 px-2.5 py-1.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold"
+                        class="qty-input w-24 px-2.5 py-2.5.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold"
                         value="1" 
                         oninput="calculateRow(this.closest('tr'))"
                         required
@@ -204,7 +204,7 @@
                 <td class="px-6 py-4 text-right">
                     <input 
                         type="text" 
-                        class="new-stock-display w-24 px-2.5 py-1.5 bg-slate-50 border border-slate-150 rounded text-right font-bold text-slate-800 focus:outline-none"
+                        class="new-stock-display w-24 px-2.5 py-2.5.5 bg-slate-50 border border-slate-150 rounded text-right font-bold text-slate-800 focus:outline-none"
                         value="${(currentStock + 1).toFixed(0)}"
                         readonly
                     >

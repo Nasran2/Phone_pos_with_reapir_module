@@ -58,10 +58,10 @@ class StoreStockController extends Controller
         $totalProducts = Product::count();
 
         // Stock value = sum of quantity * cost_price
-        $stockValue = DB::table('product_stock')
-            ->join('products', 'products.id', '=', 'product_stock.product_id')
+        $stockValue = DB::table('product_store_stock')
+            ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->whereNull('products.deleted_at')
-            ->sum(DB::raw('product_stock.quantity * products.cost_price'));
+            ->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
 
         // Low stock count (quantity <= stock_alert_quantity and quantity > 0)
         $lowStockItems = Product::whereHas('stock', function ($q) {

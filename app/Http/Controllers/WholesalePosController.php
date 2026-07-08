@@ -15,10 +15,18 @@ class WholesalePosController extends Controller
         // Fetch Categories
         $categories = DB::table('categories')->get();
 
-        // Fetch Products with current stock levels
+        $storeId = \App\Models\Setting::get('default_store_id', 1);
+        if (request()->has('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $storeId = request('store_id');
+        }
+
+        // Fetch Products with current stock levels from specific store
         $products = DB::table('products')
-            ->leftJoin('product_stock', 'product_stock.product_id', '=', 'products.id')
-            ->select('products.*', DB::raw('COALESCE(product_stock.quantity, 0) as stock'))
+            ->leftJoin('product_store_stock', function($join) use ($storeId) {
+                $join->on('product_store_stock.product_id', '=', 'products.id')
+                     ->where('product_store_stock.store_id', '=', $storeId);
+            })
+            ->select('products.*', DB::raw('COALESCE(product_store_stock.quantity, 0) as stock'))
             ->whereNull('products.deleted_at')
             ->get();
 
@@ -71,7 +79,12 @@ class WholesalePosController extends Controller
             ->where('is_active', true)
             ->get();
 
-        return view('pos.wholesale', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold'));
+        // Fetch Stores if multi store is enabled
+        $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
+        $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : [];
+        $activeStoreId = $storeId;
+
+        return view('pos.wholesale', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId'));
     }
 
     /**
@@ -123,6 +136,7 @@ class WholesalePosController extends Controller
                 'payment_status' => $paymentStatus,
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
+                'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
                 'status' => 'final',
                 'created_by' => auth()->id(),
                 'created_at' => now(),
@@ -169,18 +183,38 @@ class WholesalePosController extends Controller
                         ->where('id', $variant->id)
                         ->decrement('stock_quantity', $item['quantity']);
                 } else {
-                    DB::table('product_stock')
+                    $storeId = $request->store_id ?? \App\Models\Setting::get('default_store_id', 1);
+                    $storeStock = DB::table('product_store_stock')
                         ->where('product_id', $item['product_id'])
-                        ->decrement('quantity', $item['quantity']);
+                        ->where('store_id', $storeId)
+                        ->first();
+                    
+                    if ($storeStock) {
+                        DB::table('product_store_stock')
+                            ->where('id', $storeStock->id)
+                            ->decrement('quantity', $item['quantity']);
+                    } else {
+                        DB::table('product_store_stock')->insert([
+                            'product_id' => $item['product_id'],
+                            'store_id' => $storeId,
+                            'quantity' => -$item['quantity'],
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+                    }
                 }
 
                 // Insert Stock Movement
-                DB::table('stock_movements')->insert([
+                DB::table('stock_histories')->insert([
                     'product_id' => $item['product_id'],
-                    'quantity' => -$item['quantity'],
+                    'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+                    'quantity_change' => -$item['quantity'],
+                    'new_quantity' => $variant ? 
+                        DB::table('product_variants')->where('id', $variant->id)->value('stock_quantity') : 
+                        DB::table('product_store_stock')->where('product_id', $item['product_id'])->where('store_id', $request->store_id ?? \App\Models\Setting::get('default_store_id', 1))->value('quantity'),
                     'type' => 'sale',
-                    'reference_id' => $saleId,
                     'reference_no' => $invoiceNo,
+                    'note' => 'Wholesale Sale',
                     'created_by' => auth()->id(),
                     'created_at' => now(),
                     'updated_at' => now()
@@ -213,6 +247,8 @@ class WholesalePosController extends Controller
                 DB::table('hold_sale_items')->where('hold_sale_id', $request->hold_id)->delete();
                 DB::table('hold_sales')->where('id', $request->hold_id)->where('pos_type', 'wholesale')->delete();
             }
+
+            \App\Models\ActivityLog::log('Sale', 'Wholesale POS', "Processed wholesale sale {$invoiceNo}");
 
             DB::commit();
 
@@ -277,13 +313,16 @@ class WholesalePosController extends Controller
         $items = DB::table('hold_sale_items')
             ->join('products', 'products.id', '=', 'hold_sale_items.product_id')
             ->leftJoin('product_variants', 'product_variants.id', '=', 'hold_sale_items.variant_id')
-            ->leftJoin('product_stock', 'product_stock.product_id', '=', 'products.id')
+            ->leftJoin('product_store_stock', function($join) {
+                $join->on('product_store_stock.product_id', '=', 'products.id')
+                     ->where('product_store_stock.store_id', '=', \App\Models\Setting::get('default_store_id', 1));
+            })
             ->where('hold_sale_items.hold_sale_id', $hold->id)
             ->select(
                 'hold_sale_items.*',
                 'products.name',
                 'products.cost_price as product_cost_price',
-                DB::raw('COALESCE(product_stock.quantity, 0) as stock'),
+                DB::raw('COALESCE(product_store_stock.quantity, 0) as stock'),
                 'product_variants.color',
                 'product_variants.storage',
                 'product_variants.ram',

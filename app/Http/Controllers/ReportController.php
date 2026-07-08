@@ -115,6 +115,14 @@ class ReportController extends Controller
         );
     }
 
+    private function applyStoreFilter(Request $request, Builder $query, string $table): Builder
+    {
+        if ($request->filled('store_id') && $this->hasColumn($table, 'store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $query->where("{$table}.store_id", $request->store_id);
+        }
+        return $query;
+    }
+
     private function whereLikeAny(Builder $query, string $table, array $columns, ?string $term): void
     {
         if (! filled($term)) {
@@ -248,6 +256,7 @@ class ReportController extends Controller
     {
         $query = Sale::with(['customer', 'cashier']);
         $query = $this->applyDate($request, $query, 'sales', ['sale_date', 'created_at']);
+        $query = $this->applyStoreFilter($request, $query, 'sales');
 
         if ($request->filled('sale_type') && $request->sale_type !== 'all' && $this->hasColumn('sales', 'pos_type')) {
             $query->where('pos_type', $request->sale_type);
@@ -334,6 +343,12 @@ class ReportController extends Controller
     {
         $query = SaleReturn::with(['customer', 'sale']);
         $query = $this->applyDate($request, $query, 'sale_returns', ['return_date', 'created_at']);
+        // Store filter applied through joined sale table or natively if exists. But sale_returns doesn't have store_id. It's on sales.
+        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $query->whereHas('sale', function($q) use ($request) {
+                $q->where('store_id', $request->store_id);
+            });
+        }
 
         if ($request->filled('customer_id') && $this->hasColumn('sale_returns', 'customer_id')) {
             $query->where('customer_id', $request->customer_id);
@@ -367,6 +382,7 @@ class ReportController extends Controller
     {
         $query = Purchase::with(['supplier']);
         $query = $this->applyDate($request, $query, 'purchases', ['purchase_date', 'created_at']);
+        $query = $this->applyStoreFilter($request, $query, 'purchases');
 
         if ($request->filled('supplier_id') && $this->hasColumn('purchases', 'supplier_id')) {
             $query->where('supplier_id', $request->supplier_id);
@@ -406,6 +422,11 @@ class ReportController extends Controller
     {
         $query = PurchaseReturn::with(['supplier']);
         $query = $this->applyDate($request, $query, 'purchase_returns', ['return_date', 'created_at']);
+        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $query->whereHas('purchase', function($q) use ($request) {
+                $q->where('store_id', $request->store_id);
+            });
+        }
 
         if ($request->filled('supplier_id') && $this->hasColumn('purchase_returns', 'supplier_id')) {
             $query->where('supplier_id', $request->supplier_id);
@@ -438,6 +459,12 @@ class ReportController extends Controller
     public function stock(Request $request)
     {
         $query = Product::with(['category', 'brand', 'stock']);
+        
+        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $query->with(['storeStocks' => function($q) use ($request) {
+                $q->where('store_id', $request->store_id);
+            }]);
+        }
 
         if ($request->filled('category_id') && $this->hasColumn('products', 'category_id')) {
             $query->where('category_id', $request->category_id);
@@ -478,12 +505,23 @@ class ReportController extends Controller
 
     public function lowStock(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'stock'])
-            ->where(function (Builder $productQuery) {
+        $query = Product::with(['category', 'brand', 'stock']);
+        
+        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $query->with(['storeStocks' => function($q) use ($request) {
+                $q->where('store_id', $request->store_id);
+            }])->where(function (Builder $productQuery) use ($request) {
+                $productQuery
+                    ->whereHas('storeStocks', fn (Builder $stockQuery) => $stockQuery->whereColumn('quantity', '<=', 'products.stock_alert_quantity')->where('store_id', $request->store_id))
+                    ->orWhereDoesntHave('storeStocks', fn (Builder $stockQuery) => $stockQuery->where('store_id', $request->store_id));
+            });
+        } else {
+            $query->where(function (Builder $productQuery) {
                 $productQuery
                     ->whereHas('stock', fn (Builder $stockQuery) => $stockQuery->whereColumn('quantity', '<=', 'products.stock_alert_quantity'))
                     ->orWhereDoesntHave('stock');
             });
+        }
 
         $products = (clone $query)->paginate(20)->withQueryString();
         $summary = ['Low Stock Items' => $products->total()];
@@ -502,6 +540,7 @@ class ReportController extends Controller
     {
         $query = StockHistory::with(['product', 'creator']);
         $query = $this->applyDate($request, $query, 'stock_histories', ['created_at']);
+        $query = $this->applyStoreFilter($request, $query, 'stock_histories');
 
         $movements = (clone $query)->latest()->paginate(20)->withQueryString();
         $summary = ['Total Movements' => $movements->total()];
@@ -577,6 +616,9 @@ class ReportController extends Controller
                 DB::raw("SUM({$profitExpr}) as profit")
             )
             ->when($dateColumn, fn ($query) => $this->reportService->applyDateFilter($query, 'sales.'.$dateColumn, $request->date_filter, $request->start_date, $request->end_date))
+            ->when($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false), function($query) use ($request) {
+                $query->where('sales.store_id', $request->store_id);
+            })
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('profit')
             ->paginate(20)

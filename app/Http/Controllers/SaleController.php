@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\CustomerTransaction;
-use App\Models\ProductStock;
+use App\Models\CustomerTransaction;
+use App\Models\ProductStoreStock;
 use App\Models\Sale;
 use App\Models\SalePayment;
 use App\Models\StockHistory;
@@ -204,7 +205,10 @@ class SaleController extends Controller
             DB::table('product_variants')->where('id', $item->variant_id)->increment('stock_quantity', (float) $item->quantity);
             $newQuantity = (float) DB::table('product_variants')->where('id', $item->variant_id)->value('stock_quantity');
         } else {
-            $stock = ProductStock::firstOrCreate(['product_id' => $item->product_id], ['quantity' => 0]);
+            $stock = ProductStoreStock::firstOrCreate([
+                'product_id' => $item->product_id,
+                'store_id' => $item->sale->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+            ], ['quantity' => 0]);
             $stock->quantity = (float) $stock->quantity + (float) $item->quantity;
             $stock->save();
             $newQuantity = (float) $stock->quantity;
@@ -219,6 +223,7 @@ class SaleController extends Controller
             'reference_no' => $item->sale->invoice_no ?? null,
             'note' => $note,
             'created_by' => auth()->id(),
+            'store_id' => $item->sale->store_id ?? \App\Models\Setting::get('default_store_id', 1),
         ]);
 
         if (Schema::hasTable('stock_movements')) {

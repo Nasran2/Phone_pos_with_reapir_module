@@ -9,6 +9,7 @@ class Sale extends Model
     use \App\Traits\LogsActivity;
 
     protected $fillable = [
+        'store_id',
         'customer_id',
         'invoice_no',
         'sale_date',
@@ -82,5 +83,10 @@ class Sale extends Model
         }
 
         return (float) $this->paid_amount > 0 ? 'Partial' : 'Due';
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 }

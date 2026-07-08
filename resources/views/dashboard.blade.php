@@ -7,6 +7,17 @@
         <!-- Breadcrumb / Section Header -->
         <div class="flex items-center gap-3">
             <h2 class="text-lg font-bold text-slate-850 dark:text-white">Dashboard</h2>
+            @if($enableMultiStore)
+                <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 ml-4">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Store:</label>
+                    <select name="store_id" onchange="this.form.submit()" class="rounded-xl border-slate-300 text-sm font-semibold shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white py-1">
+                        <option value="">All Stores</option>
+                        @foreach($stores as $store)
+                            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            @endif
         </div>
 
         <!-- Search, Scanner, Notifications, and Date Picker -->
@@ -16,7 +27,7 @@
                 <input 
                     type="text" 
                     placeholder="Search products, invoices, customers..." 
-                    class="w-full pl-10 pr-10 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white transition"
+                    class="w-full pl-10 pr-10 py-2.5.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white transition"
                 />
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -432,6 +443,7 @@
                         <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>
                 </div>
+                <div>
                 <div>
                     <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Due Invoices</p>
                     <h4 class="text-sm font-black text-slate-800 dark:text-white mt-1">{{ $dueInvoices }}</h4>

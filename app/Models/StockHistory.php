@@ -11,7 +11,7 @@ class StockHistory extends Model
     protected $table = 'stock_histories';
 
     protected $fillable = [
-        'product_id', 'variant_id', 'quantity_before', 'quantity_change', 'new_quantity', 
+        'product_id', 'store_id', 'variant_id', 'quantity_before', 'quantity_change', 'new_quantity', 
         'type', 'reference_no', 'note', 'created_by', 'reference_type', 'reference_id', 'description'
     ];
 
@@ -27,6 +27,11 @@ class StockHistory extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 
     public function variant()

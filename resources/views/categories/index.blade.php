@@ -140,12 +140,12 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Category Name *</label>
-                    <input type="text" name="name" id="category_name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Smartphones">
+                    <input type="text" name="name" id="category_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Smartphones">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Parent Category</label>
-                    <select name="parent_id" id="category_parent_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="parent_id" id="category_parent_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">None (Top Level)</option>
                         @foreach($parentCategories as $parent)
                             <option value="{{ $parent->id }}">{{ $parent->name }}</option>
@@ -155,7 +155,7 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Description</label>
-                    <textarea name="description" id="category_description" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850" placeholder="Describe this category..."></textarea>
+                    <textarea name="description" id="category_description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850" placeholder="Describe this category..."></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">

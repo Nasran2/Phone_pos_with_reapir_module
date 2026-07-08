@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\CustomerTransaction;
-use App\Models\ProductStock;
+use App\Models\ProductStoreStock;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
@@ -179,7 +179,7 @@ class SaleReturnController extends Controller
                     'subtotal' => $returnItem['line_total'],
                 ]);
 
-                $this->restoreStock($saleItem, $returnItem['quantity'], $saleReturn->return_no);
+                $this->restoreStock($saleItem, $returnItem['quantity'], $saleReturn->return_no, clone $sale);
             }
 
             $sale->total_amount = max(0, (float) $sale->total_amount - $totalAmount);
@@ -222,7 +222,7 @@ class SaleReturnController extends Controller
         DB::transaction(function () use ($saleReturn) {
             $sale = $saleReturn->sale;
             foreach ($saleReturn->items as $item) {
-                $this->reverseReturnStock($item, $saleReturn->return_no);
+                $this->reverseReturnStock($item, $saleReturn->return_no, clone $sale);
             }
 
             if ($sale) {
@@ -249,13 +249,16 @@ class SaleReturnController extends Controller
         return redirect()->route('sales-returns.index')->with('success', 'Sale return deleted successfully.');
     }
 
-    private function restoreStock(SaleItem $saleItem, float $quantity, string $referenceNo): void
+    private function restoreStock(SaleItem $saleItem, float $quantity, string $referenceNo, Sale $sale): void
     {
         if ($saleItem->variant_id) {
             DB::table('product_variants')->where('id', $saleItem->variant_id)->increment('stock_quantity', $quantity);
             $newQuantity = (float) DB::table('product_variants')->where('id', $saleItem->variant_id)->value('stock_quantity');
         } else {
-            $stock = ProductStock::firstOrCreate(['product_id' => $saleItem->product_id], ['quantity' => 0]);
+            $stock = ProductStoreStock::firstOrCreate([
+                'product_id' => $saleItem->product_id,
+                'store_id' => $sale->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+            ], ['quantity' => 0]);
             $stock->quantity = (float) $stock->quantity + $quantity;
             $stock->save();
             $newQuantity = (float) $stock->quantity;
@@ -269,6 +272,7 @@ class SaleReturnController extends Controller
             'type' => 'sale_return',
             'reference_no' => $referenceNo,
             'note' => 'Sale return',
+            'store_id' => $sale->store_id ?? \App\Models\Setting::get('default_store_id', 1),
             'created_by' => auth()->id(),
         ]);
 
@@ -286,13 +290,16 @@ class SaleReturnController extends Controller
         }
     }
 
-    private function reverseReturnStock(object $item, string $referenceNo): void
+    private function reverseReturnStock(object $item, string $referenceNo, Sale $sale): void
     {
         if ($item->variant_id) {
             DB::table('product_variants')->where('id', $item->variant_id)->decrement('stock_quantity', (float) $item->quantity);
             $newQuantity = (float) DB::table('product_variants')->where('id', $item->variant_id)->value('stock_quantity');
         } else {
-            $stock = ProductStock::firstOrCreate(['product_id' => $item->product_id], ['quantity' => 0]);
+            $stock = ProductStoreStock::firstOrCreate([
+                'product_id' => $item->product_id,
+                'store_id' => $sale->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+            ], ['quantity' => 0]);
             $stock->quantity = max(0, (float) $stock->quantity - (float) $item->quantity);
             $stock->save();
             $newQuantity = (float) $stock->quantity;
@@ -305,8 +312,9 @@ class SaleReturnController extends Controller
             'new_quantity' => $newQuantity,
             'type' => 'sale_return_deleted',
             'reference_no' => $referenceNo,
-            'note' => 'Sale return deleted',
+            'note' => 'Sale return processed',
             'created_by' => auth()->id(),
+            'store_id' => $sale->store_id ?? \App\Models\Setting::get('default_store_id', 1),
         ]);
     }
 

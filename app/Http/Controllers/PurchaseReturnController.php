@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\ProductStock;
+use App\Models\ProductStoreStock;
 use App\Models\Purchase;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnItem;
@@ -130,7 +130,10 @@ class PurchaseReturnController extends Controller
 
             foreach ($returnItems as $item) {
                 $purchaseReturn->items()->create($item);
-                $stock = ProductStock::firstOrCreate(['product_id' => $item['product_id']], ['quantity' => 0]);
+                $stock = ProductStoreStock::firstOrCreate([
+                    'product_id' => $item['product_id'],
+                    'store_id' => $purchaseReturn->purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+                ], ['quantity' => 0]);
                 $stock->quantity = max(0, (float) $stock->quantity - (float) $item['quantity']);
                 $stock->save();
 
@@ -178,7 +181,10 @@ class PurchaseReturnController extends Controller
 
         try {
             foreach ($purchaseReturn->items as $item) {
-                $stock = ProductStock::firstOrCreate(['product_id' => $item->product_id], ['quantity' => 0]);
+                $stock = ProductStoreStock::firstOrCreate([
+                    'product_id' => $item->product_id,
+                    'store_id' => $purchaseReturn->purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+                ], ['quantity' => 0]);
                 $stock->quantity = (float) $stock->quantity + (float) $item->quantity;
                 $stock->save();
 
@@ -188,8 +194,9 @@ class PurchaseReturnController extends Controller
                     'new_quantity' => (float) $stock->quantity,
                     'type' => 'purchase_return_reversal',
                     'reference_no' => $purchaseReturn->return_no,
-                    'note' => 'Purchase return deleted',
+                    'note' => 'Purchase return processed',
                     'created_by' => auth()->id(),
+                    'store_id' => $purchaseReturn->purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1),
                 ]);
             }
 

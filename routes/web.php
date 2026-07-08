@@ -30,6 +30,9 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\LedgerBookController;
 use App\Http\Controllers\CapitalDrawingController;
+use App\Http\Controllers\StoreController;
+use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\BarcodeController;
 
 Route::get('/link-storage', function () {
     \Illuminate\Support\Facades\Artisan::call('storage:link');
@@ -108,6 +111,48 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('activity-logs', [ActivityLogController::class, 'index'])
         ->name('activity-logs.index')
         ->middleware('permission:activity_logs.view');
+
+    // Stores
+    Route::get('stores', [StoreController::class, 'index'])
+        ->name('stores.index')
+        ->middleware('permission:stores.view');
+    Route::post('stores', [StoreController::class, 'store'])
+        ->name('stores.store')
+        ->middleware('permission:stores.create');
+    Route::put('stores/{store}', [StoreController::class, 'update'])
+        ->name('stores.update')
+        ->middleware('permission:stores.edit');
+    Route::delete('stores/{store}', [StoreController::class, 'destroy'])
+        ->name('stores.destroy')
+        ->middleware('permission:stores.delete');
+
+    // Stock Transfers
+    Route::get('stock-transfers', [StockTransferController::class, 'index'])
+        ->name('stock-transfers.index')
+        ->middleware('permission:stock_transfers.view');
+    Route::get('stock-transfers/create', [StockTransferController::class, 'create'])
+        ->name('stock-transfers.create')
+        ->middleware('permission:stock_transfers.create');
+    Route::post('stock-transfers', [StockTransferController::class, 'store'])
+        ->name('stock-transfers.store')
+        ->middleware('permission:stock_transfers.create');
+    Route::get('stock-transfers/{stockTransfer}', [StockTransferController::class, 'show'])
+        ->name('stock-transfers.show')
+        ->middleware('permission:stock_transfers.view');
+    Route::patch('stock-transfers/{stockTransfer}/complete', [StockTransferController::class, 'markCompleted'])
+        ->name('stock-transfers.complete')
+        ->middleware('permission:stock_transfers.approve');
+    Route::delete('stock-transfers/{stockTransfer}', [StockTransferController::class, 'destroy'])
+        ->name('stock-transfers.destroy')
+        ->middleware('permission:stock_transfers.delete');
+
+    // Barcodes
+    Route::get('barcodes', [BarcodeController::class, 'index'])
+        ->name('barcodes.index')
+        ->middleware('permission:barcodes.view');
+    Route::post('barcodes/print', [BarcodeController::class, 'print'])
+        ->name('barcodes.print')
+        ->middleware('permission:barcodes.view');
 
     // Products
     Route::get('products/export', [ProductController::class, 'export'])

@@ -6,8 +6,12 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Unit;
-use App\Models\ProductStock;
+use App\Models\ProductStoreStock;
 use App\Models\ProductSerial;
+use App\Models\ProductVariant;
+use App\Models\StockHistory;
+use App\Models\ActivityLog;
+use App\Models\Setting;
 use App\Models\ProductVariant;
 use App\Models\StockHistory;
 use App\Models\ActivityLog;
@@ -136,8 +140,9 @@ class ProductController extends Controller
 
             // Save Product Stock
             $qty = floatval($validated['opening_stock'] ?? 0);
-            ProductStock::create([
+            ProductStoreStock::create([
                 'product_id' => $product->id,
+                'store_id' => Setting::get('default_store_id', 1),
                 'quantity' => $qty,
             ]);
 
@@ -150,6 +155,7 @@ class ProductController extends Controller
                     'type' => 'opening_stock',
                     'note' => 'Initial opening stock',
                     'created_by' => auth()->id(),
+                    'store_id' => Setting::get('default_store_id', 1),
                 ]);
             }
 
@@ -168,7 +174,10 @@ class ProductController extends Controller
                 // Re-sync quantity based on serials count if positive
                 $imeiCount = count($imeis);
                 if ($imeiCount > 0) {
-                    $stock = ProductStock::where('product_id', $product->id)->first();
+                    $stock = ProductStoreStock::firstOrCreate([
+                        'product_id' => $product->id,
+                        'store_id' => Setting::get('default_store_id', 1),
+                    ], ['quantity' => 0]);
                     $stock->quantity = $imeiCount;
                     $stock->save();
 
@@ -179,6 +188,7 @@ class ProductController extends Controller
                         'type' => 'opening_stock',
                         'note' => 'Stock quantity set via IMEI serials count',
                         'created_by' => auth()->id(),
+                        'store_id' => Setting::get('default_store_id', 1),
                     ]);
                 }
             }
@@ -210,6 +220,7 @@ class ProductController extends Controller
                             'type' => 'opening_stock',
                             'note' => 'Variant opening stock',
                             'created_by' => auth()->id(),
+                            'store_id' => Setting::get('default_store_id', 1),
                         ]);
                     }
                 }
@@ -503,8 +514,8 @@ class ProductController extends Controller
                 );
 
                 // Update Stock
-                $stock = ProductStock::updateOrCreate(
-                    ['product_id' => $product->id],
+                $stock = ProductStoreStock::updateOrCreate(
+                    ['product_id' => $product->id, 'store_id' => Setting::get('default_store_id', 1)],
                     ['quantity' => $openingStock]
                 );
 
@@ -516,6 +527,7 @@ class ProductController extends Controller
                         'type' => 'opening_stock',
                         'note' => 'Imported via CSV',
                         'created_by' => auth()->id(),
+                        'store_id' => Setting::get('default_store_id', 1),
                     ]);
                 }
 

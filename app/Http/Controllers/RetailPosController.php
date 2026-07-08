@@ -15,11 +15,19 @@ class RetailPosController extends Controller
         // Fetch Categories
         $categories = DB::table('categories')->whereNull('deleted_at')->get();
 
-        // Fetch Products with stock level and available serials/IMEIs
+        $storeId = \App\Models\Setting::get('default_store_id', 1);
+        if (request()->has('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+            $storeId = request('store_id');
+        }
+
+        // Fetch Products with stock level and available serials/IMEIs from specific store
         $products = DB::table('products')
-            ->leftJoin('product_stock', 'product_stock.product_id', '=', 'products.id')
+            ->leftJoin('product_store_stock', function($join) use ($storeId) {
+                $join->on('product_store_stock.product_id', '=', 'products.id')
+                     ->where('product_store_stock.store_id', '=', $storeId);
+            })
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->select('products.*', 'categories.slug as category_slug', DB::raw('COALESCE(product_stock.quantity, 0) as stock'))
+            ->select('products.*', 'categories.slug as category_slug', DB::raw('COALESCE(product_store_stock.quantity, 0) as stock'))
             ->whereNull('products.deleted_at')
             ->where('products.is_active', true)
             ->get();
@@ -83,6 +91,11 @@ class RetailPosController extends Controller
             ->where('is_active', true)
             ->get();
 
+        // Fetch Stores if multi store is enabled
+        $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
+        $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : [];
+        $activeStoreId = $storeId;
+
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
                 'products' => $products,
@@ -93,7 +106,7 @@ class RetailPosController extends Controller
             ]);
         }
 
-        return view('pos.retail', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold'));
+        return view('pos.retail', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId'));
     }
 
     /**
@@ -144,6 +157,7 @@ class RetailPosController extends Controller
                 'payment_status' => $paymentStatus,
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
+                'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
                 'status' => 'final',
                 'created_by' => auth()->id(),
                 'created_at' => now(),
@@ -190,18 +204,38 @@ class RetailPosController extends Controller
                         ->where('id', $variant->id)
                         ->decrement('stock_quantity', $item['quantity']);
                 } else {
-                    DB::table('product_stock')
+                    $storeId = $request->store_id ?? \App\Models\Setting::get('default_store_id', 1);
+                    $storeStock = DB::table('product_store_stock')
                         ->where('product_id', $item['product_id'])
-                        ->decrement('quantity', $item['quantity']);
+                        ->where('store_id', $storeId)
+                        ->first();
+                    
+                    if ($storeStock) {
+                        DB::table('product_store_stock')
+                            ->where('id', $storeStock->id)
+                            ->decrement('quantity', $item['quantity']);
+                    } else {
+                        DB::table('product_store_stock')->insert([
+                            'product_id' => $item['product_id'],
+                            'store_id' => $storeId,
+                            'quantity' => -$item['quantity'],
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+                    }
                 }
 
                 // Log stock movement
-                DB::table('stock_movements')->insert([
+                DB::table('stock_histories')->insert([
                     'product_id' => $item['product_id'],
-                    'quantity' => -$item['quantity'],
+                    'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+                    'quantity_change' => -$item['quantity'],
+                    'new_quantity' => $variant ? 
+                        DB::table('product_variants')->where('id', $variant->id)->value('stock_quantity') : 
+                        DB::table('product_store_stock')->where('product_id', $item['product_id'])->where('store_id', $request->store_id ?? \App\Models\Setting::get('default_store_id', 1))->value('quantity'),
                     'type' => 'sale',
-                    'reference_id' => $saleId,
                     'reference_no' => $invoiceNo,
+                    'note' => 'Retail Sale',
                     'created_by' => auth()->id(),
                     'created_at' => now(),
                     'updated_at' => now()
@@ -256,6 +290,8 @@ class RetailPosController extends Controller
                 DB::table('hold_sale_items')->where('hold_sale_id', $request->hold_id)->delete();
                 DB::table('hold_sales')->where('id', $request->hold_id)->where('pos_type', 'retail')->delete();
             }
+
+            \App\Models\ActivityLog::log('Sale', 'Retail POS', "Processed retail sale {$invoiceNo}");
 
             DB::commit();
 
@@ -323,14 +359,17 @@ class RetailPosController extends Controller
             ->join('products', 'products.id', '=', 'hold_sale_items.product_id')
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
             ->leftJoin('product_variants', 'product_variants.id', '=', 'hold_sale_items.variant_id')
-            ->leftJoin('product_stock', 'product_stock.product_id', '=', 'products.id')
+            ->leftJoin('product_store_stock', function($join) {
+                $join->on('product_store_stock.product_id', '=', 'products.id')
+                     ->where('product_store_stock.store_id', '=', \App\Models\Setting::get('default_store_id', 1)); // Ideally match hold store if multi-store is enabled
+            })
             ->where('hold_sale_items.hold_sale_id', $hold->id)
             ->select(
                 'hold_sale_items.*',
                 'products.name',
                 'products.cost_price as product_cost_price',
                 'categories.slug as category_slug',
-                DB::raw('COALESCE(product_stock.quantity, 0) as stock'),
+                DB::raw('COALESCE(product_store_stock.quantity, 0) as stock'),
                 'product_variants.color',
                 'product_variants.storage',
                 'product_variants.ram',

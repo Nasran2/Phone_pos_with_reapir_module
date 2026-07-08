@@ -28,6 +28,6 @@ class PdfExportService
             'generated_at' => now()->format('Y-m-d H:i:s'),
         ]);
 
-        return $pdf->download(str_replace(' ', '_', strtolower($title)) . '_' . now()->format('YmdHis') . '.pdf');
+        return $pdf->stream(str_replace(' ', '_', strtolower($title)) . '_' . now()->format('YmdHis') . '.pdf');
     }
 }

@@ -47,7 +47,7 @@
                     <div>
                         <label class="text-xs font-bold text-slate-700">Supplier <span class="text-red-500">*</span></label>
                         <div class="mt-1 flex gap-2">
-                            <select id="supplier_id" name="supplier_id" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500" onchange="fillSupplierAddress()">
+                            <select id="supplier_id" name="supplier_id" required class="w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500" onchange="fillSupplierAddress()">
                                 <option value="">Please Select</option>
                                 @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" @selected(old('supplier_id', $purchase->supplier_id ?? '') == $supplier->id)>{{ $supplier->name }}</option>
@@ -58,6 +58,16 @@
                             @endif
                         </div>
                     </div>
+                    @if($enableMultiStore)
+                    <div>
+                        <label class="text-xs font-bold text-slate-700">Store <span class="text-red-500">*</span></label>
+                        <select name="store_id" required class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500">
+                            @foreach($stores as $store)
+                            <option value="{{ $store->id }}" @selected(old('store_id', $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)) == $store->id)>{{ $store->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <div>
                         <label class="text-xs font-bold text-slate-700">Reference No</label>
                         <input name="reference_no" value="{{ old('reference_no', $purchase->reference_no ?? '') }}" placeholder="Optional" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500">
@@ -68,7 +78,7 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-700">Purchase Status <span class="text-red-500">*</span></label>
-                        <select name="status" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500">
+                        <select name="status" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500">
                             @foreach($statuses as $status)
                             <option value="{{ $status }}" @selected(old('status', $purchase->status ?? 'Received') === $status)>{{ $status }}</option>
                             @endforeach
@@ -76,11 +86,11 @@
                     </div>
                     <div class="lg:col-span-2">
                         <label class="text-xs font-bold text-slate-700">Address</label>
-                        <input id="supplier_address" readonly placeholder="Auto-filled" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500">
+                        <input id="supplier_address" readonly placeholder="Auto-filled" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500">
                     </div>
                     <div class="lg:col-span-2">
                         <label class="text-xs font-bold text-slate-700">Attach Document</label>
-                        <input type="file" name="document" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+                        <input type="file" name="document" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
                         <p class="mt-1 text-[11px] text-slate-500">Max 5MB. Allowed: pdf, csv, zip, doc, docx, jpeg, jpg, png</p>
                         @if($isEdit && $purchase->document_path)
                         <a href="{{ asset('storage/' . $purchase->document_path) }}" target="_blank" class="text-[11px] font-bold text-blue-600">View current document</a>
@@ -129,7 +139,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs font-bold text-slate-700">Discount Type</label>
-                                <select id="discount_type" name="discount_type" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white" onchange="recalculate()">
+                                <select id="discount_type" name="discount_type" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white" onchange="recalculate()">
                                     <option value="none" @selected(old('discount_type', $purchase->discount_type ?? 'none') === 'none')>None</option>
                                     <option value="fixed" @selected(old('discount_type', $purchase->discount_type ?? '') === 'fixed')>Fixed amount</option>
                                     <option value="percentage" @selected(old('discount_type', $purchase->discount_type ?? '') === 'percentage')>Percentage</option>
@@ -149,7 +159,7 @@
                             </div>
                             <div class="md:col-span-2">
                                 <label class="text-xs font-bold text-slate-700">Shipping Handling</label>
-                                <select id="shipping_handling" name="shipping_handling" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
+                                <select id="shipping_handling" name="shipping_handling" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white">
                                     <option value="purchase_total" @selected(old('shipping_handling', $purchase->shipping_handling ?? 'purchase_total') === 'purchase_total')>Add to purchase total only</option>
                                     <option value="divide_product_cost" @selected(old('shipping_handling', $purchase->shipping_handling ?? '') === 'divide_product_cost')>Divide shipping cost into product cost</option>
                                 </select>
@@ -170,7 +180,7 @@
                 <div class="bg-blue-50 rounded-xl p-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div>
                         <label class="text-xs font-bold text-slate-700">Payment Method <span class="text-red-500">*</span></label>
-                        <select id="payment_method" name="payment_method" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
+                        <select id="payment_method" name="payment_method" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white">
                             @foreach($paymentMethods as $method)
                             <option value="{{ $method }}" @selected(old('payment_method', $payment->payment_method ?? 'Credit / Due') === $method)>{{ $method }}</option>
                             @endforeach
@@ -192,7 +202,7 @@
 
                 <div>
                     <label class="text-xs font-bold text-slate-700">Additional Notes</label>
-                    <textarea name="notes" rows="4" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">{{ old('notes', $purchase->notes ?? '') }}</textarea>
+                    <textarea name="notes" rows="4" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">{{ old('notes', $purchase->notes ?? '') }}</textarea>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3">
@@ -213,13 +223,13 @@
             </div>
             <form method="POST" action="{{ route('purchases.suppliers.store') }}" class="p-5 space-y-4">
                 @csrf
-                <input name="name" required placeholder="Supplier name" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
-                <input name="company_name" placeholder="Company name" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
+                <input name="name" required placeholder="Supplier name" class="w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
+                <input name="company_name" placeholder="Company name" class="w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input name="email" type="email" placeholder="Email" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
-                    <input name="phone" placeholder="Phone" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
+                    <input name="email" type="email" placeholder="Email" class="w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
+                    <input name="phone" placeholder="Phone" class="w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
                 </div>
-                <textarea name="address" rows="3" placeholder="Address" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"></textarea>
+                <textarea name="address" rows="3" placeholder="Address" class="w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm"></textarea>
                 <div class="flex justify-end gap-2">
                     <button type="button" onclick="closeSupplierModal()" class="px-4 py-2 bg-slate-100 rounded-lg text-xs font-bold">Cancel</button>
                     <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold">Save Supplier</button>
@@ -280,7 +290,7 @@
         }
 
         function numberInput(index, key, value) {
-            return `<td class="px-3 py-3"><input type="number" min="0" step="0.01" name="items[${index}][${key}]" value="${Number(value || 0)}" class="w-24 px-2 py-2 border border-slate-200 rounded-lg text-right" oninput="rows[${index}]['${key}'] = this.value; recalculate();"></td>`;
+            return `<td class="px-3 py-3"><input type="number" min="0" step="0.01" name="items[${index}][${key}]" value="${Number(value || 0)}" class="w-24 px-2 py-2.5 border border-slate-200 rounded-lg text-right" oninput="rows[${index}]['${key}'] = this.value; recalculate();"></td>`;
         }
 
         function searchProducts(term) {

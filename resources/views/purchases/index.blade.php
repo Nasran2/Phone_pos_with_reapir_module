@@ -23,23 +23,23 @@
         <div class="bg-white rounded-xl border border-slate-200/70 p-4 shadow-xs">
             <form method="GET" action="{{ route('purchases.index') }}" class="grid grid-cols-1 md:grid-cols-6 gap-3">
                 <div class="md:col-span-2 relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO, supplier, reference..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO, supplier, reference..." class="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none">
                     <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                 </div>
-                <select name="supplier_id" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500">
+                <select name="supplier_id" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500">
                     <option value="">All Suppliers</option>
                     @foreach($suppliers as $supplier)
                     <option value="{{ $supplier->id }}" @selected(request('supplier_id') == $supplier->id)>{{ $supplier->name }}</option>
                     @endforeach
                 </select>
-                <select name="status" class="px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500">
+                <select name="status" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500">
                     <option value="">All Status</option>
                     @foreach($statuses as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                     @endforeach
                 </select>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500">
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500">
+                <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500">
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500">
                 <div class="md:col-span-6 flex gap-2 justify-end">
                     <a href="{{ route('purchases.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Clear</a>
                     <button class="px-4 py-2 bg-slate-850 hover:bg-slate-950 text-white rounded-lg text-xs font-bold">Filter</button>

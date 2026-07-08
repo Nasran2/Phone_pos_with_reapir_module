@@ -147,18 +147,18 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Brand Name *</label>
-                    <input type="text" name="name" id="brand_name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Apple">
+                    <input type="text" name="name" id="brand_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Apple">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Description</label>
-                    <textarea name="description" id="brand_description" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850" placeholder="Describe the brand..."></textarea>
+                    <textarea name="description" id="brand_description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850" placeholder="Describe the brand..."></textarea>
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Brand Logo (Image File)</label>
                     <div class="flex items-center gap-4">
-                        <input type="file" name="logo" id="brand_logo" onchange="previewLogo(this)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                        <input type="file" name="logo" id="brand_logo" onchange="previewLogo(this)" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                         <img id="logo_preview" src="#" class="hidden h-12 w-12 object-contain rounded-md border border-slate-250 bg-slate-50" alt="Logo preview">
                     </div>
                 </div>

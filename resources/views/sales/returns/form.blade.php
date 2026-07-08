@@ -13,11 +13,11 @@
             <form method="GET" action="{{ route('sales-returns.create') }}" class="grid md:grid-cols-6 gap-3 items-end">
                 <div class="md:col-span-2">
                     <label class="text-[11px] font-bold uppercase text-slate-500">Search Invoice / Customer</label>
-                    <input name="invoice_search" value="{{ request('invoice_search') }}" placeholder="INV no, customer, phone..." class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <input name="invoice_search" value="{{ request('invoice_search') }}" placeholder="INV no, customer, phone..." class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div class="md:col-span-3">
                     <label class="text-[11px] font-bold uppercase text-slate-500">Select Matching Invoice</label>
-                    <select name="sale_id" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+                    <select name="sale_id" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
                         <option value="">Please Select</option>
                         @foreach($sales as $sale)
                         <option value="{{ $sale->id }}" @selected(optional($selectedSale)->id === $sale->id)>{{ $sale->invoice_no }} - {{ $sale->customer->name ?? 'Walk-in Customer' }} {{ $sale->customer?->phone ? '(' . $sale->customer->phone . ')' : '' }} - Rs. {{ number_format((float) $sale->payable_amount, 2) }}</option>
@@ -69,7 +69,7 @@
                                 <td class="px-5 py-4 text-right">{{ (float) $item->quantity }}</td>
                                 <td class="px-5 py-4 text-right">{{ $returnedQty }}</td>
                                 <td class="px-5 py-4 text-right">
-                                    <input type="number" step="0.01" min="0" max="{{ $remainingQty }}" name="items[{{ $index }}][quantity]" value="0" class="w-24 px-3 py-2 border border-slate-200 rounded-lg text-xs text-right">
+                                    <input type="number" step="0.01" min="0" max="{{ $remainingQty }}" name="items[{{ $index }}][quantity]" value="0" class="w-24 px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-right">
                                 </td>
                                 <td class="px-5 py-4 text-right">Rs. {{ number_format((float) ($item->unit_price ?: $item->selling_price), 2) }}</td>
                             </tr>
@@ -86,7 +86,7 @@
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase text-slate-500">Refund Method</label>
-                    <select name="refund_method" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+                    <select name="refund_method" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
                         @foreach(['Cash', 'Bank Transfer', 'Card', 'Customer Credit', 'No Refund'] as $method)
                         <option value="{{ $method }}">{{ $method }}</option>
                         @endforeach
@@ -94,11 +94,11 @@
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase text-slate-500">Refund Amount</label>
-                    <input type="number" step="0.01" min="0" name="refund_amount" value="0" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                    <input type="number" step="0.01" min="0" name="refund_amount" value="0" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase text-slate-500">Reason</label>
-                    <textarea name="reason" rows="4" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" placeholder="Damaged item, customer changed item..."></textarea>
+                    <textarea name="reason" rows="4" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" placeholder="Damaged item, customer changed item..."></textarea>
                 </div>
                 <button class="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold">Save Return</button>
             </div>

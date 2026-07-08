@@ -76,7 +76,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search Name, SKU, IMEI..." 
-                        class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition"
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition"
                     />
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@
 
                 <!-- Category filter -->
                 <div>
-                    <select name="category_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="category_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">All Categories</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -99,7 +99,7 @@
 
                 <!-- Brand filter -->
                 <div>
-                    <select name="brand_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="brand_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">All Brands</option>
                         @foreach($brands as $brand)
                             <option value="{{ $brand->id }}" {{ request('brand_id') == $brand->id ? 'selected' : '' }}>
@@ -111,7 +111,7 @@
 
                 <!-- Status filter -->
                 <div>
-                    <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="status" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">All Statuses</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -303,15 +303,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Name *</label>
-                            <input type="text" name="name" id="prod_name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. iPhone 15 Pro Max">
+                            <input type="text" name="name" id="prod_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. iPhone 15 Pro Max">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Code / SKU</label>
-                            <input type="text" name="sku" id="prod_sku" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Leave blank to auto-generate">
+                            <input type="text" name="sku" id="prod_sku" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Leave blank to auto-generate">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Barcode</label>
-                            <input type="text" name="barcode" id="prod_barcode" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Leave blank to auto-generate">
+                            <input type="text" name="barcode" id="prod_barcode" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Leave blank to auto-generate">
                         </div>
                     </div>
 
@@ -319,7 +319,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
                             <div class="flex gap-2">
-                                <select name="category_id" id="prod_category_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <select name="category_id" id="prod_category_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                     <option value="">Select Category</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -333,7 +333,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Brand</label>
                             <div class="flex gap-2">
-                                <select name="brand_id" id="prod_brand_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <select name="brand_id" id="prod_brand_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                     <option value="">Select Brand</option>
                                     @foreach($brands as $brand)
                                         <option value="{{ $brand->id }}">{{ $brand->name }}</option>
@@ -347,7 +347,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Unit</label>
                             <div class="flex gap-2">
-                                <select name="unit_id" id="prod_unit_id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <select name="unit_id" id="prod_unit_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                     <option value="">Select Unit</option>
                                     @foreach($units as $unit)
                                         <option value="{{ $unit->id }}" @selected($defaultUnit && $defaultUnit->id === $unit->id)>{{ $unit->name }} ({{ $unit->short_name }})</option>
@@ -363,31 +363,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Cost Price *</label>
-                            <input type="number" step="0.01" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <input type="number" step="0.01" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Retail Selling Price *</label>
-                            <input type="number" step="0.01" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <input type="number" step="0.01" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Wholesale Selling Price *</label>
-                            <input type="number" step="0.01" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <input type="number" step="0.01" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Low Stock Alert Qty</label>
-                            <input type="number" name="stock_alert_quantity" id="prod_alert_qty" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="5" value="5">
+                            <input type="number" name="stock_alert_quantity" id="prod_alert_qty" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="5" value="5">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div id="opening-stock-container">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Opening Stock Qty</label>
-                            <input type="number" name="opening_stock" id="prod_opening_stock" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0">
+                            <input type="number" name="opening_stock" id="prod_opening_stock" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Image</label>
                             <div class="flex items-center gap-3">
-                                <input type="file" name="logo" onchange="previewProductImage(this)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <input type="file" name="logo" onchange="previewProductImage(this)" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                                 <img id="prod_image_preview" src="#" class="hidden h-12 w-12 object-cover rounded-md border border-slate-200 bg-slate-50" alt="Image preview">
                             </div>
                         </div>
@@ -395,7 +395,7 @@
 
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Description</label>
-                        <textarea name="description" id="prod_description" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Enter product specifics, warranty details..."></textarea>
+                        <textarea name="description" id="prod_description" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Enter product specifics, warranty details..."></textarea>
                     </div>
 
                     <div class="flex items-center gap-2 pt-1.5">
@@ -416,7 +416,7 @@
                         </div>
                         <div id="imei-input-container">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Enter IMEIs / Serials (one per line)</label>
-                            <textarea name="imeis" id="prod_imeis" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800 font-mono" placeholder="IMEI-123456789012345&#10;IMEI-987654321098765"></textarea>
+                            <textarea name="imeis" id="prod_imeis" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 font-mono" placeholder="IMEI-123456789012345&#10;IMEI-987654321098765"></textarea>
                             <p class="text-[9px] text-slate-400 mt-1">If IMEIs are registered, the total stock quantity will automatically sync to match the number of available serials.</p>
                         </div>
                     </div>
@@ -477,11 +477,11 @@
             <form id="quickCategoryForm" onsubmit="submitQuickCategory(event)" class="p-6 space-y-4">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Category Name *</label>
-                    <input name="name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Smartphones">
+                    <input name="name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Smartphones">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
-                    <textarea name="description" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800"></textarea>
+                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800"></textarea>
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" onclick="closeQuickModal('quickCategoryModal')" class="px-4 py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg">Cancel</button>
@@ -502,11 +502,11 @@
             <form id="quickBrandForm" onsubmit="submitQuickBrand(event)" class="p-6 space-y-4">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Brand Name *</label>
-                    <input name="name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Apple">
+                    <input name="name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Apple">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
-                    <textarea name="description" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800"></textarea>
+                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800"></textarea>
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" onclick="closeQuickModal('quickBrandModal')" class="px-4 py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg">Cancel</button>
@@ -527,11 +527,11 @@
             <form id="quickUnitForm" onsubmit="submitQuickUnit(event)" class="p-6 space-y-4">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Unit Name *</label>
-                    <input name="name" required value="Pieces" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Pieces">
+                    <input name="name" required value="Pieces" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Pieces">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Name *</label>
-                    <input name="short_name" required value="pcs" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. pcs">
+                    <input name="short_name" required value="pcs" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. pcs">
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" onclick="closeQuickModal('quickUnitModal')" class="px-4 py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg">Cancel</button>
@@ -638,7 +638,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Select CSV File</label>
-                    <input type="file" name="file" required class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <input type="file" name="file" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
                     <button type="button" onclick="closeModal('importModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg cursor-pointer">Cancel</button>
@@ -870,14 +870,14 @@
             
             row.innerHTML = `
                 <input type="hidden" name="variants[${variantIndex}][id]" value="${variant.id || ''}">
-                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][color]" value="${variant.color || ''}" class="w-full px-2 py-1 border rounded text-xs" placeholder="e.g. Blue"></td>
-                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][storage]" value="${variant.storage || ''}" class="w-full px-2 py-1 border rounded text-xs" placeholder="e.g. 256GB"></td>
-                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][ram]" value="${variant.ram || ''}" class="w-full px-2 py-1 border rounded text-xs" placeholder="e.g. 8GB"></td>
-                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][sku]" value="${variant.sku || ''}" required class="w-full px-2 py-1 border rounded text-xs" placeholder="SKU-VAR-${variantIndex}"></td>
-                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][cost_price]" value="${variant.cost_price || ''}" class="w-full px-2 py-1 border rounded text-xs" placeholder="Cost"></td>
-                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][retail_price]" value="${variant.retail_price || ''}" class="w-full px-2 py-1 border rounded text-xs" placeholder="Retail"></td>
-                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-xs" placeholder="Wholesale"></td>
-                <td class="py-2 pr-2"><input type="number" name="variants[${variantIndex}][stock_quantity]" class="w-full px-2 py-1 border rounded text-xs text-center" placeholder="0" value="${variant.stock_quantity || 0}"></td>
+                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][color]" value="${variant.color || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="e.g. Blue"></td>
+                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][storage]" value="${variant.storage || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="e.g. 256GB"></td>
+                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][ram]" value="${variant.ram || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="e.g. 8GB"></td>
+                <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][sku]" value="${variant.sku || ''}" required class="w-full px-2 py-1 border rounded text-sm" placeholder="SKU-VAR-${variantIndex}"></td>
+                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][cost_price]" value="${variant.cost_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Cost"></td>
+                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][retail_price]" value="${variant.retail_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Retail"></td>
+                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Wholesale"></td>
+                <td class="py-2 pr-2"><input type="number" name="variants[${variantIndex}][stock_quantity]" class="w-full px-2 py-1 border rounded text-sm text-center" placeholder="0" value="${variant.stock_quantity || 0}"></td>
                 <td class="py-2 text-right">
                     <button type="button" onclick="removeVariantRow(${variantIndex})" class="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
                 </td>

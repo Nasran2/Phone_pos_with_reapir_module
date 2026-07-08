@@ -127,13 +127,13 @@
                     @csrf
                     <h3 class="font-black text-slate-850">Record Due Payment</h3>
                     <input type="date" name="payment_date" value="{{ now()->toDateString() }}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
-                    <select name="payment_method" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+                    <select name="payment_method" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
                         @foreach(['Cash', 'Bank Transfer', 'Card', 'QR Payment', 'Cheque', 'Credit / Due'] as $method)
                         <option value="{{ $method }}">{{ $method }}</option>
                         @endforeach
                     </select>
                     <input name="amount" type="number" step="0.01" max="{{ $sale->due_amount }}" value="{{ $sale->due_amount }}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
-                    <input name="reference_no" placeholder="Reference no" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                    <input name="reference_no" placeholder="Reference no" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
                     <button class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold">Save Payment</button>
                 </form>
                 @endif

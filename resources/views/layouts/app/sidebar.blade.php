@@ -212,8 +212,14 @@
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
-                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('stock.index') || request()->routeIs('stock-adjustments.*') || request()->routeIs('damaged-stocks.*') ? '' : 'hidden' }}">
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('stock.index') || request()->routeIs('stock-adjustments.*') || request()->routeIs('damaged-stocks.*') || request()->routeIs('stock-transfers.*') || request()->routeIs('barcodes.*') ? '' : 'hidden' }}">
                         <a href="{{ route('stock.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('stock.index') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Current Stock</a>
+                        @if (auth()->user()->hasPermission('stock_transfers.view'))
+                        <a href="{{ route('stock-transfers.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('stock-transfers.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Stock Transfers</a>
+                        @endif
+                        @if (auth()->user()->hasPermission('barcodes.view'))
+                        <a href="{{ route('barcodes.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('barcodes.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Print Barcodes</a>
+                        @endif
                         @if (auth()->user()->hasPermission('stock.adjustment.view'))
                         <a href="{{ route('stock-adjustments.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('stock-adjustments.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Adjustments</a>
                         @endif
@@ -291,6 +297,16 @@
                         @include('layouts.app.partials.reports-nav')
                     </div>
                 </div>
+                @endif
+
+                <!-- Stores Link -->
+                @if (auth()->user()->hasPermission('stores.view'))
+                <a href="{{ route('stores.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('stores.*') ? 'bg-[#182647] text-white' : 'hover:bg-[#182647] hover:text-white' }}">
+                    <svg class="w-5 h-5 {{ request()->routeIs('stores.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    <span>Store Locations</span>
+                </a>
                 @endif
 
                 <!-- Settings Link -->

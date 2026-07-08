@@ -146,12 +146,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="md:col-span-1">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Role Identifier Name *</label>
-                            <input type="text" name="name" id="role_name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Sales Executive">
+                            <input type="text" name="name" id="role_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Sales Executive">
                             <p class="text-[10px] text-slate-400 mt-1">Must be alphanumeric and unique.</p>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Description</label>
-                            <input type="text" name="description" id="role_description" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="Summarize role duties / operational access boundary...">
+                            <input type="text" name="description" id="role_description" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="Summarize role duties / operational access boundary...">
                         </div>
                     </div>
 

@@ -59,7 +59,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search Damage No, reason, product..." 
-                        class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
                     />
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -72,7 +72,7 @@
                 <div>
                     <select 
                         name="status" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
                     >
                         <option value="">All Statuses</option>
                         <option value="Pending" {{ request('status') === 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -255,7 +255,7 @@
                         name="product_id" 
                         id="dmg_product_id" 
                         onchange="calculateEstimatedLoss()"
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
                     >
                         <option value="">-- Choose Product --</option>
                         @foreach($products as $prod)
@@ -276,7 +276,7 @@
                             required 
                             min="1" 
                             oninput="calculateEstimatedLoss()" 
-                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
                             placeholder="1"
                         >
                     </div>
@@ -286,7 +286,7 @@
                             name="damage_type" 
                             id="dmg_type" 
                             required 
-                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
                         >
                             <option value="Screen Crack">Screen Crack</option>
                             <option value="Water Damage">Water Damage</option>
@@ -305,7 +305,7 @@
                             type="text" 
                             id="dmg_estimated_loss" 
                             readonly 
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-rose-600 focus:outline-none" 
+                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-rose-600 focus:outline-none" 
                             placeholder="Rs. 0.00"
                         >
                     </div>
@@ -315,7 +315,7 @@
                             type="text" 
                             name="responsible_person" 
                             id="dmg_responsible" 
-                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
                             placeholder="e.g. Sales Executive"
                         >
                     </div>
@@ -326,7 +326,7 @@
                     <input 
                         type="file" 
                         name="document" 
-                        class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5.5 file:px-3.5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                     >
                 </div>
 
@@ -335,7 +335,7 @@
                     <select 
                         name="status" 
                         id="dmg_status" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
                     >
                         <option value="Pending">Pending Audit</option>
                         <option value="Repaired">Repaired (Stays out of stock)</option>
@@ -351,7 +351,7 @@
                         id="dmg_reason" 
                         required 
                         rows="2" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
                         placeholder="Explain exactly how the damage occurred..."
                     ></textarea>
                 </div>
@@ -362,7 +362,7 @@
                         name="notes" 
                         id="dmg_notes" 
                         rows="1" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
                         placeholder="Additional remarks..."
                     ></textarea>
                 </div>

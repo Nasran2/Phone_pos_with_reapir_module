@@ -4,7 +4,7 @@
     @include('partials.head', ['title' => __('Wholesale POS')])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
+<body class="h-screen max-h-screen overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
 
     <!-- SCREEN 7: Hamburger Menu Drawer (Overlay) -->
     <div x-show="showMenuDrawer" 
@@ -153,13 +153,27 @@
                     <span class="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-[#0c1630]"></span>
                 </div>
 
-                <!-- Hold Sales Modal Toggle -->
-                <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    <span>Hold Invoices (F3)</span>
-                </button>
+                <div class="flex items-center gap-3">
+                    @if($enableMultiStore)
+                    <div class="flex items-center gap-2 mr-2">
+                        <select onchange="window.location.href='{{ route('pos.wholesale') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-purple-500">
+                            @foreach($stores as $s)
+                                <option value="{{ $s->id }}" {{ $activeStoreId == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>Hold Invoices (F6)</span>
+                    </button>
+                    <div class="text-right hidden md:block">
+                        <p class="text-xs font-bold leading-none">{{ auth()->user()->name }}</p>
+                        <span class="text-[9px] text-slate-400 uppercase font-black">Wholesale Agent</span>
+                    </div>
+                </div>
 
                 <!-- Fullscreen Toggle -->
                 <button onclick="document.documentElement.requestFullscreen()" class="p-1.5 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800 hidden sm:block cursor-pointer" title="Toggle Fullscreen">
@@ -985,7 +999,8 @@
                         paid_amount: this.paidAmount,
                         payment_method: this.paymentMethod,
                         payment_reference: '',
-                        hold_id: this.currentHoldId
+                        hold_id: this.currentHoldId,
+                        store_id: {{ $activeStoreId ?? 1 }}
                     };
 
                     fetch('{{ route("pos.wholesale.store") }}', {

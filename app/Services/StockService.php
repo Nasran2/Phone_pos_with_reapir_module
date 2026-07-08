@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use App\Models\Product;
-use App\Models\ProductStock;
+use App\Models\ProductStoreStock;
 use App\Models\StockHistory;
 use App\Models\ActivityLog;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 
 class StockService
@@ -22,8 +23,12 @@ class StockService
         ?string $description = null,
         ?string $referenceNo = null,
         ?string $note = null,
-        ?int $userId = null
-    ): ProductStock {
+        ?int $userId = null,
+        ?int $storeId = null
+    ): ProductStoreStock {
+        if (!$storeId) {
+            $storeId = Setting::get('default_store_id', 1);
+        }
         return DB::transaction(function () use (
             $product,
             $quantityChange,
@@ -33,15 +38,13 @@ class StockService
             $description,
             $referenceNo,
             $note,
-            $userId
+            $userId,
+            $storeId
         ) {
-            $stock = $product->stock;
-            if (!$stock) {
-                $stock = ProductStock::create([
-                    'product_id' => $product->id,
-                    'quantity' => 0.00,
-                ]);
-            }
+            $stock = ProductStoreStock::firstOrCreate(
+                ['product_id' => $product->id, 'store_id' => $storeId],
+                ['quantity' => 0.00]
+            );
 
             $quantityBefore = $stock->quantity;
             $newQuantity = $quantityBefore + $quantityChange;
@@ -61,6 +64,7 @@ class StockService
                 'note' => $note,
                 'description' => $description ?: "Stock adjusted by {$quantityChange} units.",
                 'created_by' => $userId ?? auth()->id(),
+                'store_id' => $storeId,
             ]);
 
             // Add activity log
