@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\StockHistory;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -91,33 +92,56 @@ class StoreStockController extends Controller
 
     public function history(Product $product)
     {
-        $histories = StockHistory::where('product_id', $product->id)
-            ->with(['creator', 'variant'])
-            ->orderBy('id', 'desc')
-            ->get();
+        try {
+            $defaultStoreId = Setting::get('default_store_id', 1);
+            $currentStock = DB::table('product_store_stock')
+                ->where('product_id', $product->id)
+                ->where('store_id', $defaultStoreId)
+                ->value('quantity');
 
-        return response()->json([
-            'success' => true,
-            'product' => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'sku' => $product->sku,
-                'current_stock' => (float) ($product->stock->quantity ?? 0),
-            ],
-            'histories' => $histories->map(function ($history) {
-                return [
-                    'id' => $history->id,
-                    'quantity_before' => (float) $history->quantity_before,
-                    'quantity_change' => (float) $history->quantity_change,
-                    'new_quantity' => (float) $history->new_quantity,
-                    'type' => ucfirst(str_replace('_', ' ', $history->type)),
-                    'reference_no' => $history->reference_no ?: '-',
-                    'note' => $history->note ?: '-',
-                    'description' => $history->description ?: '-',
-                    'creator' => $history->creator ? $history->creator->name : 'System',
-                    'date' => $history->created_at ? $history->created_at->format('Y-m-d H:i') : '-',
-                ];
-            }),
-        ]);
+            $histories = StockHistory::where('product_id', $product->id)
+                ->with(['creator', 'variant'])
+                ->orderByDesc('id')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku ?: '-',
+                    'current_stock' => (float) ($currentStock ?? 0),
+                ],
+                'histories' => $histories->map(function ($history) {
+                    $quantityChange = (float) $history->quantity_change;
+                    $newQuantity = (float) $history->new_quantity;
+                    $quantityBefore = $history->quantity_before;
+
+                    if ($quantityBefore === null) {
+                        $quantityBefore = $newQuantity - $quantityChange;
+                    }
+
+                    return [
+                        'id' => $history->id,
+                        'quantity_before' => (float) $quantityBefore,
+                        'quantity_change' => $quantityChange,
+                        'new_quantity' => $newQuantity,
+                        'type' => ucfirst(str_replace('_', ' ', (string) $history->type)),
+                        'reference_no' => $history->reference_no ?: '-',
+                        'note' => $history->note ?: '-',
+                        'description' => $history->description ?: ($history->note ?: '-'),
+                        'creator' => $history->creator ? $history->creator->name : 'System',
+                        'date' => $history->created_at ? $history->created_at->format('Y-m-d H:i') : '-',
+                    ];
+                })->values(),
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to load stock movement logs. Please try again.',
+            ], 500);
+        }
     }
 }

@@ -39,7 +39,7 @@
     @endphp
     
     <!-- Desktop Sidebar (Hidden on mobile) -->
-    <aside class="w-64 bg-[#0c1630] text-slate-300 flex flex-col border-r border-[#182647] h-screen sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
+    <aside class="w-64 bg-[#0c1630] text-slate-300 flex flex-col border-r border-[#182647] h-screen max-h-screen overflow-hidden sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
         <!-- Brand Logo Header -->
         <div class="flex items-center gap-3 px-6 py-5 border-b border-[#182647] bg-[#091024] shrink-0">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 shrink-0">
@@ -56,11 +56,10 @@
                     <h2 class="text-sm font-bold text-white tracking-wide leading-tight">Phone Shop POS</h2>
                     <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">Retail & Wholesale</p>
                 </div>
-            </div>
         </div>
 
         <!-- Sidebar Nav Links -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain custom-scrollbar pb-6">
             <nav class="p-4 space-y-1">
                 <!-- Dashboard Link -->
                 @if (auth()->user()->hasPermission('dashboard.view'))

@@ -315,43 +315,58 @@
             
             openModal('historyModal');
             
-            fetch(`/stock/history/${productId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('hist_prod_name').innerText = `${data.product.sku} - ${data.product.name}`;
-                        document.getElementById('hist_prod_stock').innerText = parseFloat(data.product.current_stock).toFixed(2);
-                        
-                        tbody.innerHTML = '';
-                        if (data.histories.length === 0) {
-                            tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">No stock movement logs found for this product.</td></tr>`;
-                            return;
-                        }
-                        
-                        data.histories.forEach(h => {
-                            const changeClass = h.quantity_change > 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
-                            const changeSign = h.quantity_change > 0 ? `+${h.quantity_change}` : h.quantity_change;
-                            
-                            const tr = document.createElement('tr');
-                            tr.className = 'hover:bg-slate-50/50 transition';
-                            tr.innerHTML = `
-                                <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${h.date}</td>
-                                <td class="px-4 py-3"><span class="px-1.5 py-0.5 rounded bg-slate-100 text-[9px] font-extrabold uppercase">${h.type}</span></td>
-                                <td class="px-4 py-3 text-right text-slate-500">${parseFloat(h.quantity_before).toFixed(0)}</td>
-                                <td class="px-4 py-3 text-right ${changeClass}">${changeSign}</td>
-                                <td class="px-4 py-3 text-right font-bold text-slate-800">${parseFloat(h.new_quantity).toFixed(0)}</td>
-                                <td class="px-4 py-3 text-slate-600">
-                                    <div class="font-bold">${h.reference_no}</div>
-                                    <div class="text-[10px] text-slate-450">${h.description}</div>
-                                </td>
-                                <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${h.creator}</td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
+            fetch(`{{ url('/stock/history') }}/${productId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+                .then(async res => {
+                    const data = await res.json().catch(() => ({
+                        success: false,
+                        message: `HTTP ${res.status}`,
+                    }));
+
+                    if (!res.ok || !data.success) {
+                        throw new Error(data.message || 'Failed to retrieve stock logs.');
                     }
+
+                    return data;
+                })
+                .then(data => {
+                    document.getElementById('hist_prod_name').innerText = `${data.product.sku} - ${data.product.name}`;
+                    document.getElementById('hist_prod_stock').innerText = parseFloat(data.product.current_stock).toFixed(2);
+                    
+                    tbody.innerHTML = '';
+                    if (data.histories.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">No stock movement logs found for this product.</td></tr>`;
+                        return;
+                    }
+                    
+                    data.histories.forEach(h => {
+                        const quantityChange = parseFloat(h.quantity_change);
+                        const changeClass = quantityChange > 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+                        const changeSign = quantityChange > 0 ? `+${quantityChange}` : quantityChange;
+                        
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50/50 transition';
+                        tr.innerHTML = `
+                            <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${h.date}</td>
+                            <td class="px-4 py-3"><span class="px-1.5 py-0.5 rounded bg-slate-100 text-[9px] font-extrabold uppercase">${h.type}</span></td>
+                            <td class="px-4 py-3 text-right text-slate-500">${parseFloat(h.quantity_before).toFixed(0)}</td>
+                            <td class="px-4 py-3 text-right ${changeClass}">${changeSign}</td>
+                            <td class="px-4 py-3 text-right font-bold text-slate-800">${parseFloat(h.new_quantity).toFixed(0)}</td>
+                            <td class="px-4 py-3 text-slate-600">
+                                <div class="font-bold">${h.reference_no}</div>
+                                <div class="text-[10px] text-slate-450">${h.description}</div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${h.creator}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
                 })
                 .catch(err => {
-                    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-rose-600 font-semibold">Failed to retrieve stock logs.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-rose-600 font-semibold">${err.message || 'Failed to retrieve stock logs.'}</td></tr>`;
                 });
         }
     </script>

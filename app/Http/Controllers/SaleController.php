@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\CustomerTransaction;
-use App\Models\CustomerTransaction;
 use App\Models\ProductStoreStock;
 use App\Models\Sale;
 use App\Models\SalePayment;
