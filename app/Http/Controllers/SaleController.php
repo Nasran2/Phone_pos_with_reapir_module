@@ -10,6 +10,7 @@ use App\Models\Sale;
 use App\Models\SalePayment;
 use App\Models\StockHistory;
 use App\Models\User;
+use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -81,15 +82,15 @@ class SaleController extends Controller
             'Date: ' . $sale->created_at->format('Y-m-d h:i A'),
             'Customer: ' . ($sale->customer->name ?? 'Walk-in Customer'),
             'Sale Type: ' . ucfirst($sale->pos_type),
-            'Grand Total: Rs. ' . number_format((float) $sale->payable_amount, 2),
-            'Paid: Rs. ' . number_format((float) $sale->paid_amount, 2),
-            'Due: Rs. ' . number_format((float) $sale->due_amount, 2),
+            'Grand Total: ' . SystemSettings::money((float) $sale->payable_amount),
+            'Paid: ' . SystemSettings::money((float) $sale->paid_amount),
+            'Due: ' . SystemSettings::money((float) $sale->due_amount),
         ];
 
         foreach ($sale->items as $item) {
             $name = $item->product->name ?? 'Product';
             $variant = $item->variantLabel();
-            $lines[] = trim($name . ($variant ? ' - ' . $variant : '')) . ' x ' . (float) $item->quantity . ' = Rs. ' . number_format((float) ($item->line_total ?: $item->subtotal), 2);
+            $lines[] = trim($name . ($variant ? ' - ' . $variant : '')) . ' x ' . (float) $item->quantity . ' = ' . SystemSettings::money((float) ($item->line_total ?: $item->subtotal));
         }
 
         return response($this->simplePdf('Sales Invoice ' . $sale->invoice_no, $lines), 200, [

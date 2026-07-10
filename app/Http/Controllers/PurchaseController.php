@@ -11,6 +11,7 @@ use App\Models\PurchasePayment;
 use App\Models\StockHistory;
 use App\Models\Supplier;
 use App\Models\SupplierTransaction;
+use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -23,6 +24,8 @@ class PurchaseController extends Controller
 
     public function index(Request $request)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $query = Purchase::with('supplier')->withCount('items');
 
         if ($request->filled('search')) {
@@ -63,11 +66,15 @@ class PurchaseController extends Controller
 
     public function create()
     {
+        $this->ensurePurchaseModuleEnabled();
+
         return view('purchases.form', $this->formData());
     }
 
     public function store(Request $request)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $validated = $this->validatePurchase($request);
         $validated['status'] = $request->input('save_action') === 'draft' ? 'Draft' : $validated['status'];
 
@@ -127,6 +134,8 @@ class PurchaseController extends Controller
 
     public function show(Purchase $purchase)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $purchase->load(['supplier', 'items.product', 'payments', 'returns.items']);
 
         return view('purchases.show', compact('purchase'));
@@ -134,6 +143,8 @@ class PurchaseController extends Controller
 
     public function edit(Purchase $purchase)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $purchase->load(['items.product', 'payments', 'supplier']);
 
         return view('purchases.form', $this->formData($purchase));
@@ -141,6 +152,8 @@ class PurchaseController extends Controller
 
     public function update(Request $request, Purchase $purchase)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $purchase->load(['items', 'supplier']);
         $validated = $this->validatePurchase($request, $purchase);
         $validated['status'] = $request->input('save_action') === 'draft' ? 'Draft' : $validated['status'];
@@ -214,6 +227,8 @@ class PurchaseController extends Controller
 
     public function destroy(Purchase $purchase)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $purchase->load(['items.product', 'supplier']);
 
         DB::beginTransaction();
@@ -252,6 +267,8 @@ class PurchaseController extends Controller
 
     public function print(Purchase $purchase)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $purchase->load(['supplier', 'items.product', 'payments']);
 
         return view('purchases.print', compact('purchase'));
@@ -259,19 +276,21 @@ class PurchaseController extends Controller
 
     public function download(Purchase $purchase)
     {
+        $this->ensurePurchaseModuleEnabled();
+
         $purchase->load(['supplier', 'items.product']);
         $lines = [
             'Supplier: ' . ($purchase->supplier->name ?? '-'),
             'Date: ' . optional($purchase->purchase_date)->format('Y-m-d'),
             'Reference: ' . ($purchase->reference_no ?: '-'),
             'Status: ' . $purchase->status,
-            'Grand Total: Rs. ' . number_format((float) $purchase->grand_total, 2),
-            'Paid: Rs. ' . number_format((float) $purchase->paid_amount, 2),
-            'Due: Rs. ' . number_format((float) $purchase->due_amount, 2),
+            'Grand Total: ' . SystemSettings::money((float) $purchase->grand_total),
+            'Paid: ' . SystemSettings::money((float) $purchase->paid_amount),
+            'Due: ' . SystemSettings::money((float) $purchase->due_amount),
         ];
 
         foreach ($purchase->items as $item) {
-            $lines[] = ($item->product->name ?? 'Product') . ' x ' . (float) $item->quantity . ' = Rs. ' . number_format((float) $item->line_total, 2);
+            $lines[] = ($item->product->name ?? 'Product') . ' x ' . (float) $item->quantity . ' = ' . SystemSettings::money((float) $item->line_total);
         }
 
         return response($this->simplePdf('Purchase Invoice ' . $purchase->displayNo(), $lines), 200, [
@@ -565,7 +584,7 @@ class PurchaseController extends Controller
 
     private function generatePurchaseNo(): string
     {
-        $prefix = 'PO-' . now()->format('Ymd') . '-';
+        $prefix = SystemSettings::get('purchase_invoice_prefix', 'PO', 'invoice_settings') . '-' . now()->format('Ymd') . '-';
         $next = Purchase::where('purchase_no', 'like', $prefix . '%')->count() + 1;
 
         do {
@@ -574,6 +593,11 @@ class PurchaseController extends Controller
         } while (Purchase::where('purchase_no', $number)->orWhere('invoice_no', $number)->exists());
 
         return $number;
+    }
+
+    private function ensurePurchaseModuleEnabled(): void
+    {
+        abort_unless(SystemSettings::bool('enable_purchase_module', true, 'business_settings'), 403, 'Purchase module is disabled in Settings.');
     }
 
     private function simplePdf(string $title, array $lines): string

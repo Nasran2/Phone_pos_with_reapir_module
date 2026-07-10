@@ -782,6 +782,7 @@
                 paymentMethods: @json($paymentMethods),
                 holdSales: @json($holdSales),
                 resumeHold: @json($resumeHold),
+                settings: @json($posSettings),
                 
                 // Selectors
                 selectedCategory: 'all',
@@ -793,8 +794,12 @@
                 // Totals & Cart
                 cart: [],
                 discountPercentage: 0,
-                taxPercentage: 15,
+                taxPercentage: Number(@json($posSettings['taxPercentage'] ?? 15)),
                 shippingCost: 0,
+                currencySymbol: @json($posSettings['currencySymbol'] ?? 'Rs.'),
+                decimalPlaces: Number(@json($posSettings['decimalPlaces'] ?? 2)),
+                enableTax: Boolean(@json($posSettings['enableTax'] ?? true)),
+                enableDiscount: Boolean(@json($posSettings['enableDiscount'] ?? true)),
 
                 // Mixed split payments
                 payments: {
@@ -1131,10 +1136,12 @@
                 },
 
                 calculateDiscountAmount() {
+                    if (!this.enableDiscount) return 0;
                     return (this.calculateSubtotal() * this.discountPercentage) / 100;
                 },
 
                 calculateTaxAmount() {
+                    if (!this.enableTax) return 0;
                     return (this.calculateSubtotal() - this.calculateDiscountAmount()) * (this.taxPercentage / 100);
                 },
 
@@ -1336,7 +1343,11 @@
                 },
 
                 formatMoney(amount) {
-                    return parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    const value = Number(amount || 0);
+                    return value.toLocaleString('en-US', {
+                        minimumFractionDigits: this.decimalPlaces,
+                        maximumFractionDigits: this.decimalPlaces
+                    });
                 }
             };
         }

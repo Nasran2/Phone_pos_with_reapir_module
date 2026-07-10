@@ -20,6 +20,7 @@ use App\Models\SupplierTransaction;
 use App\Services\ExcelExportService;
 use App\Services\PdfExportService;
 use App\Services\ReportService;
+use App\Support\SystemSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -143,7 +144,7 @@ class ReportController extends Controller
 
     private function money(float|int|string|null $amount): string
     {
-        return 'Rs. '.number_format((float) $amount, 2);
+        return SystemSettings::money((float) $amount);
     }
 
     private function numberFromSummaryValue(mixed $value): float

@@ -36,13 +36,35 @@
             'reports.user_activity',
         ];
         $canAccessReports = auth()->check() && collect($reportPermissions)->contains(fn ($permission) => auth()->user()->hasPermission($permission));
+        $settingsSections = collect(config('settings_sections', []))
+            ->filter(fn ($section) => auth()->check() && auth()->user()->hasPermission('settings.' . $section['route'] . '.view'))
+            ->values();
+        $canAccessSettings = $settingsSections->isNotEmpty();
+        $isSettingsActive = request()->is('settings*');
+        $systemName = \App\Support\SystemSettings::get('system_name', 'Phone Shop POS', 'business_settings');
+        $businessLogo = \App\Support\SystemSettings::get('business_logo', null, 'business_settings');
+        $businessSubtitle = \App\Support\SystemSettings::get('footer_powered_by', 'Retail & Wholesale', 'business_settings');
+        $moduleSettings = [
+            'retail_pos' => \App\Support\SystemSettings::bool('enable_retail_pos', true, 'pos_settings'),
+            'wholesale_pos' => \App\Support\SystemSettings::bool('enable_wholesale_pos', true, 'pos_settings'),
+            'purchase' => \App\Support\SystemSettings::bool('enable_purchase_module', true, 'business_settings'),
+            'stock' => \App\Support\SystemSettings::bool('enable_stock_management', true, 'business_settings'),
+            'barcode' => \App\Support\SystemSettings::bool('enable_barcode_system', true, 'barcode_settings'),
+            'expense' => \App\Support\SystemSettings::bool('enable_expense_module', true, 'business_settings'),
+            'accounting' => \App\Support\SystemSettings::bool('enable_accounting', true, 'business_settings'),
+            'retail_sales' => \App\Support\SystemSettings::bool('enable_retail_sales', true, 'business_settings'),
+            'wholesale_sales' => \App\Support\SystemSettings::bool('enable_wholesale_sales', true, 'business_settings'),
+        ];
     @endphp
     
     <!-- Desktop Sidebar (Hidden on mobile) -->
     <aside class="w-64 bg-[#0c1630] text-slate-300 flex flex-col border-r border-[#182647] h-screen max-h-screen overflow-hidden sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
         <!-- Brand Logo Header -->
         <div class="flex items-center gap-3 px-6 py-5 border-b border-[#182647] bg-[#091024] shrink-0">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 shrink-0">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 shrink-0 overflow-hidden">
+                    @if($businessLogo)
+                    <img src="{{ asset('storage/' . $businessLogo) }}" alt="{{ $systemName }}" class="h-full w-full object-contain bg-white p-1">
+                    @else
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <rect x="2" y="3" width="20" height="12" rx="2" />
                         <path d="M12 15v4" />
@@ -51,10 +73,11 @@
                         <circle cx="10" cy="8" r="1" />
                         <circle cx="14" cy="8" r="1" />
                     </svg>
+                    @endif
                 </div>
                 <div>
-                    <h2 class="text-sm font-bold text-white tracking-wide leading-tight">Phone Shop POS</h2>
-                    <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">Retail & Wholesale</p>
+                    <h2 class="text-sm font-bold text-white tracking-wide leading-tight">{{ $systemName }}</h2>
+                    <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">{{ $businessSubtitle }}</p>
                 </div>
         </div>
 
@@ -129,7 +152,7 @@
                 @endif
 
                 <!-- Purchase Dropdown -->
-                @if (auth()->user()->hasPermission('purchase.view'))
+                @if ($moduleSettings['purchase'] && auth()->user()->hasPermission('purchase.view'))
                 <div>
                     <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
@@ -152,7 +175,7 @@
                 @endif
 
                 <!-- Sales Dropdown -->
-                @if (auth()->user()->hasPermission('sales.view'))
+                @if (($moduleSettings['retail_sales'] || $moduleSettings['wholesale_sales']) && auth()->user()->hasPermission('sales.view'))
                 <div>
                     <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none">
                         <div class="flex items-center gap-3">
@@ -198,7 +221,7 @@
                 @endif
 
                 <!-- Store Stock Dropdown -->
-                @if (auth()->user()->hasPermission('stock.view'))
+                @if ($moduleSettings['stock'] && auth()->user()->hasPermission('stock.view'))
                 <div>
                     <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('stock.index') || request()->routeIs('stock-adjustments.*') || request()->routeIs('damaged-stocks.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
@@ -216,7 +239,7 @@
                         @if (auth()->user()->hasPermission('stock_transfers.view'))
                         <a href="{{ route('stock-transfers.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('stock-transfers.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Stock Transfers</a>
                         @endif
-                        @if (auth()->user()->hasPermission('barcodes.view'))
+                        @if ($moduleSettings['barcode'] && auth()->user()->hasPermission('barcodes.view'))
                         <a href="{{ route('barcodes.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('barcodes.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Print Barcodes</a>
                         @endif
                         @if (auth()->user()->hasPermission('stock.adjustment.view'))
@@ -230,7 +253,7 @@
                 @endif
 
                 <!-- Expenses Dropdown -->
-                @if (auth()->user()->hasPermission('expenses.view') || auth()->user()->hasPermission('reports.expense'))
+                @if ($moduleSettings['expense'] && (auth()->user()->hasPermission('expenses.view') || auth()->user()->hasPermission('reports.expense')))
                 <div>
                     <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('accounting.expenses.*') || request()->routeIs('accounting.expense-categories.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
@@ -252,7 +275,7 @@
                 @endif
 
                 <!-- Accounting Dropdown -->
-                @if (auth()->user()->hasPermission('accounting.view') || auth()->user()->hasPermission('cashbook.view') || auth()->user()->hasPermission('bank.view') || auth()->user()->hasPermission('t_account.view') || auth()->user()->hasPermission('reports.profit_loss'))
+                @if ($moduleSettings['accounting'] && (auth()->user()->hasPermission('accounting.view') || auth()->user()->hasPermission('cashbook.view') || auth()->user()->hasPermission('bank.view') || auth()->user()->hasPermission('t_account.view') || auth()->user()->hasPermission('reports.profit_loss')))
                 <div>
                     <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('accounting.*') && !request()->routeIs('accounting.expenses.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
@@ -308,14 +331,26 @@
                 </a>
                 @endif
 
-                <!-- Settings Link -->
-                @if (auth()->user()->hasPermission('settings.view'))
-                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('profile.*') ? 'bg-[#182647] text-white' : 'hover:bg-[#182647] hover:text-white' }}">
-                    <svg class="w-5 h-5 {{ request()->routeIs('profile.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                    <span>Settings</span>
-                </a>
+                <!-- Settings Dropdown -->
+                @if ($canAccessSettings)
+                <div>
+                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ $isSettingsActive ? 'bg-[#182647]/50 text-white' : '' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 {{ $isSettingsActive ? 'text-white' : 'text-slate-400' }} group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                            <span>Settings</span>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ $isSettingsActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 max-h-[42vh] overflow-y-auto custom-scrollbar {{ $isSettingsActive ? '' : 'hidden' }}">
+                        @foreach ($settingsSections as $section)
+                        <a href="{{ route('settings.' . $section['route']) }}" class="block py-2 text-xs font-medium {{ request()->routeIs('settings.' . $section['route']) ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">{{ $section['label'] }}</a>
+                        @endforeach
+                    </div>
+                </div>
                 @endif
             </nav>
         </div>
@@ -323,9 +358,9 @@
         <!-- Sidebar Bottom: POS Shortcuts & User Details -->
         <div class="shrink-0 border-t border-[#182647] bg-[#091024]/20">
             <!-- POS Shortcuts Grid -->
-            @if (auth()->user()->hasPermission('retail_pos.view') || auth()->user()->hasPermission('wholesale_pos.view'))
+            @if (($moduleSettings['retail_pos'] && auth()->user()->hasPermission('retail_pos.view')) || ($moduleSettings['wholesale_pos'] && auth()->user()->hasPermission('wholesale_pos.view')))
             <div class="p-4 grid grid-cols-2 gap-2.5">
-                @if (auth()->user()->hasPermission('retail_pos.view'))
+                @if ($moduleSettings['retail_pos'] && auth()->user()->hasPermission('retail_pos.view'))
                 <a href="{{ route('pos.retail') }}" class="flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition text-xs shadow-lg shadow-blue-500/10">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -333,7 +368,7 @@
                     <span>Retail POS</span>
                 </a>
                 @endif
-                @if (auth()->user()->hasPermission('wholesale_pos.view'))
+                @if ($moduleSettings['wholesale_pos'] && auth()->user()->hasPermission('wholesale_pos.view'))
                 <a href="{{ route('pos.wholesale') }}" class="flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition text-xs shadow-lg shadow-emerald-500/10">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <rect x="2" y="3" width="20" height="12" rx="2" />
@@ -398,7 +433,7 @@
                     <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
-            <span class="text-sm font-bold tracking-wide">Phone Shop POS</span>
+            <span class="text-sm font-bold tracking-wide">{{ $systemName }}</span>
         </div>
         <div class="flex items-center gap-3">
             <div class="h-8 w-8 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center text-xs">
@@ -436,7 +471,7 @@
                     @if (auth()->user()->hasPermission('users.view') || auth()->user()->hasPermission('roles.view') || auth()->user()->hasPermission('permissions.view') || auth()->user()->hasPermission('activity_logs.view'))
                     <div class="py-1">
                         <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">User Management</span>
-                        <div class="mt-1 space-y-1 pl-3">
+                        <div class="mt-1 space-y-1 pl-3 max-h-[44vh] overflow-y-auto custom-scrollbar">
                             @if (auth()->user()->hasPermission('users.view'))
                             <a href="{{ route('users.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('users.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Users</a>
                             @endif
@@ -465,7 +500,7 @@
                     </div>
                     @endif
 
-                    @if (auth()->user()->hasPermission('sales.view'))
+                    @if (($moduleSettings['retail_sales'] || $moduleSettings['wholesale_sales']) && auth()->user()->hasPermission('sales.view'))
                     <div class="py-1">
                         <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sales</span>
                         <div class="mt-1 space-y-1 pl-3">
@@ -480,7 +515,7 @@
                     </div>
                     @endif
 
-                    @if (auth()->user()->hasPermission('purchase.view'))
+                    @if ($moduleSettings['purchase'] && auth()->user()->hasPermission('purchase.view'))
                     <div class="py-1">
                         <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Purchase</span>
                         <div class="mt-1 space-y-1 pl-3">
@@ -492,7 +527,7 @@
                     </div>
                     @endif
 
-                    @if (auth()->user()->hasPermission('stock.view'))
+                    @if ($moduleSettings['stock'] && auth()->user()->hasPermission('stock.view'))
                     <div class="py-1">
                         <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Store Stock</span>
                         <div class="mt-1 space-y-1 pl-3">
@@ -514,7 +549,7 @@
                     <a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('suppliers.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Suppliers</a>
                     @endif
 
-                    @if (auth()->user()->hasPermission('expenses.view') || auth()->user()->hasPermission('reports.expense'))
+                    @if ($moduleSettings['expense'] && (auth()->user()->hasPermission('expenses.view') || auth()->user()->hasPermission('reports.expense')))
                     <a href="{{ route('accounting.expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('accounting.expenses.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Expenses</a>
                     @endif
 
@@ -532,16 +567,27 @@
                         </div>
                     </div>
                     @endif
+
+                    @if ($canAccessSettings)
+                    <div class="py-1">
+                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Settings</span>
+                        <div class="mt-1 space-y-1 pl-3">
+                            @foreach ($settingsSections as $section)
+                            <a href="{{ route('settings.' . $section['route']) }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('settings.' . $section['route']) ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">{{ $section['label'] }}</a>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </nav>
             </div>
             
             <div class="shrink-0 border-t border-[#182647] bg-[#091024]/20">
-                @if (auth()->user()->hasPermission('retail_pos.view') || auth()->user()->hasPermission('wholesale_pos.view'))
+                @if (($moduleSettings['retail_pos'] && auth()->user()->hasPermission('retail_pos.view')) || ($moduleSettings['wholesale_pos'] && auth()->user()->hasPermission('wholesale_pos.view')))
                 <div class="p-4 grid grid-cols-2 gap-2">
-                    @if (auth()->user()->hasPermission('retail_pos.view'))
+                    @if ($moduleSettings['retail_pos'] && auth()->user()->hasPermission('retail_pos.view'))
                     <a href="{{ route('pos.retail') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">Retail POS</a>
                     @endif
-                    @if (auth()->user()->hasPermission('wholesale_pos.view'))
+                    @if ($moduleSettings['wholesale_pos'] && auth()->user()->hasPermission('wholesale_pos.view'))
                     <a href="{{ route('pos.wholesale') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Wholesale POS</a>
                     @endif
                 </div>

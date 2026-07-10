@@ -687,6 +687,7 @@
                 paymentMethods: @json($paymentMethods),
                 holdSales: @json($holdSales),
                 resumeHold: @json($resumeHold),
+                settings: @json($posSettings),
                 
                 cart: [],
                 selectedCategory: 'all',
@@ -694,10 +695,14 @@
                 selectedCustomerId: 1, // Default Walk-in
                 currentHoldId: null,
                 discountPercentage: 0,
-                taxPercentage: 15,
+                taxPercentage: Number(@json($posSettings['taxPercentage'] ?? 15)),
                 shippingCost: 0,
                 paidAmount: 0,
                 paymentMethod: 'Cash',
+                currencySymbol: @json($posSettings['currencySymbol'] ?? 'Rs.'),
+                decimalPlaces: Number(@json($posSettings['decimalPlaces'] ?? 2)),
+                enableTax: Boolean(@json($posSettings['enableTax'] ?? true)),
+                enableDiscount: Boolean(@json($posSettings['enableDiscount'] ?? true)),
                 
                 mobileTab: 'products', // products, cart
                 
@@ -938,10 +943,12 @@
                 },
 
                 calculateDiscountAmount() {
+                    if (!this.enableDiscount) return 0;
                     return this.calculateSubtotal() * (this.discountPercentage / 100);
                 },
 
                 calculateTaxAmount() {
+                    if (!this.enableTax) return 0;
                     return (this.calculateSubtotal() - this.calculateDiscountAmount()) * (this.taxPercentage / 100);
                 },
 
@@ -1074,7 +1081,10 @@
                 },
 
                 formatMoney(value) {
-                    return parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return Number(value || 0).toLocaleString('en-US', {
+                        minimumFractionDigits: this.decimalPlaces,
+                        maximumFractionDigits: this.decimalPlaces
+                    });
                 }
             };
         }

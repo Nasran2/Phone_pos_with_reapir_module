@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,6 +13,8 @@ class RetailPosController extends Controller
      */
     public function index()
     {
+        abort_unless(SystemSettings::bool('enable_retail_pos', true, 'pos_settings'), 403, 'Retail POS is disabled in Settings.');
+
         // Fetch Categories
         $categories = DB::table('categories')->whereNull('deleted_at')->get();
 
@@ -87,14 +90,13 @@ class RetailPosController extends Controller
         $resumeHold = request()->filled('hold_id') ? $this->resumeHoldPayload((int) request('hold_id'), 'retail') : null;
 
         // Fetch Payment Methods
-        $paymentMethods = DB::table('payment_methods')
-            ->where('is_active', true)
-            ->get();
+        $paymentMethods = $this->enabledPaymentMethods();
 
         // Fetch Stores if multi store is enabled
         $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
         $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : [];
         $activeStoreId = $storeId;
+        $posSettings = SystemSettings::posPayload();
 
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
@@ -106,7 +108,7 @@ class RetailPosController extends Controller
             ]);
         }
 
-        return view('pos.retail', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId'));
+        return view('pos.retail', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId', 'posSettings'));
     }
 
     /**
@@ -128,7 +130,7 @@ class RetailPosController extends Controller
 
         try {
             $today = date('Y-m-d');
-            $invoiceNo = 'RETAIL-' . strtoupper(uniqid());
+            $invoiceNo = SystemSettings::get('retail_invoice_prefix', 'RETAIL', 'invoice_settings') . '-' . strtoupper(uniqid());
 
             // Compute total cost price & total profit price
             $totalCostAmount = 0;
@@ -405,9 +407,29 @@ class RetailPosController extends Controller
             'customer_id' => $hold->customer_id,
             'customer_name' => $hold->customer_name,
             'discountPercentage' => 0,
-            'taxPercentage' => 15,
+            'taxPercentage' => (float) SystemSettings::number('default_sale_tax', 15, 'tax_settings'),
             'shippingCost' => 0,
             'items' => $items,
         ];
+    }
+
+    private function enabledPaymentMethods()
+    {
+        $enabledNames = collect([
+            'Cash' => SystemSettings::bool('enable_cash_payment', true, 'business_settings'),
+            'Card' => SystemSettings::bool('enable_card_payment', true, 'business_settings'),
+            'Bank Transfer' => SystemSettings::bool('enable_bank_transfer', true, 'business_settings'),
+            'QR Payment' => SystemSettings::bool('enable_qr_payment', true, 'business_settings'),
+            'Cheque' => SystemSettings::bool('enable_cheque_payment', false, 'business_settings'),
+        ])->filter()->keys()->all();
+
+        if ($enabledNames === []) {
+            return collect();
+        }
+
+        return DB::table('payment_methods')
+            ->where('is_active', true)
+            ->whereIn('name', $enabledNames)
+            ->get();
     }
 }
