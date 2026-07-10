@@ -71,7 +71,7 @@
                             </button>
                             @endif
 
-                            @if(auth()->user()->hasPermission('roles.delete') && !in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant']))
+                            @if(auth()->user()->hasPermission('roles.delete') && !in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant', 'Repair Technician']))
                             <form method="POST" action="{{ route('roles.destroy', $role->id) }}" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -181,6 +181,9 @@
                                 </div>
                                 <div class="space-y-2">
                                     @foreach($modulePerms as $perm)
+                                    @php
+                                        $permissionAction = Str::of($perm->name)->after('.')->replace('_', ' ')->title();
+                                    @endphp
                                     <div class="flex items-start gap-2.5">
                                         <input 
                                             type="checkbox" 
@@ -190,7 +193,7 @@
                                             class="perm-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4 mt-0.5"
                                         >
                                         <label for="perm_{{ $perm->id }}" class="text-xs text-slate-650 select-none cursor-pointer leading-tight">
-                                            <span class="font-bold text-slate-800">{{ str_replace($moduleName . '.', '', str_replace(Str::snake(str_replace(' ', '', $moduleName)) . '.', '', $perm->name)) }}</span>
+                                            <span class="font-bold text-slate-800">{{ $permissionAction }}</span>
                                             <span class="block text-[9px] text-slate-400 mt-0.5 font-mono">({{ $perm->name }})</span>
                                         </label>
                                     </div>

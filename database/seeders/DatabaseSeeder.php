@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserManagementSeeder::class,
             DashboardDemoSeeder::class,
+            RepairDemoSeeder::class,
         ]);
     }
 }

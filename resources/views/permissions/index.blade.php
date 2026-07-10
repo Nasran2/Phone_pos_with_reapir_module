@@ -35,10 +35,13 @@
                     <!-- Body -->
                     <div class="p-5 space-y-3.5">
                         @foreach($modulePerms as $perm)
+                        @php
+                            $permissionAction = Str::of($perm->name)->after('.')->replace('_', ' ')->title();
+                        @endphp
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <span class="text-xs font-bold text-slate-800 block">
-                                    {{ ucwords(str_replace('_', ' ', str_replace($moduleName . '.', '', str_replace(Str::lower($moduleName) . '.', '', $perm->name)))) }}
+                                    {{ $permissionAction }}
                                 </span>
                                 <span class="text-[10px] text-slate-400 font-mono mt-0.5 block leading-none">
                                     {{ $perm->name }}

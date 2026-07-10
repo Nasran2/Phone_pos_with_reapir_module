@@ -17,10 +17,20 @@ class RoleController extends Controller
         $roles = Role::withCount('users')->with('permissions')->get();
         
         // Group permissions by their prefix/module to present a nice visual grid in UI
-        $permissions = Permission::all()->groupBy(function($item) {
+        $moduleLabels = [
+            'repair' => 'Repair Management',
+            'retail_pos' => 'Retail POS',
+            'wholesale_pos' => 'Wholesale POS',
+            'sales_return' => 'Sales Returns',
+            'hold_sales' => 'Hold Sales',
+            'stock' => 'Store Stock',
+            'damaged_stock' => 'Damaged Stock',
+            'activity_logs' => 'Activity Logs',
+        ];
+        $permissions = Permission::orderBy('name')->get()->groupBy(function($item) use ($moduleLabels) {
             $parts = explode('.', $item->name);
-            return ucwords(str_replace('_', ' ', $parts[0] ?? 'Other'));
-        });
+            return $moduleLabels[$parts[0] ?? ''] ?? ucwords(str_replace('_', ' ', $parts[0] ?? 'Other'));
+        })->sortKeys();
 
         return view('roles.index', compact('roles', 'permissions'));
     }
@@ -105,7 +115,7 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         // Prevent deleting default roles
-        if (in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant'])) {
+        if (in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant', 'Repair Technician'])) {
             return redirect()->route('roles.index')->with('error', "System default role '{$role->name}' cannot be deleted.");
         }
 
