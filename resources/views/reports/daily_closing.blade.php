@@ -28,7 +28,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between items-center py-2 border-b border-slate-100">
                             <span class="text-slate-600 font-medium">Opening Cash</span>
-                            <input type="number" step="0.01" name="opening_cash" value="{{ old('opening_cash', $openingCash) }}" class="w-32 text-right rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <input type="number" step="any" name="opening_cash" value="{{ old('opening_cash', $openingCash) }}" class="w-32 text-right rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
                         <div class="flex justify-between py-2 border-b border-slate-100">
                             <span class="text-slate-600 font-medium">Retail Sales</span>
@@ -89,7 +89,7 @@
                     
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Actual Cash Counted *</label>
-                        <input type="number" step="0.01" name="actual_cash_counted" id="actual_cash_counted" required class="w-full text-xl font-bold py-3 text-right rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="0.00">
+                        <input type="number" step="any" name="actual_cash_counted" id="actual_cash_counted" required class="w-full text-xl font-bold py-3 text-right rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="0.00">
                     </div>
                     
                     <div>

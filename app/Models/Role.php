@@ -8,7 +8,7 @@ class Role extends Model
 {
     use \App\Traits\LogsActivity;
 
-    protected $fillable = ['name', 'guard_name', 'description'];
+    protected $fillable = ['name', 'slug', 'guard_name', 'description', 'is_system_role', 'is_fixed', 'is_deletable', 'is_renamable'];
 
     public function users()
     {

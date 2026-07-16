@@ -163,7 +163,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Opening Balance</label>
-                        <input type="number" step="0.01" name="opening_balance" value="0.00" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <input type="number" step="any" name="opening_balance" value="0.00" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-slate-700 mb-1">Description</label>

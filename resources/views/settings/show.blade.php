@@ -1,5 +1,6 @@
 @php
     $canUpdateSettings = auth()->user()->hasPermission('settings.' . $section['route'] . '.update');
+    $settingsErrors = $errors ?? new \Illuminate\Support\ViewErrorBag;
     $fieldHelp = function (array $field): string {
         if (!empty($field['hint'])) {
             return $field['hint'];
@@ -81,7 +82,7 @@
                 </div>
             @endif
 
-            @if ($errors->any())
+            @if ($settingsErrors->any())
                 <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 shadow-sm">
                     Please fix the highlighted fields and save again.
                 </div>
@@ -189,9 +190,9 @@
                                         @endif
                                     @endif
 
-                                    @error($key)
-                                        <p class="mt-2 text-xs font-semibold text-red-600">{{ $message }}</p>
-                                    @enderror
+                                    @if($settingsErrors->has($key))
+                                        <p class="mt-2 text-xs font-semibold text-red-600">{{ $settingsErrors->first($key) }}</p>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>

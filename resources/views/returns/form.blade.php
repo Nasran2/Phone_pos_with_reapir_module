@@ -48,7 +48,7 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-700">Refund Amount</label>
-                    <input id="refund_amount" name="refund_amount" value="{{ old('refund_amount', 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
+                    <input id="refund_amount" name="refund_amount" value="{{ old('refund_amount', 0) }}" type="number" min="0" step="any" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm">
                 </div>
                 <div class="lg:col-span-2">
                     <label class="text-xs font-bold text-slate-700">Return Reason <span class="text-red-500">*</span></label>
@@ -117,7 +117,7 @@
                     <td class="px-4 py-3 text-right font-bold">${Number(item.remaining_quantity).toFixed(2)}</td>
                     <td class="px-4 py-3 text-right">${money(item.cost_price)}</td>
                     <td class="px-4 py-3 text-right">
-                        <input name="items[${index}][quantity]" type="number" min="0" max="${item.remaining_quantity}" step="0.01" value="0" data-cost="${item.cost_price}" data-max="${item.remaining_quantity}" class="return-qty w-24 px-2 py-2.5 border border-slate-200 rounded-lg text-right" oninput="calculateReturn()">
+                        <input name="items[${index}][quantity]" type="number" min="0" max="${item.remaining_quantity}" step="any" value="0" data-cost="${item.cost_price}" data-max="${item.remaining_quantity}" class="return-qty w-24 px-2 py-2.5 border border-slate-200 rounded-lg text-right" oninput="calculateReturn()">
                     </td>
                     <td class="px-4 py-3 text-right font-black line-total">Rs. 0.00</td>
                 </tr>

@@ -69,7 +69,7 @@
                                 <td class="px-5 py-4 text-right">{{ (float) $item->quantity }}</td>
                                 <td class="px-5 py-4 text-right">{{ $returnedQty }}</td>
                                 <td class="px-5 py-4 text-right">
-                                    <input type="number" step="0.01" min="0" max="{{ $remainingQty }}" name="items[{{ $index }}][quantity]" value="0" class="w-24 px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-right">
+                                    <input type="number" step="any" min="0" max="{{ $remainingQty }}" name="items[{{ $index }}][quantity]" value="0" class="w-24 px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-right">
                                 </td>
                                 <td class="px-5 py-4 text-right">Rs. {{ number_format((float) ($item->unit_price ?: $item->selling_price), 2) }}</td>
                             </tr>
@@ -94,7 +94,7 @@
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase text-slate-500">Refund Amount</label>
-                    <input type="number" step="0.01" min="0" name="refund_amount" value="0" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
+                    <input type="number" step="any" min="0" name="refund_amount" value="0" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase text-slate-500">Reason</label>

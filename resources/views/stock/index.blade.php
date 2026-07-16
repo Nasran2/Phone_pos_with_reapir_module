@@ -46,7 +46,7 @@
                 </div>
                 <div>
                     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stock Valuation (Cost)</div>
-                    <div class="text-xl font-extrabold text-blue-650 mt-0.5">Rs. {{ number_format($summary['stock_value'], 2) }}</div>
+                    <div class="text-xl font-extrabold text-blue-650 mt-0.5">{{ \App\Support\SystemSettings::money((float) $summary['stock_value']) }}</div>
                 </div>
             </div>
 
@@ -185,16 +185,16 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right font-medium text-slate-600">
-                                Rs. {{ number_format($product->cost_price, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $product->cost_price) }}
                             </td>
                             <td class="px-6 py-4 text-right font-medium text-slate-800">
-                                Rs. {{ number_format($product->retail_price, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $product->retail_price) }}
                             </td>
                             <td class="px-6 py-4 text-right font-medium text-slate-600">
-                                Rs. {{ number_format($product->wholesale_price, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $product->wholesale_price) }}
                             </td>
                             <td class="px-6 py-4 text-right font-bold text-slate-800">
-                                Rs. {{ number_format($valCost, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $valCost) }}
                             </td>
                             <td class="px-6 py-4">
                                 @if($isOutOfStock)

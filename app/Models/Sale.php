@@ -20,6 +20,7 @@ class Sale extends Model
         'tax_amount',
         'payable_amount',
         'paid_amount',
+        'cheque_hold_amount',
         'due_amount',
         'payment_status',
         'total_cost_amount',
@@ -37,6 +38,7 @@ class Sale extends Model
         'tax_amount' => 'decimal:2',
         'payable_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
+        'cheque_hold_amount' => 'decimal:2',
         'due_amount' => 'decimal:2',
         'total_cost_amount' => 'decimal:2',
         'total_profit_amount' => 'decimal:2',
@@ -56,6 +58,16 @@ class Sale extends Model
     public function payments()
     {
         return $this->hasMany(SalePayment::class);
+    }
+
+    public function cheques()
+    {
+        return $this->hasMany(Cheque::class);
+    }
+
+    public function invoicePayments()
+    {
+        return $this->morphMany(InvoicePayment::class, 'payable');
     }
 
     public function returns()

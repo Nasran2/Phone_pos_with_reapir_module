@@ -69,7 +69,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         // Protect system default critical roles from name changes
-        $isDefaultRole = in_array($role->name, ['Super Admin', 'Admin']);
+        $isDefaultRole = in_array($role->name, ['Super Admin', 'Admin']) || $role->is_fixed;
 
         $rules = [
             'description' => ['nullable', 'string', 'max:500'],
@@ -99,7 +99,7 @@ class RoleController extends Controller
             // Force Super Admin to keep all permissions
             $allPerms = Permission::pluck('id')->toArray();
             $role->permissions()->sync($allPerms);
-        } else {
+        } elseif (! $role->is_fixed) {
             $role->permissions()->sync($request->input('permissions', []));
         }
 
@@ -115,7 +115,7 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         // Prevent deleting default roles
-        if (in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant', 'Repair Technician'])) {
+        if (! $role->is_deletable || in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant', 'Repair Technician'])) {
             return redirect()->route('roles.index')->with('error', "System default role '{$role->name}' cannot be deleted.");
         }
 

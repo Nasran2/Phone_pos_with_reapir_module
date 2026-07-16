@@ -1,7 +1,8 @@
 <!DOCTYPE html>
+@php($isLorryMode = ($sourceType ?? 'store') === 'lorry')
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="light">
 <head>
-    @include('partials.head', ['title' => __('Wholesale POS')])
+    @include('partials.head', ['title' => $isLorryMode ? __('Lorry POS') : __('Wholesale POS')])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body class="h-screen max-h-screen overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
@@ -30,8 +31,8 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-1.5">
-                            <h2 class="text-sm font-bold text-white leading-tight">Wholesale POS</h2>
-                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Wholesale</span>
+                            <h2 class="text-sm font-bold text-white leading-tight">{{ $isLorryMode ? 'Lorry POS' : 'Wholesale POS' }}</h2>
+                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">{{ $isLorryMode ? 'Assigned Stock' : 'Wholesale' }}</span>
                         </div>
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">Navigation Menu</p>
                     </div>
@@ -45,14 +46,14 @@
 
             <!-- Links -->
             <nav class="p-6 space-y-4">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
+                <a href="{{ $isLorryMode ? route('distribution.my-lorry.dashboard') : route('dashboard') }}" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
                     <svg class="w-5 h-5 text-slate-450" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     <span>Back to Dashboard</span>
                 </a>
-                <a href="{{ route('pos.retail') }}" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
+                @unless($isLorryMode)<a href="{{ route('pos.retail') }}" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
                     <svg class="w-5 h-5 text-slate-450" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                     <span>Retail POS</span>
-                </a>
+                </a>@endunless
                 <a href="#" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
                     <svg class="w-5 h-5 text-slate-450" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     <span>Report Logs</span>
@@ -72,7 +73,7 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-bold text-white leading-none">{{ auth()->user()->name }}</h4>
-                    <p class="text-xs text-slate-400 font-semibold mt-1">Administrator</p>
+                    <p class="text-xs text-slate-400 font-semibold mt-1">{{ $isLorryMode ? 'Lorry User' : 'Administrator' }}</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
@@ -111,8 +112,8 @@
                     </div>
                     <div class="hidden sm:block">
                         <div class="flex items-center gap-1.5">
-                            <h1 class="text-sm font-black tracking-wide leading-none">Wholesale POS</h1>
-                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Wholesale Mode</span>
+                            <h1 class="text-sm font-black tracking-wide leading-none">{{ $isLorryMode ? 'Lorry POS' : 'Wholesale POS' }}</h1>
+                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">{{ $isLorryMode ? 'Assigned Lorry' : 'Wholesale Mode' }}</span>
                         </div>
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
                     </div>
@@ -161,6 +162,30 @@
                                 <option value="{{ $s->id }}" {{ $activeStoreId == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    @endif
+                    @if($distributionEnabled && $lorries->isNotEmpty())
+                    <div class="flex items-center gap-2 mr-2">
+                        <select onchange="window.location.href='{{ route('pos.wholesale') }}?source_type=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Wholesale stock source">
+                            <option value="store" {{ $sourceType === 'store' ? 'selected' : '' }}>Store Stock</option>
+                            <option value="lorry" {{ $sourceType === 'lorry' ? 'selected' : '' }}>Lorry Stock</option>
+                        </select>
+                        @if($sourceType === 'lorry')
+                        <select onchange="window.location.href='{{ route('pos.wholesale') }}?source_type=lorry&lorry_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select lorry">
+                            <option value="">Select Lorry</option>
+                            @foreach($lorries as $lorry)
+                                <option value="{{ $lorry->id }}" {{ (string) $activeLorryId === (string) $lorry->id ? 'selected' : '' }}>{{ $lorry->lorry_no }}</option>
+                            @endforeach
+                        </select>
+                        @if($distributionTrips->isNotEmpty())
+                        <select onchange="window.location.href='{{ route('pos.wholesale') }}?source_type=lorry&lorry_id={{ $activeLorryId }}&trip_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select trip">
+                            <option value="">No Trip</option>
+                            @foreach($distributionTrips as $trip)
+                                <option value="{{ $trip->id }}" {{ (string) $activeTripId === (string) $trip->id ? 'selected' : '' }}>{{ $trip->trip_no }}</option>
+                            @endforeach
+                        </select>
+                        @endif
+                        @endif
                     </div>
                     @endif
                     <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
@@ -337,69 +362,53 @@
                 <div class="border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
                     <div class="space-y-1.5 text-xs">
                         <div class="flex items-center justify-between text-slate-500">
-                            <span>Subtotal:</span>
-                            <span class="font-semibold text-slate-800">Rs. <span x-text="formatMoney(calculateSubtotal())"></span></span>
+                            <span class="font-bold text-slate-700">Items</span>
+                            <span class="font-bold text-slate-800" x-text="cart.length"></span>
                         </div>
                         <div class="flex items-center justify-between text-slate-500">
-                            <div class="flex items-center gap-1">
-                                <span>Discount (%):</span>
-                                <input type="number" x-model.number="discountPercentage" class="w-10 text-right px-1.5 py-0.5 border border-slate-200 rounded focus:outline-none" />
+                            <span class="font-bold text-slate-700">Subtotal</span>
+                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateSubtotal())"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-500">
+                            <span class="font-bold text-slate-700">Tax</span>
+                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateTaxAmount())"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-800 font-bold">
+                            <span>Total</span>
+                            <span class="text-blue-700">Rs <span x-text="formatMoney(calculateSubtotal() + calculateTaxAmount() + Number(shippingCost))"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-800 font-black text-sm">
+                            <span>Payable</span>
+                            <span>Rs <span x-text="formatMoney(calculateGrandTotal())"></span></span>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-2 pt-2">
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
+                                <input type="radio" value="fixed" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                                Fixed
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
+                                <input type="radio" value="percentage" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                                %
+                            </label>
+                            <div class="flex-1 ml-1">
+                                <input type="number" step="any" min="0" placeholder="Discount" x-model.number="globalDiscountValue" class="w-full text-left px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500" />
                             </div>
-                            <span class="font-semibold text-red-600">-Rs. <span x-text="formatMoney(calculateDiscountAmount())"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span>Tax (VAT <span x-text="taxPercentage"></span>%):</span>
-                            <span class="font-semibold text-slate-800">Rs. <span x-text="formatMoney(calculateTaxAmount())"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span>Shipping / Other:</span>
-                            <input type="number" x-model.number="shippingCost" class="w-16 text-right px-1.5 py-0.5 border border-slate-200 rounded focus:outline-none" />
-                        </div>
-                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 pb-1 text-slate-800">
-                            <span class="font-bold text-sm">Total Payable:</span>
-                            <span class="font-black text-blue-600 text-lg">Rs. <span x-text="formatMoney(calculateGrandTotal())"></span></span>
                         </div>
                     </div>
 
-                    <!-- Payment selector buttons -->
                     <div class="space-y-2.5">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Method</span>
-                        <div class="grid grid-cols-4 gap-2 text-[10px] font-bold">
-                            <button @click="paymentMethod = 'Cash'" class="py-2.5 rounded-lg flex flex-col items-center justify-center gap-1 border transition cursor-pointer"
-                                    :class="paymentMethod === 'Cash' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                <span>Cash</span>
-                            </button>
-                            <button @click="paymentMethod = 'Bank'" class="py-2.5 rounded-lg flex flex-col items-center justify-center gap-1 border transition cursor-pointer"
-                                    :class="paymentMethod === 'Bank' ? 'bg-blue-500/10 text-blue-600 border-blue-500' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-                                <span>Bank</span>
-                            </button>
-                            <button @click="paymentMethod = 'Card'" class="py-2.5 rounded-lg flex flex-col items-center justify-center gap-1 border transition cursor-pointer"
-                                    :class="paymentMethod === 'Card' ? 'bg-purple-500/10 text-purple-600 border-purple-500' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                <span>Card</span>
-                            </button>
-                            <button @click="paymentMethod = 'Other'" class="py-2.5 rounded-lg flex flex-col items-center justify-center gap-1 border transition cursor-pointer"
-                                    :class="paymentMethod === 'Other' ? 'bg-slate-500/10 text-slate-600 border-slate-500' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                                <span>Other</span>
-                            </button>
+                        <div class="flex items-center justify-between"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Method</span><button @click="openMultiplePayments()" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100">+ Multiple Payment</button></div>
+                        <div class="grid grid-cols-5 gap-2 text-[10px] font-bold">
+                            <template x-for="method in ['Cash','Bank Transfer','Card','QR Payment','Cheque']"><button @click="selectSinglePayment(method)" class="min-h-11 rounded-lg border px-1 transition" :class="!useMultiplePayments && paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 bg-slate-50 text-slate-600'" x-text="method === 'Bank Transfer' ? 'Bank' : method === 'QR Payment' ? 'QR' : method"></button></template>
                         </div>
-
-                        <!-- Paid Cash & Change calculation -->
-                        <div class="grid grid-cols-2 gap-4 text-xs font-bold">
-                            <div>
-                                <label class="block text-slate-500 mb-1 text-[10px]">Paid Amount</label>
-                                <input type="number" x-model.number="paidAmount" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-slate-900" />
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 mb-1 text-[10px]">Change Amount</label>
-                                <div class="px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-800 flex items-center justify-between">
-                                    <span>Rs.</span>
-                                    <span x-text="formatMoney(calculateChangeAmount())"></span>
-                                </div>
-                            </div>
+                        <div x-show="useMultiplePayments" class="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs"><span class="font-bold text-blue-700"><span x-text="paymentRows.length"></span> payment allocations selected</span><button @click="openMultiplePayments()" class="font-bold text-blue-600">Edit</button></div>
+                        <div x-show="!useMultiplePayments" class="grid grid-cols-2 gap-3 text-xs font-bold">
+                            <div><label class="mb-1 block text-[10px] text-slate-500">Paid Amount</label><input type="number" min="0" step="0.01" x-model.number="paidAmount" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"></div>
+                            <div><label class="mb-1 block text-[10px] text-slate-500">Change Amount</label><div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-100 px-3 py-2"><span x-text="currencySymbol"></span><span x-text="formatMoney(calculateChangeAmount())"></span></div></div>
+                        </div>
+                        <div x-show="!useMultiplePayments && paymentMethod === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2">
+                            <input x-model="chequeDetails.cheque_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Cheque number *"><input type="date" x-model="chequeDetails.cheque_date" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs"><input x-model="chequeDetails.bank_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Bank *"><input x-model="chequeDetails.branch_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Branch"><input x-model="chequeDetails.account_holder_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account holder *"><input x-model="chequeDetails.account_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account number">
                         </div>
                     </div>
 
@@ -409,13 +418,30 @@
                         <button @click="holdCurrentSale()" class="py-3 bg-amber-100 hover:bg-amber-200 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer">Hold (F2)</button>
                         <button @click="submitPOSCheckout()" 
                                 class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
-                                :disabled="cart.length === 0"
-                                :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
+                                :disabled="cart.length === 0 || !checkoutPaymentValid()"
+                                :class="cart.length === 0 || !checkoutPaymentValid() ? 'opacity-50 cursor-not-allowed' : ''">
                             <span>Pay (F12)</span>
                         </button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Multiple payment allocations are kept in a popup so the standard POS stays compact. -->
+    <div x-show="showMultiplePaymentModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+        <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl" @click.away="closeMultiplePayments(false)">
+            <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4"><div><h3 class="text-lg font-black text-slate-900">Multiple Payments</h3><p class="text-xs text-slate-500">Add every payment used for this invoice. Cheques are tracked separately.</p></div><button @click="closeMultiplePayments(false)" class="text-2xl text-slate-400">×</button></div>
+            <div class="overflow-y-auto p-6">
+                <div class="mb-4 grid grid-cols-6 gap-2"><template x-for="method in ['Cash','Card','Bank Transfer','QR Payment','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="min-h-10 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold hover:border-blue-400 hover:text-blue-600" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+                <div class="space-y-3"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <div class="grid grid-cols-[1fr_150px_30px] gap-2"><select x-model="row.method" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm"><template x-for="m in ['Cash','Card','Bank Transfer','QR Payment','Other','Cheque','Customer Credit / Due']"><option :value="m" x-text="m"></option></template></select><input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-right text-sm font-bold" placeholder="Amount"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                    <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" placeholder="Reference number / account">
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3"><input x-model="row.cheque.cheque_number" class="rounded-lg border border-amber-300 px-3 py-2 text-sm" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded-lg border border-amber-300 px-3 py-2 text-sm"><input x-model="row.cheque.bank_name" class="rounded-lg border border-amber-300 px-3 py-2 text-sm" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded-lg border border-amber-300 px-3 py-2 text-sm" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded-lg border border-amber-300 px-3 py-2 text-sm" placeholder="Account holder *"><input x-model="row.cheque.account_number" class="rounded-lg border border-amber-300 px-3 py-2 text-sm" placeholder="Account number"></div>
+                </div></template></div>
+                <div class="mt-4 grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-bold"><div>Allocated<br><span class="text-lg" x-text="currencySymbol + formatMoney(allocatedTotal())"></span></div><div class="text-amber-600">Cheque hold<br><span class="text-lg" x-text="currencySymbol + formatMoney(chequeHoldTotal())"></span></div><div :class="Math.abs(remainingToAllocate()) < .01 ? 'text-emerald-600' : 'text-red-600'">Remaining<br><span class="text-lg" x-text="currencySymbol + formatMoney(remainingToAllocate())"></span></div></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 border-t border-slate-200 px-6 py-4"><button @click="closeMultiplePayments(false)" class="rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700">Cancel</button><button @click="closeMultiplePayments(true)" :disabled="!paymentsValid()" :class="!paymentsValid() ? 'opacity-50' : ''" class="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white">Use Multiple Payments</button></div>
         </div>
     </div>
 
@@ -688,17 +714,24 @@
                 holdSales: @json($holdSales),
                 resumeHold: @json($resumeHold),
                 settings: @json($posSettings),
+                sourceType: @json($sourceType ?? 'store'),
+                activeLorryId: @json($activeLorryId),
+                activeTripId: @json($activeTripId),
                 
                 cart: [],
+                globalDiscountType: 'fixed',
+                globalDiscountValue: 0,
                 selectedCategory: 'all',
                 searchQuery: '',
                 selectedCustomerId: 1, // Default Walk-in
                 currentHoldId: null,
-                discountPercentage: 0,
                 taxPercentage: Number(@json($posSettings['taxPercentage'] ?? 15)),
                 shippingCost: 0,
                 paidAmount: 0,
                 paymentMethod: 'Cash',
+                chequeDetails: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder_name: '', account_number: '', reference_number: '' },
+                paymentRows: [],
+                useMultiplePayments: false,
                 currencySymbol: @json($posSettings['currencySymbol'] ?? 'Rs.'),
                 decimalPlaces: Number(@json($posSettings['decimalPlaces'] ?? 2)),
                 enableTax: Boolean(@json($posSettings['enableTax'] ?? true)),
@@ -712,6 +745,7 @@
                 showAddCustomerModal: false,
                 showProductModal: false,
                 showSuccessModal: false,
+                showMultiplePaymentModal: false,
                 
                 // Modal form fields
                 selectedProduct: null,
@@ -752,7 +786,9 @@
                             e.preventDefault();
                             this.submitPOSCheckout();
                         } else if (e.key === 'Escape') {
-                            if (this.showSuccessModal) {
+                            if (this.showMultiplePaymentModal) {
+                                this.closeMultiplePayments(false);
+                            } else if (this.showSuccessModal) {
                                 this.resetPOSForNewSale();
                             } else {
                                 this.showMenuDrawer = false;
@@ -771,7 +807,8 @@
                         const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
                                               p.sku.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                                               (p.barcode && p.barcode.includes(this.searchQuery));
-                        return matchesCategory && matchesSearch;
+                        const matchesStock = this.sourceType !== 'lorry' || Number(p.stock || 0) > 0;
+                        return matchesCategory && matchesSearch && matchesStock;
                     });
                 },
 
@@ -894,7 +931,7 @@
                     this.closeProductModal();
                     
                     // Automatically update default paid amount to match grand total
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.syncSinglePayment();
                 },
 
                 updateLineTotal(item) {
@@ -904,7 +941,7 @@
                     } else {
                         item.line_total = Math.max(0, baseTotal - item.discount_amount);
                     }
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.syncSinglePayment();
                 },
 
                 incrementQty(item) {
@@ -925,14 +962,17 @@
 
                 removeFromCart(index) {
                     this.cart.splice(index, 1);
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.syncSinglePayment();
                 },
 
                 clearCart() {
                     if (confirm('Are you sure you want to clear the current transaction cart?')) {
                         this.cart = [];
+                        this.globalDiscountType = 'fixed';
+                        this.globalDiscountValue = 0;
                         this.paidAmount = 0;
-                        this.discountPercentage = 0;
+                        this.paymentRows = [];
+                        this.useMultiplePayments = false;
                         this.shippingCost = 0;
                     }
                 },
@@ -944,7 +984,9 @@
 
                 calculateDiscountAmount() {
                     if (!this.enableDiscount) return 0;
-                    return this.calculateSubtotal() * (this.discountPercentage / 100);
+                    return this.globalDiscountType === 'percentage'
+                        ? (this.calculateSubtotal() * (Number(this.globalDiscountValue) || 0)) / 100
+                        : (Number(this.globalDiscountValue) || 0);
                 },
 
                 calculateTaxAmount() {
@@ -957,7 +999,47 @@
                 },
 
                 calculateChangeAmount() {
-                    return Math.max(0, this.paidAmount - this.calculateGrandTotal());
+                    return Math.max(0, this.allocatedTotal() - this.calculateGrandTotal());
+                },
+
+                addPaymentRow(method = 'Cash') {
+                    const remaining = Math.max(0, this.remainingToAllocate());
+                    this.paymentRows.push({ id: Date.now() + Math.random(), method, amount: remaining || 0, reference_no: '', cheque: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder: '', account_number: '', notes: '' } });
+                },
+                removePaymentRow(index) { this.paymentRows.splice(index, 1); },
+                allocatedTotal() { return this.paymentRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0); },
+                chequeHoldTotal() { return this.paymentRows.filter(row => row.method === 'Cheque').reduce((sum, row) => sum + (Number(row.amount) || 0), 0); },
+                remainingToAllocate() { return this.calculateGrandTotal() - this.allocatedTotal(); },
+                paymentsValid() {
+                    if (!this.paymentRows.length || Math.abs(this.remainingToAllocate()) > .009) return false;
+                    return this.paymentRows.every(row => Number(row.amount) > 0 && (row.method !== 'Cheque' || (row.cheque.cheque_number && row.cheque.cheque_date && row.cheque.bank_name && row.cheque.account_holder)));
+                },
+                selectSinglePayment(method) {
+                    this.useMultiplePayments = false;
+                    this.paymentMethod = method;
+                    this.paidAmount = this.calculateGrandTotal();
+                },
+                singlePaymentRow() {
+                    const row = { method: this.paymentMethod, amount: Number(this.paidAmount) || 0, reference_no: '' };
+                    if (this.paymentMethod === 'Cheque') row.cheque = { cheque_number: this.chequeDetails.cheque_number, cheque_date: this.chequeDetails.cheque_date, bank_name: this.chequeDetails.bank_name, branch_name: this.chequeDetails.branch_name, account_holder: this.chequeDetails.account_holder_name, account_number: this.chequeDetails.account_number };
+                    return row;
+                },
+                openMultiplePayments() {
+                    if (!this.useMultiplePayments || !this.paymentRows.length) this.paymentRows = [this.singlePaymentRow()];
+                    this.showMultiplePaymentModal = true;
+                },
+                closeMultiplePayments(apply) {
+                    if (apply && this.paymentsValid()) this.useMultiplePayments = true;
+                    this.showMultiplePaymentModal = false;
+                },
+                checkoutPaymentValid() {
+                    if (this.useMultiplePayments) return this.paymentsValid();
+                    if ((Number(this.paidAmount) || 0) <= 0 || Number(this.paidAmount) > this.calculateGrandTotal() + .009) return false;
+                    return this.paymentMethod !== 'Cheque' || (this.chequeDetails.cheque_number && this.chequeDetails.cheque_date && this.chequeDetails.bank_name && this.chequeDetails.account_holder_name);
+                },
+                syncSinglePayment() {
+                    this.paidAmount = this.calculateGrandTotal();
+                    if (this.useMultiplePayments && this.paymentRows.length === 1) this.paymentRows[0].amount = this.calculateGrandTotal();
                 },
 
                 // Creates customer via AJAX
@@ -995,19 +1077,25 @@
                         return;
                     }
 
+                    const checkoutRows = this.useMultiplePayments ? this.paymentRows : [this.singlePaymentRow()];
+                    if (!this.useMultiplePayments && Number(this.paidAmount) < this.calculateGrandTotal() - .009) checkoutRows.push({ method: 'Customer Credit / Due', amount: this.calculateGrandTotal() - Number(this.paidAmount) });
                     const payload = {
                         customer_id: this.selectedCustomerId,
                         pos_type: 'wholesale',
                         items: this.cart,
                         total_amount: this.calculateSubtotal(),
+                        discount_type: this.globalDiscountType,
                         discount_amount: this.calculateDiscountAmount(),
                         tax_amount: this.calculateTaxAmount(),
                         payable_amount: this.calculateGrandTotal(),
-                        paid_amount: this.paidAmount,
-                        payment_method: this.paymentMethod,
-                        payment_reference: '',
+                        paid_amount: checkoutRows.filter(row => !['Cheque','Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+                        payment_method: this.useMultiplePayments ? 'Mixed' : this.paymentMethod,
+                        payment_rows: checkoutRows,
                         hold_id: this.currentHoldId,
-                        store_id: {{ $activeStoreId ?? 1 }}
+                        store_id: {{ $activeStoreId ?? 1 }},
+                        source_type: this.sourceType,
+                        lorry_id: this.activeLorryId,
+                        trip_id: this.activeTripId
                     };
 
                     fetch('{{ route("pos.wholesale.store") }}', {
@@ -1023,7 +1111,7 @@
                         if (data.success) {
                             this.checkoutSuccessData = {
                                 invoice_no: data.invoice_no,
-                                paid_amount: this.paidAmount,
+                                paid_amount: checkoutRows.filter(row => !['Cheque','Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
                                 change: data.change
                             };
                             this.showSuccessModal = true;
@@ -1054,12 +1142,13 @@
                     this.showHoldSalesModal = false;
                     this.cart = hold.items || [];
                     this.selectedCustomerId = hold.customer_id || this.selectedCustomerId;
-                    this.discountPercentage = hold.discountPercentage || 0;
+                    this.globalDiscountType = hold.discountType || 'fixed';
+                    this.globalDiscountValue = hold.discountValue || 0;
                     this.taxPercentage = hold.taxPercentage || this.taxPercentage;
                     this.shippingCost = hold.shippingCost || 0;
                     this.currentHoldId = fromServer ? hold.id : null;
                     this.holdSales = this.holdSales.filter(h => h.id !== hold.id);
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.syncSinglePayment();
                 },
 
                 printReceipt(format) {
@@ -1073,7 +1162,10 @@
                 resetPOSForNewSale() {
                     this.cart = [];
                     this.paidAmount = 0;
-                    this.discountPercentage = 0;
+                    this.paymentRows = [];
+                    this.useMultiplePayments = false;
+                    this.globalDiscountType = 'fixed';
+                    this.globalDiscountValue = 0;
                     this.shippingCost = 0;
                     this.currentHoldId = null;
                     this.showSuccessModal = false;

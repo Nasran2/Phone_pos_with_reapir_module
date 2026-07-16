@@ -50,7 +50,15 @@
         <div class="row"><span>Tax</span><strong>Rs. {{ number_format((float) $sale->tax_amount, 2) }}</strong></div>
         <div class="row"><span>Grand Total</span><strong>Rs. {{ number_format((float) $sale->payable_amount, 2) }}</strong></div>
         <div class="row"><span>Paid</span><strong>Rs. {{ number_format((float) $sale->paid_amount, 2) }}</strong></div>
+        <div class="row"><span>Cheque Hold</span><strong>Rs. {{ number_format((float) $sale->cheque_hold_amount, 2) }}</strong></div>
         <div class="row"><span>Due</span><strong>Rs. {{ number_format((float) $sale->due_amount, 2) }}</strong></div>
     </div>
+    @if($sale->invoicePayments->isNotEmpty())
+    <h3 style="margin-top:32px">Payment Allocation</h3>
+    <table>
+        <thead><tr><th>Method</th><th>Reference / Cheque</th><th>Status</th><th class="right">Amount</th></tr></thead>
+        <tbody>@foreach($sale->invoicePayments as $payment)<tr><td>{{ $payment->payment_method }}</td><td>{{ $payment->reference_no ?: $payment->cheque?->cheque_number ?: '-' }}</td><td>{{ strtoupper($payment->status) }}</td><td class="right">Rs. {{ number_format((float)$payment->amount, 2) }}</td></tr>@endforeach</tbody>
+    </table>
+    @endif
 </body>
 </html>

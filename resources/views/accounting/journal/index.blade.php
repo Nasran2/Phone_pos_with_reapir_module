@@ -180,8 +180,8 @@
                                             @endforeach
                                         </select>
                                     </td>
-                                    <td class="pr-2 pb-2"><input type="number" step="0.01" name="items[0][debit]" class="debit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
-                                    <td class="pr-2 pb-2"><input type="number" step="0.01" name="items[0][credit]" class="credit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
+                                    <td class="pr-2 pb-2"><input type="number" step="any" name="items[0][debit]" class="debit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
+                                    <td class="pr-2 pb-2"><input type="number" step="any" name="items[0][credit]" class="credit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
                                     <td class="pb-2 text-center"></td>
                                 </tr>
                                 <!-- Line 2 -->
@@ -194,8 +194,8 @@
                                             @endforeach
                                         </select>
                                     </td>
-                                    <td class="pr-2 pb-2"><input type="number" step="0.01" name="items[1][debit]" class="debit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
-                                    <td class="pr-2 pb-2"><input type="number" step="0.01" name="items[1][credit]" class="credit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
+                                    <td class="pr-2 pb-2"><input type="number" step="any" name="items[1][debit]" class="debit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
+                                    <td class="pr-2 pb-2"><input type="number" step="any" name="items[1][credit]" class="credit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
                                     <td class="pb-2 text-center"></td>
                                 </tr>
                             </tbody>
@@ -261,8 +261,8 @@
                             @endforeach
                         </select>
                     </td>
-                    <td class="pr-2 pb-2"><input type="number" step="0.01" name="items[${rowIdx}][debit]" class="debit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
-                    <td class="pr-2 pb-2"><input type="number" step="0.01" name="items[${rowIdx}][credit]" class="credit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
+                    <td class="pr-2 pb-2"><input type="number" step="any" name="items[${rowIdx}][debit]" class="debit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
+                    <td class="pr-2 pb-2"><input type="number" step="any" name="items[${rowIdx}][credit]" class="credit-input w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 sm:text-sm" placeholder="0.00"></td>
                     <td class="pb-2 text-center align-middle">
                         <button type="button" class="text-rose-400 hover:text-rose-600" onclick="this.closest('tr').remove(); calculateTotals();">
                             <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>

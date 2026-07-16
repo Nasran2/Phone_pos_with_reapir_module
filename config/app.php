@@ -15,6 +15,12 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'developer' => [
+        'name' => env('DEVELOPER_NAME', 'twinsofte.com'),
+        'phone' => env('DEVELOPER_PHONE', '0762472822'),
+        'web' => env('DEVELOPER_WEB', 'twinsofte.com'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

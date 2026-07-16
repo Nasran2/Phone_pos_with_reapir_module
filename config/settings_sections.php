@@ -32,7 +32,6 @@ return [
                 ['key' => 'enable_animations', 'label' => 'Enable Animations', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
                 ['key' => 'enable_sound_alerts', 'label' => 'Enable Sound Alerts', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
                 ['key' => 'login_landing_page', 'label' => 'Landing Page After Login', 'type' => 'select', 'default' => 'dashboard', 'options' => ['dashboard' => 'Dashboard', 'pos/retail' => 'Retail POS', 'pos/wholesale' => 'Wholesale POS'], 'rules' => $shortText],
-                ['key' => 'footer_powered_by', 'label' => 'Footer Powered By Text', 'type' => 'text', 'default' => 'Phone Shop POS', 'rules' => $shortText],
             ]],
         ],
     ],

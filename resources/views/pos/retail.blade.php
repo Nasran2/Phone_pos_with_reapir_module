@@ -345,27 +345,38 @@
                 <div class="border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
                     <div class="space-y-1.5 text-xs">
                         <div class="flex items-center justify-between text-slate-500">
-                            <span>Subtotal:</span>
-                            <span class="font-semibold text-slate-800">Rs. <span x-text="formatMoney(calculateSubtotal())"></span></span>
+                            <span class="font-bold text-slate-700">Items</span>
+                            <span class="font-bold text-slate-800" x-text="cart.length"></span>
                         </div>
                         <div class="flex items-center justify-between text-slate-500">
-                            <div class="flex items-center gap-1">
-                                <span>Discount (%):</span>
-                                <input type="number" x-model.number="discountPercentage" class="w-10 text-right px-1.5 py-0.5 border border-slate-200 rounded focus:outline-none" />
+                            <span class="font-bold text-slate-700">Subtotal</span>
+                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateSubtotal())"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-500">
+                            <span class="font-bold text-slate-700">Tax</span>
+                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateTaxAmount())"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-800 font-bold">
+                            <span>Total</span>
+                            <span class="text-blue-700">Rs <span x-text="formatMoney(calculateSubtotal() + calculateTaxAmount() + Number(shippingCost))"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-800 font-black text-sm">
+                            <span>Payable</span>
+                            <span>Rs <span x-text="formatMoney(calculateGrandTotal())"></span></span>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-2 pt-2">
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
+                                <input type="radio" value="fixed" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                                Fixed
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
+                                <input type="radio" value="percentage" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                                %
+                            </label>
+                            <div class="flex-1 ml-1">
+                                <input type="number" step="any" min="0" placeholder="Discount" x-model.number="globalDiscountValue" class="w-full text-left px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500" />
                             </div>
-                            <span class="font-semibold text-red-600">-Rs. <span x-text="formatMoney(calculateDiscountAmount())"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span>Tax (VAT <span x-text="taxPercentage"></span>%):</span>
-                            <span class="font-semibold text-slate-800">Rs. <span x-text="formatMoney(calculateTaxAmount())"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span>Shipping / Other:</span>
-                            <input type="number" x-model.number="shippingCost" class="w-16 text-right px-1.5 py-0.5 border border-slate-200 rounded focus:outline-none" />
-                        </div>
-                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 pb-1 text-slate-800">
-                            <span class="font-bold text-sm">Total Payable:</span>
-                            <span class="font-black text-blue-600 text-lg">Rs. <span x-text="formatMoney(calculateGrandTotal())"></span></span>
                         </div>
                     </div>
 
@@ -502,51 +513,14 @@
                 <span class="text-blue-600 text-lg font-black">Rs. <span x-text="formatMoney(calculateGrandTotal())"></span></span>
             </div>
 
-            <!-- Mixed Payment Splits Grid -->
             <div class="space-y-3">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Method Splits</label>
-                
-                <div class="space-y-2.5">
-                    <!-- Cash Split -->
-                    <div class="grid grid-cols-12 gap-3 items-center">
-                        <span class="col-span-3 text-xs font-bold text-slate-600">Cash</span>
-                        <div class="col-span-5 relative">
-                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[10px] font-bold text-slate-400">Rs.</span>
-                            <input type="number" x-model.number="payments['Cash']" class="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none" />
-                        </div>
-                        <input type="text" x-model="paymentReferences['Cash']" placeholder="Cash ref (optional)" class="col-span-4 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] focus:outline-none" />
-                    </div>
-
-                    <!-- Card Split -->
-                    <div class="grid grid-cols-12 gap-3 items-center">
-                        <span class="col-span-3 text-xs font-bold text-slate-600">Card</span>
-                        <div class="col-span-5 relative">
-                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[10px] font-bold text-slate-400">Rs.</span>
-                            <input type="number" x-model.number="payments['Card']" class="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none" />
-                        </div>
-                        <input type="text" x-model="paymentReferences['Card']" placeholder="Transaction ID" class="col-span-4 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] focus:outline-none" />
-                    </div>
-
-                    <!-- Bank Transfer Split -->
-                    <div class="grid grid-cols-12 gap-3 items-center">
-                        <span class="col-span-3 text-xs font-bold text-slate-600">Bank Transfer</span>
-                        <div class="col-span-5 relative">
-                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[10px] font-bold text-slate-400">Rs.</span>
-                            <input type="number" x-model.number="payments['Bank Transfer']" class="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none" />
-                        </div>
-                        <input type="text" x-model="paymentReferences['Bank Transfer']" placeholder="Ref Slip No" class="col-span-4 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] focus:outline-none" />
-                    </div>
-
-                    <!-- QR Payment Split -->
-                    <div class="grid grid-cols-12 gap-3 items-center">
-                        <span class="col-span-3 text-xs font-bold text-slate-600">QR Payment</span>
-                        <div class="col-span-5 relative">
-                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[10px] font-bold text-slate-400">Rs.</span>
-                            <input type="number" x-model.number="payments['QR Payment']" class="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none" />
-                        </div>
-                        <input type="text" x-model="paymentReferences['QR Payment']" placeholder="QR Code Ref" class="col-span-4 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] focus:outline-none" />
-                    </div>
-                </div>
+                <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
+                <div class="grid grid-cols-6 gap-2"><template x-for="method in ['Cash','Card','Bank Transfer','QR Payment','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+                <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div class="grid grid-cols-[1fr_130px_28px] gap-2"><select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs"><template x-for="m in ['Cash','Card','Bank Transfer','QR Payment','Other','Cheque','Customer Credit / Due']"><option :value="m" x-text="m"></option></template></select><input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                    <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Account holder *"><input x-model="row.cheque.account_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Account number"></div>
+                </div></template></div>
             </div>
 
             <!-- Total Paid, Balance and Change calculation summaries -->
@@ -571,8 +545,8 @@
                 <button @click="showPaymentPopup = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
                 <button @click="submitPOSCheckout()" 
                         class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center justify-center gap-1.5"
-                        :disabled="calculateSplitTotalPaid() <= 0"
-                        :class="calculateSplitTotalPaid() <= 0 ? 'opacity-50 cursor-not-allowed' : ''">
+                        :disabled="!paymentsValid()"
+                        :class="!paymentsValid() ? 'opacity-50 cursor-not-allowed' : ''">
                     <span>Complete Sale (F8)</span>
                 </button>
             </div>
@@ -743,7 +717,7 @@
 
                 <div class="text-center border-t border-dashed border-slate-300 pt-2 mt-2 text-[8px] text-slate-400">
                     <p>Thank you for shopping with us!</p>
-                    <p class="font-extrabold uppercase mt-1 text-[7px] tracking-wider">Powered by twinsofte.com</p>
+                    <p class="font-extrabold uppercase mt-1 text-[7px] tracking-wider">Powered by {{ config('app.developer.name', 'twinsofte.com') }}</p>
                 </div>
             </div>
 
@@ -793,7 +767,8 @@
 
                 // Totals & Cart
                 cart: [],
-                discountPercentage: 0,
+                globalDiscountType: 'fixed',
+                globalDiscountValue: 0,
                 taxPercentage: Number(@json($posSettings['taxPercentage'] ?? 15)),
                 shippingCost: 0,
                 currencySymbol: @json($posSettings['currencySymbol'] ?? 'Rs.'),
@@ -807,6 +782,7 @@
                     'Card': 0,
                     'Bank Transfer': 0,
                     'QR Payment': 0
+                    ,'Cheque': 0
                 },
                 paymentReferences: {
                     'Cash': '',
@@ -814,6 +790,8 @@
                     'Bank Transfer': '',
                     'QR Payment': ''
                 },
+                chequeDetails: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder_name: '', account_number: '', reference_number: '' },
+                paymentRows: [],
 
                 // Clock and Modals
                 liveTime: '',
@@ -1125,7 +1103,8 @@
                 clearCart() {
                     if (confirm('Clear the current transaction cart?')) {
                         this.cart = [];
-                        this.discountPercentage = 0;
+                        this.globalDiscountType = 'fixed';
+                        this.globalDiscountValue = 0;
                         this.shippingCost = 0;
                     }
                 },
@@ -1136,8 +1115,9 @@
                 },
 
                 calculateDiscountAmount() {
-                    if (!this.enableDiscount) return 0;
-                    return (this.calculateSubtotal() * this.discountPercentage) / 100;
+                    return this.globalDiscountType === 'percentage'
+                        ? (this.calculateSubtotal() * (Number(this.globalDiscountValue) || 0)) / 100
+                        : (Number(this.globalDiscountValue) || 0);
                 },
 
                 calculateTaxAmount() {
@@ -1151,19 +1131,19 @@
 
                 // Payment popup methods
                 openPaymentPopup() {
-                    // Pre-fill cash field with the total payable by default for quick checkouts
-                    this.payments['Cash'] = this.calculateGrandTotal();
-                    this.payments['Card'] = 0;
-                    this.payments['Bank Transfer'] = 0;
-                    this.payments['QR Payment'] = 0;
+                    this.paymentRows = [];
+                    this.addPaymentRow('Cash');
                     this.showPaymentPopup = true;
                 },
 
+                addPaymentRow(method = 'Cash') {
+                    const amount = Math.max(0, this.calculateGrandTotal() - this.calculateSplitTotalPaid());
+                    this.paymentRows.push({ id: Date.now() + Math.random(), method, amount, reference_no: '', cheque: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder: '', account_number: '', notes: '' } });
+                },
+                removePaymentRow(index) { this.paymentRows.splice(index, 1); },
+
                 calculateSplitTotalPaid() {
-                    return parseFloat(this.payments['Cash'] || 0) + 
-                           parseFloat(this.payments['Card'] || 0) + 
-                           parseFloat(this.payments['Bank Transfer'] || 0) + 
-                           parseFloat(this.payments['QR Payment'] || 0);
+                    return this.paymentRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
                 },
 
                 calculateSplitChange() {
@@ -1176,6 +1156,10 @@
                     let totalPaid = this.calculateSplitTotalPaid();
                     let payable = this.calculateGrandTotal();
                     return payable > totalPaid ? payable - totalPaid : 0;
+                },
+                paymentsValid() {
+                    if (!this.paymentRows.length || Math.abs(this.calculateSplitRemainingDue()) > .009 || this.calculateSplitChange() > .009) return false;
+                    return this.paymentRows.every(row => Number(row.amount) > 0 && (row.method !== 'Cheque' || (row.cheque.cheque_number && row.cheque.cheque_date && row.cheque.bank_name && row.cheque.account_holder)));
                 },
 
                 // Save Customer
@@ -1227,9 +1211,12 @@
                         customer_name: this.getSelectedCustomer().name,
                         hold_date: now.toLocaleString(),
                         total_amount: this.calculateGrandTotal(),
-                        items: this.cart,
-                        discountPercentage: this.discountPercentage,
+                        subtotal: this.calculateSubtotal(),
+                        discountType: this.globalDiscountType,
+                        discountValue: this.globalDiscountValue,
+                        tax: this.calculateTaxAmount(),
                         taxPercentage: this.taxPercentage,
+                        items: this.cart,
                         shippingCost: this.shippingCost
                     };
 
@@ -1238,14 +1225,17 @@
                     
                     alert('Sale placed on hold with Reference: ' + holdRef);
                     this.cart = [];
-                    this.discountPercentage = 0;
+                    this.globalDiscountType = 'fixed';
+                    this.globalDiscountValue = 0;
                     this.shippingCost = 0;
                 },
 
                 recallHeldSale(hold, fromServer = false) {
                     this.cart = hold.items;
                     this.selectedCustomerId = hold.customer_id;
-                    this.discountPercentage = hold.discountPercentage;
+                    this.currentHoldId = hold.id;
+                    this.globalDiscountType = hold.discountType || 'fixed';
+                    this.globalDiscountValue = hold.discountValue || 0;
                     this.taxPercentage = hold.taxPercentage;
                     this.shippingCost = hold.shippingCost;
                     this.currentHoldId = fromServer ? hold.id : null;
@@ -1285,11 +1275,11 @@
                             customer_id: this.selectedCustomerId,
                             items: this.cart,
                             total_amount: this.calculateSubtotal(),
+                            discount_type: this.globalDiscountType,
                             discount_amount: this.calculateDiscountAmount(),
                             tax_amount: this.calculateTaxAmount(),
                             payable_amount: payable,
-                            payments: this.payments,
-                            payment_references: this.paymentReferences,
+                            payment_rows: this.paymentRows,
                             paid_amount: totalPaid,
                             hold_id: this.currentHoldId,
                             store_id: {{ $activeStoreId ?? 1 }}
@@ -1314,7 +1304,8 @@
 
                             // Clear cart and state
                             this.cart = [];
-                            this.discountPercentage = 0;
+                            this.globalDiscountType = 'fixed';
+                            this.globalDiscountValue = 0;
                             this.shippingCost = 0;
                             this.currentHoldId = null;
                             this.showPaymentPopup = false;

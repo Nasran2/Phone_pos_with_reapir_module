@@ -19,6 +19,7 @@ class Supplier extends Model
         'address',
         'tax_number',
         'balance',
+        'cheque_hold_balance',
         'opening_balance',
         'bank_details',
         'status',
@@ -29,6 +30,7 @@ class Supplier extends Model
 
     protected $casts = [
         'balance' => 'decimal:2',
+        'cheque_hold_balance' => 'decimal:2',
         'opening_balance' => 'decimal:2',
         'status' => 'boolean',
     ];
@@ -41,5 +43,10 @@ class Supplier extends Model
     public function transactions()
     {
         return $this->hasMany(SupplierTransaction::class);
+    }
+
+    public function cheques()
+    {
+        return $this->hasMany(Cheque::class);
     }
 }

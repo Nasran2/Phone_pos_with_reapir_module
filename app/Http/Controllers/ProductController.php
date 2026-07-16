@@ -65,8 +65,9 @@ class ProductController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
+        $stores = \App\Models\Store::all();
 
-        return view('products.index', compact('products', 'categories', 'brands', 'units'));
+        return view('products.index', compact('products', 'categories', 'brands', 'units', 'stores'));
     }
 
     /**
@@ -89,6 +90,8 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'max:2048'], // Product Image
             'is_active' => ['nullable', 'boolean'],
+            'store_ids' => ['nullable', 'array'],
+            'store_ids.*' => ['exists:stores,id'],
             'imeis' => ['nullable', 'string'], // text area line separated
             'variants' => ['nullable', 'array'],
             'variants.*.color' => ['nullable', 'string'],
@@ -137,23 +140,27 @@ class ProductController extends Controller
 
             // Save Product Stock
             $qty = floatval($validated['opening_stock'] ?? 0);
-            ProductStoreStock::create([
-                'product_id' => $product->id,
-                'store_id' => Setting::get('default_store_id', 1),
-                'quantity' => $qty,
-            ]);
+            $storeIds = $request->input('store_ids', [Setting::get('default_store_id', 1)]);
 
-            // Save Stock History
-            if ($qty > 0) {
-                StockHistory::create([
+            foreach ($storeIds as $storeId) {
+                ProductStoreStock::create([
                     'product_id' => $product->id,
-                    'quantity_change' => $qty,
-                    'new_quantity' => $qty,
-                    'type' => 'opening_stock',
-                    'note' => 'Initial opening stock',
-                    'created_by' => auth()->id(),
-                    'store_id' => Setting::get('default_store_id', 1),
+                    'store_id' => $storeId,
+                    'quantity' => $qty,
                 ]);
+
+                // Save Stock History
+                if ($qty > 0) {
+                    StockHistory::create([
+                        'product_id' => $product->id,
+                        'store_id' => $storeId,
+                        'quantity_change' => $qty,
+                        'new_quantity' => $qty,
+                        'type' => 'opening_stock',
+                        'note' => 'Initial opening stock',
+                        'created_by' => auth()->id(),
+                    ]);
+                }
             }
 
             // Save Product IMEIs
@@ -171,21 +178,22 @@ class ProductController extends Controller
                 // Re-sync quantity based on serials count if positive
                 $imeiCount = count($imeis);
                 if ($imeiCount > 0) {
+                    $primaryStoreId = $storeIds[0] ?? Setting::get('default_store_id', 1);
                     $stock = ProductStoreStock::firstOrCreate([
                         'product_id' => $product->id,
-                        'store_id' => Setting::get('default_store_id', 1),
+                        'store_id' => $primaryStoreId,
                     ], ['quantity' => 0]);
                     $stock->quantity = $imeiCount;
                     $stock->save();
 
                     StockHistory::create([
                         'product_id' => $product->id,
+                        'store_id' => $primaryStoreId,
                         'quantity_change' => $imeiCount - $qty,
                         'new_quantity' => $imeiCount,
                         'type' => 'opening_stock',
                         'note' => 'Stock quantity set via IMEI serials count',
                         'created_by' => auth()->id(),
-                        'store_id' => Setting::get('default_store_id', 1),
                     ]);
                 }
             }
@@ -208,17 +216,25 @@ class ProductController extends Controller
                     ]);
 
                     $vQty = floatval($v['stock_quantity'] ?? 0);
-                    if ($vQty > 0) {
-                        StockHistory::create([
+                    foreach ($storeIds as $storeId) {
+                        ProductStoreStock::firstOrCreate([
                             'product_id' => $product->id,
                             'variant_id' => $variant->id,
-                            'quantity_change' => $vQty,
-                            'new_quantity' => $vQty,
-                            'type' => 'opening_stock',
-                            'note' => 'Variant opening stock',
-                            'created_by' => auth()->id(),
-                            'store_id' => Setting::get('default_store_id', 1),
-                        ]);
+                            'store_id' => $storeId,
+                        ], ['quantity' => $vQty]);
+
+                        if ($vQty > 0) {
+                            StockHistory::create([
+                                'product_id' => $product->id,
+                                'variant_id' => $variant->id,
+                                'store_id' => $storeId,
+                                'quantity_change' => $vQty,
+                                'new_quantity' => $vQty,
+                                'type' => 'opening_stock',
+                                'note' => 'Variant opening stock',
+                                'created_by' => auth()->id(),
+                            ]);
+                        }
                     }
                 }
             }

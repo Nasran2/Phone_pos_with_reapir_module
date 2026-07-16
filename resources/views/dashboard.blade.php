@@ -1,4 +1,5 @@
 <x-layouts::app :title="__('Dashboard')">
+    @php($currencySymbol = \App\Support\SystemSettings::currencySymbol())
     <!-- ApexCharts Library (Gives beautiful interactive charts with smooth curves) -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
@@ -57,7 +58,7 @@
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                <span>June 12, 2026</span>
+                <span>{{ now(\App\Support\SystemSettings::get('timezone', config('app.timezone'), 'business_settings'))->format(\App\Support\SystemSettings::get('date_format', 'Y-m-d', 'business_settings')) }}</span>
                 <svg class="w-3.5 h-3.5 text-slate-400 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
@@ -73,7 +74,7 @@
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
                 <div class="space-y-2">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Total Sales (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">Rs. {{ number_format($totalSalesToday, 2) }}</h3>
+                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $totalSalesToday) }}</h3>
                     <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <polyline points="18 15 12 9 6 15"/>
@@ -93,7 +94,7 @@
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
                 <div class="space-y-2">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Retail Sales (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">Rs. {{ number_format($retailSalesToday, 2) }}</h3>
+                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $retailSalesToday) }}</h3>
                     <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <polyline points="18 15 12 9 6 15"/>
@@ -113,7 +114,7 @@
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
                 <div class="space-y-2">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Wholesale Sales (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">Rs. {{ number_format($wholesaleSalesToday, 2) }}</h3>
+                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $wholesaleSalesToday) }}</h3>
                     <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <polyline points="18 15 12 9 6 15"/>
@@ -133,7 +134,7 @@
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
                 <div class="space-y-2">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Total Profit (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">Rs. {{ number_format($totalProfitToday, 2) }}</h3>
+                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $totalProfitToday) }}</h3>
                     <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <polyline points="18 15 12 9 6 15"/>
@@ -153,7 +154,7 @@
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
                 <div class="space-y-2">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Total Purchase (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">Rs. {{ number_format($totalPurchaseToday, 2) }}</h3>
+                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $totalPurchaseToday) }}</h3>
                     <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <polyline points="18 15 12 9 6 15"/>
@@ -225,7 +226,7 @@
                             <span class="h-2 w-2 rounded-full bg-red-500"></span>
                             <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Customer Due:</span>
                         </div>
-                        <span class="text-xs font-extrabold text-red-600 dark:text-red-400">Rs. {{ number_format($customerDue, 2) }}</span>
+                        <span class="text-xs font-extrabold text-red-600 dark:text-red-400">{{ \App\Support\SystemSettings::money((float) $customerDue) }}</span>
                     </div>
                     <div class="flex items-center justify-between border-b border-slate-100/60 dark:border-slate-750 pb-2.5">
                         <div class="flex items-center gap-2">
@@ -239,28 +240,28 @@
                             <span class="h-2 w-2 rounded-full bg-red-500"></span>
                             <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Supplier Due:</span>
                         </div>
-                        <span class="text-xs font-extrabold text-red-600 dark:text-red-400">Rs. {{ number_format($supplierDue, 2) }}</span>
+                        <span class="text-xs font-extrabold text-red-600 dark:text-red-400">{{ \App\Support\SystemSettings::money((float) $supplierDue) }}</span>
                     </div>
                     <div class="flex items-center justify-between border-b border-slate-100/60 dark:border-slate-750 pb-2.5">
                         <div class="flex items-center gap-2">
                             <span class="h-2 w-2 rounded-full bg-amber-500"></span>
                             <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Total Expenses (Today):</span>
                         </div>
-                        <span class="text-xs font-extrabold text-slate-800 dark:text-white">Rs. {{ number_format($totalExpensesToday, 2) }}</span>
+                        <span class="text-xs font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $totalExpensesToday) }}</span>
                     </div>
                     <div class="flex items-center justify-between border-b border-slate-100/60 dark:border-slate-750 pb-2.5">
                         <div class="flex items-center gap-2">
                             <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
                             <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Cash in Hand:</span>
                         </div>
-                        <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">Rs. {{ number_format($cashInHand, 2) }}</span>
+                        <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">{{ \App\Support\SystemSettings::money((float) $cashInHand) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="h-2 w-2 rounded-full bg-blue-600"></span>
                             <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Bank Balance:</span>
                         </div>
-                        <span class="text-xs font-extrabold text-slate-800 dark:text-white">Rs. {{ number_format($bankBalance, 2) }}</span>
+                        <span class="text-xs font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $bankBalance) }}</span>
                     </div>
                 </div>
             </div>
@@ -297,7 +298,7 @@
                                         <span>{{ $sale->invoice_no }}</span>
                                     </td>
                                     <td class="py-3.5 text-slate-600 dark:text-slate-300 font-semibold">{{ $sale->customer_name }}</td>
-                                    <td class="py-3.5 text-right font-extrabold text-slate-800 dark:text-white">Rs. {{ number_format($sale->payable_amount, 2) }}</td>
+                                    <td class="py-3.5 text-right font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $sale->payable_amount) }}</td>
                                     <td class="py-3.5 text-right">
                                         @if($sale->due_amount == 0)
                                             <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-[9px] uppercase tracking-wide">Paid</span>
@@ -345,7 +346,7 @@
                                         <span>{{ $purchase->invoice_no }}</span>
                                     </td>
                                     <td class="py-3.5 text-slate-600 dark:text-slate-300 font-semibold">{{ $purchase->supplier_name }}</td>
-                                    <td class="py-3.5 text-right font-extrabold text-slate-800 dark:text-white">Rs. {{ number_format($purchase->total_amount, 2) }}</td>
+                                    <td class="py-3.5 text-right font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $purchase->total_amount) }}</td>
                                     <td class="py-3.5 text-right">
                                         @if($purchase->due_amount == 0)
                                             <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-[9px] uppercase tracking-wide">Paid</span>
@@ -419,7 +420,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Total Stock Value</p>
-                    <h4 class="text-sm font-black text-slate-800 dark:text-white mt-1">Rs. {{ number_format($totalStockValue) }}</h4>
+                    <h4 class="text-sm font-black text-slate-800 dark:text-white mt-1">{{ \App\Support\SystemSettings::money((float) $totalStockValue) }}</h4>
                 </div>
             </div>
 
@@ -464,25 +465,12 @@
             </div>
         </div>
 
-        <!-- Footer Credits -->
-        @php
-            $devName = env('DEVELOPER_NAME', 'twinsofte.com');
-            $devPhone = env('DEVELOPER_PHONE', '0762472822');
-            $devWeb = env('DEVELOPER_WEB', 'twinsofte.com');
-            $devUrl = $devWeb;
-            if (!str_starts_with($devUrl, 'http://') && !str_starts_with($devUrl, 'https://')) {
-                $devUrl = 'https://' . $devUrl;
-            }
-        @endphp
-        <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-850 pt-5 text-[10px] text-slate-400 dark:text-slate-500 font-semibold tracking-wide w-full">
-            <span>&copy; 2026 Phone Shop POS. All rights reserved.</span>
-            <span>Powered by <a href="{{ $devUrl }}" target="_blank" rel="noopener" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $devName }}</a> | {{ $devPhone }}</span>
-        </div>
     </div>
 
     <!-- Charts Loading Configurations -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const dashboardCurrency = @json($currencySymbol);
             // A. Hourly Sales overview line chart
             const salesLineOptions = {
                 series: [
@@ -531,7 +519,7 @@
                 yaxis: {
                     labels: {
                         formatter: function (val) {
-                            return 'Rs. ' + val.toLocaleString();
+                            return dashboardCurrency + ' ' + val.toLocaleString();
                         },
                         style: {
                             colors: '#94a3b8',
@@ -555,7 +543,7 @@
                     theme: 'dark',
                     y: {
                         formatter: function (val) {
-                            return 'Rs. ' + val.toLocaleString();
+                            return dashboardCurrency + ' ' + val.toLocaleString();
                         }
                     }
                 }
@@ -595,7 +583,7 @@
                                     show: true,
                                     label: 'Total',
                                     formatter: function () {
-                                        return 'Rs. {{ number_format($totalSalesToday) }}';
+                                        return @json(\App\Support\SystemSettings::money((float) $totalSalesToday));
                                     },
                                     style: {
                                         fontSize: '11px',
@@ -611,7 +599,7 @@
                     theme: 'dark',
                     y: {
                         formatter: function (val) {
-                            return 'Rs. ' + val.toLocaleString();
+                            return dashboardCurrency + ' ' + val.toLocaleString();
                         }
                     }
                 }

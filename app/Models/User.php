@@ -28,7 +28,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'username', 'password', 'phone', 'is_active'])]
+#[Fillable(['name', 'email', 'username', 'password', 'phone', 'is_active', 'user_type', 'default_lorry_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -69,6 +69,11 @@ class User extends Authenticatable implements PasskeyUser
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    public function lorryAssignments()
+    {
+        return $this->hasMany(LorryUserAssignment::class);
     }
 
     /**

@@ -174,15 +174,15 @@
                             </td>
                             <!-- Cost Price -->
                             <td class="px-6 py-4 text-slate-600 font-semibold">
-                                Rs. {{ number_format($product->cost_price, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $product->cost_price) }}
                             </td>
                             <!-- Retail Price -->
                             <td class="px-6 py-4 text-blue-600 font-bold">
-                                Rs. {{ number_format($product->retail_price, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $product->retail_price) }}
                             </td>
                             <!-- Wholesale Price -->
                             <td class="px-6 py-4 text-emerald-600 font-bold">
-                                Rs. {{ number_format($product->wholesale_price, 2) }}
+                                {{ \App\Support\SystemSettings::money((float) $product->wholesale_price) }}
                             </td>
                             <!-- Stock -->
                             <td class="px-6 py-4">
@@ -363,15 +363,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Cost Price *</label>
-                            <input type="number" step="0.01" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <input type="number" step="any" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Retail Selling Price *</label>
-                            <input type="number" step="0.01" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <input type="number" step="any" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Wholesale Selling Price *</label>
-                            <input type="number" step="0.01" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <input type="number" step="any" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Low Stock Alert Qty</label>
@@ -379,16 +379,40 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div id="assign-stores-container" class="relative">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign To Stores</label>
+                            
+                            <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500" onclick="document.getElementById('store-dropdown').classList.toggle('hidden')">
+                                <span id="store-select-text" class="text-slate-800 truncate block mr-2 font-semibold text-xs" style="max-width: 150px;">
+                                    {{ $stores->where('is_default', true)->pluck('name')->join(', ') ?: 'Select stores...' }}
+                                </span>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            
+                            <div id="store-dropdown" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg hidden">
+                                <div class="p-2 border-b border-slate-100">
+                                    <input type="text" id="store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterStores()">
+                                </div>
+                                <div class="max-h-40 overflow-y-auto p-1" id="store-list">
+                                    @foreach($stores as $st)
+                                        <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded store-item">
+                                            <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ $st->is_default ? 'checked' : '' }} class="store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateStoreSelection()">
+                                            <span class="text-xs font-semibold text-slate-700 store-name">{{ $st->name }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
                         <div id="opening-stock-container">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Opening Stock Qty</label>
                             <input type="number" name="opening_stock" id="prod_opening_stock" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Image</label>
-                            <div class="flex items-center gap-3">
-                                <input type="file" name="logo" onchange="previewProductImage(this)" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
-                                <img id="prod_image_preview" src="#" class="hidden h-12 w-12 object-cover rounded-md border border-slate-200 bg-slate-50" alt="Image preview">
+                            <div class="flex items-center gap-2">
+                                <input type="file" name="logo" onchange="previewProductImage(this)" class="w-full text-[10px] text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <img id="prod_image_preview" src="#" class="hidden h-10 w-10 object-cover rounded-md border border-slate-200 bg-slate-50 shrink-0" alt="Image preview">
                             </div>
                         </div>
                     </div>
@@ -803,6 +827,7 @@
             document.getElementById('prod_imeis').value = '';
             
             document.getElementById('opening-stock-container').classList.remove('hidden');
+            document.getElementById('assign-stores-container').classList.remove('hidden');
             document.getElementById('variants-section').classList.remove('hidden');
             document.getElementById('imei-input-container').classList.remove('hidden');
             
@@ -840,6 +865,7 @@
 
             // Hide opening stock on edit; variants are managed in their own stock rows.
             document.getElementById('opening-stock-container').classList.add('hidden');
+            document.getElementById('assign-stores-container').classList.add('hidden');
             document.getElementById('variants-section').classList.remove('hidden');
             document.getElementById('imei-input-container').classList.add('hidden');
 
@@ -874,9 +900,9 @@
                 <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][storage]" value="${variant.storage || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="e.g. 256GB"></td>
                 <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][ram]" value="${variant.ram || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="e.g. 8GB"></td>
                 <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][sku]" value="${variant.sku || ''}" required class="w-full px-2 py-1 border rounded text-sm" placeholder="SKU-VAR-${variantIndex}"></td>
-                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][cost_price]" value="${variant.cost_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Cost"></td>
-                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][retail_price]" value="${variant.retail_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Retail"></td>
-                <td class="py-2 pr-2"><input type="number" step="0.01" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Wholesale"></td>
+                <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][cost_price]" value="${variant.cost_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Cost"></td>
+                <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][retail_price]" value="${variant.retail_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Retail"></td>
+                <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Wholesale"></td>
                 <td class="py-2 pr-2"><input type="number" name="variants[${variantIndex}][stock_quantity]" class="w-full px-2 py-1 border rounded text-sm text-center" placeholder="0" value="${variant.stock_quantity || 0}"></td>
                 <td class="py-2 text-right">
                     <button type="button" onclick="removeVariantRow(${variantIndex})" class="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
@@ -972,5 +998,34 @@
                 }
             });
         }
+
+        function filterStores() {
+            let input = document.getElementById('store-search').value.toLowerCase();
+            let items = document.querySelectorAll('.store-item');
+            items.forEach(item => {
+                let text = item.querySelector('.store-name').innerText.toLowerCase();
+                item.style.display = text.includes(input) ? 'flex' : 'none';
+            });
+        }
+        
+        function updateStoreSelection() {
+            let checked = document.querySelectorAll('.store-checkbox:checked');
+            let text = [];
+            checked.forEach(cb => {
+                text.push(cb.nextElementSibling.innerText);
+            });
+            document.getElementById('store-select-text').innerText = text.length > 0 ? text.join(', ') : 'Select stores...';
+        }
+
+        document.addEventListener('click', function(event) {
+            const ms = document.getElementById('assign-stores-container');
+            if (ms && !ms.contains(event.target)) {
+                const dropdown = document.getElementById('store-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
+        
+        // Initialize store selection text on load
+        document.addEventListener('DOMContentLoaded', updateStoreSelection);
     </script>
 </x-layouts::app>

@@ -119,7 +119,7 @@
                                 <th class="px-3 py-3 w-10">#</th>
                                 <th class="px-3 py-3">Product Name</th>
                                 <th class="px-3 py-3 text-right">Quantity</th>
-                                <th class="px-3 py-3 text-right">Unit Cost</th>
+                                <th class="px-3 py-3 text-right">Unit Cost / Product Cost</th>
                                 <th class="px-3 py-3 text-right">Discount %</th>
                                 <th class="px-3 py-3 text-right">Discount Amount</th>
                                 <th class="px-3 py-3 text-right">Tax %</th>
@@ -147,22 +147,23 @@
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-700">Discount Amount</label>
-                                <input id="discount_amount" name="discount_amount" value="{{ old('discount_amount', $purchase->discount_amount ?? 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
+                                <input id="discount_amount" name="discount_amount" value="{{ old('discount_amount', $purchase->discount_amount ?? 0) }}" type="number" min="0" step="any" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-700">Purchase Tax</label>
-                                <input id="purchase_tax" name="purchase_tax" value="{{ old('purchase_tax', $purchase->tax_amount ?? 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
+                                <input id="purchase_tax" name="purchase_tax" value="{{ old('purchase_tax', $purchase->tax_amount ?? 0) }}" type="number" min="0" step="any" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-700">Shipping Cost</label>
-                                <input id="shipping_cost" name="shipping_cost" value="{{ old('shipping_cost', $purchase->shipping_cost ?? 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
+                                <input id="shipping_cost" name="shipping_cost" value="{{ old('shipping_cost', $purchase->shipping_cost ?? 0) }}" type="number" min="0" step="any" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
                             </div>
                             <div class="md:col-span-2">
                                 <label class="text-xs font-bold text-slate-700">Shipping Handling</label>
-                                <select id="shipping_handling" name="shipping_handling" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white">
+                                <select id="shipping_handling" name="shipping_handling" class="mt-1 w-full px-3 py-2.5.5 border border-slate-200 rounded-lg text-sm bg-white" onchange="recalculate()">
                                     <option value="purchase_total" @selected(old('shipping_handling', $purchase->shipping_handling ?? 'purchase_total') === 'purchase_total')>Add to purchase total only</option>
                                     <option value="divide_product_cost" @selected(old('shipping_handling', $purchase->shipping_handling ?? '') === 'divide_product_cost')>Divide shipping cost into product cost</option>
                                 </select>
+                                <p id="shipping_handling_help" class="mt-1 text-[11px] font-semibold text-blue-600"></p>
                             </div>
                         </div>
                     </div>
@@ -188,7 +189,7 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-700">Payment Amount</label>
-                        <input id="payment_amount" name="payment_amount" value="{{ old('payment_amount', $purchase->paid_amount ?? 0) }}" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
+                        <input id="payment_amount" name="payment_amount" value="{{ old('payment_amount', $purchase->paid_amount ?? 0) }}" type="number" min="0" step="any" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" oninput="recalculate()">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-700">Payment Reference</label>
@@ -290,7 +291,13 @@
         }
 
         function numberInput(index, key, value) {
-            return `<td class="px-3 py-3"><input type="number" min="0" step="0.01" name="items[${index}][${key}]" value="${Number(value || 0)}" class="w-24 px-2 py-2.5 border border-slate-200 rounded-lg text-right" oninput="rows[${index}]['${key}'] = this.value; recalculate();"></td>`;
+            const step = key === 'quantity' ? '1' : '0.01';
+            const inputMode = key === 'quantity' ? 'numeric' : 'decimal';
+            const helper = key === 'unit_cost'
+                ? `<div id="landed_${index}" class="mt-1 text-[10px] font-black text-emerald-700 whitespace-nowrap">Product cost: ${money(value)}</div>`
+                : '';
+
+            return `<td class="px-3 py-3"><input type="number" min="0" step="${step}" inputmode="${inputMode}" name="items[${index}][${key}]" value="${Number(value || 0)}" class="w-28 px-2 py-2.5 border border-slate-200 rounded-lg text-right" oninput="rows[${index}]['${key}'] = this.value; recalculate();">${helper}</td>`;
         }
 
         function searchProducts(term) {
@@ -352,26 +359,43 @@
         function recalculate() {
             let subtotal = 0;
             let totalItems = 0;
+            let baseSubtotal = 0;
+            const shipping = Number(document.getElementById('shipping_cost').value || 0);
+            const shippingHandling = document.getElementById('shipping_handling').value;
+            const divideShipping = shippingHandling === 'divide_product_cost';
+            const totalQtyForShipping = rows.reduce((sum, row) => sum + Number(row.quantity || 0), 0);
+            const shippingPerUnit = divideShipping && totalQtyForShipping > 0 ? shipping / totalQtyForShipping : 0;
+
             rows.forEach((row, index) => {
                 const qty = Number(row.quantity || 0);
                 const unitCost = Number(row.unit_cost || 0);
-                const gross = qty * unitCost;
+                const effectiveUnitCost = unitCost + shippingPerUnit;
+                const gross = qty * effectiveUnitCost;
                 const discountPercent = Number(row.discount_percent || 0);
                 const discountAmount = discountPercent > 0 ? gross * discountPercent / 100 : Math.min(Number(row.discount_amount || 0), gross);
                 const tax = Math.max(gross - discountAmount, 0) * Number(row.tax_percent || 0) / 100;
                 const line = Math.max(gross - discountAmount, 0) + tax;
+                baseSubtotal += qty * unitCost;
                 subtotal += line;
                 totalItems += qty;
                 const lineCell = document.getElementById(`line_${index}`);
                 if (lineCell) lineCell.innerText = money(line);
+                const landedCell = document.getElementById(`landed_${index}`);
+                if (landedCell) {
+                    landedCell.innerText = divideShipping
+                        ? `Product cost: ${money(effectiveUnitCost)} (+${money(shippingPerUnit)} shipping/unit)`
+                        : `Product cost: ${money(unitCost)}`;
+                    landedCell.className = divideShipping
+                        ? 'mt-1 text-[10px] font-black text-emerald-700 whitespace-nowrap'
+                        : 'mt-1 text-[10px] font-semibold text-slate-400 whitespace-nowrap';
+                }
             });
 
             const discountType = document.getElementById('discount_type').value;
             const discountValue = Number(document.getElementById('discount_amount').value || 0);
             const overallDiscount = discountType === 'percentage' ? subtotal * discountValue / 100 : (discountType === 'fixed' ? Math.min(discountValue, subtotal) : 0);
             const purchaseTax = Number(document.getElementById('purchase_tax').value || 0);
-            const shipping = Number(document.getElementById('shipping_cost').value || 0);
-            const grand = Math.max(subtotal - overallDiscount, 0) + purchaseTax + shipping;
+            const grand = Math.max(subtotal - overallDiscount, 0) + purchaseTax + (divideShipping ? 0 : shipping);
             const paid = Math.min(Number(document.getElementById('payment_amount').value || 0), grand);
             const due = Math.max(grand - paid, 0);
 
@@ -379,10 +403,16 @@
             document.getElementById('summary_subtotal').innerText = money(subtotal);
             document.getElementById('summary_discount').innerText = '(-) ' + money(overallDiscount);
             document.getElementById('summary_tax').innerText = '(+) ' + money(purchaseTax);
-            document.getElementById('summary_shipping').innerText = '(+) ' + money(shipping);
+            document.getElementById('summary_shipping').innerText = divideShipping ? '(included) ' + money(shipping) : '(+) ' + money(shipping);
             document.getElementById('summary_grand').innerText = money(grand);
             document.getElementById('payment_grand').innerText = money(grand);
             document.getElementById('payment_due').innerText = money(due);
+            const handlingHelp = document.getElementById('shipping_handling_help');
+            if (handlingHelp) {
+                handlingHelp.innerText = divideShipping && totalItems > 0
+                    ? `Shipping is divided across ${totalItems.toFixed(2)} units. Each unit adds ${money(shippingPerUnit)} to product cost.`
+                    : 'Shipping will be added only to the purchase total.';
+            }
         }
 
         function fillSupplierAddress() {

@@ -55,6 +55,16 @@ class SystemSettings
         return trim($symbol . ' ' . number_format((float) $amount, $decimals));
     }
 
+    public static function currencySymbol(): string
+    {
+        return (string) self::get('currency_symbol', 'Rs.', 'business_settings');
+    }
+
+    public static function clearCache(): void
+    {
+        self::$cache = [];
+    }
+
     public static function posPayload(): array
     {
         return [

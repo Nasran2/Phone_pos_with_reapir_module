@@ -301,10 +301,10 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign System Role *</label>
-                        <select name="role_id" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                        <select name="role_id" required onchange="toggleLorryManagerCard(this, 'addLorryManagerCard')" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                             <option value="">Select Role</option>
                             @foreach($roles as $role)
-                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                <option value="{{ $role->id }}" data-lorry-manager="{{ $role->name === 'Lorry Manager' ? '1' : '0' }}">{{ $role->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -313,6 +313,12 @@
                 <div class="flex items-center gap-2 pt-2">
                     <input type="checkbox" name="is_active" id="addUserActive" value="1" checked class="rounded border-slate-350 text-blue-600 focus:ring-blue-500 h-4 w-4">
                     <label for="addUserActive" class="text-xs font-bold text-slate-700 select-none cursor-pointer">Activate user account immediately</label>
+                </div>
+
+                <div id="addLorryManagerCard" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4">
+                    <h4 class="text-sm font-black text-slate-900">Lorry Manager Assignment</h4><p class="mt-1 text-xs text-slate-500">This user will only be able to manage the selected lorry.</p>
+                    <label class="mt-4 block text-[10px] font-bold uppercase text-slate-500">Assigned Lorry *<select name="lorry_id" class="mt-1 w-full rounded-lg border-slate-200 text-sm"><option value="">Select active lorry</option>@foreach($lorries as $lorry)<option value="{{ $lorry->id }}">{{ $lorry->lorry_no }} — {{ $lorry->name }}</option>@endforeach</select></label>
+                    <div class="mt-4 flex flex-wrap gap-3 text-xs">@foreach(['can_view_cost'=>'View cost','can_view_profit'=>'View profit','can_reconcile'=>'Submit reconciliation'] as $key=>$label)<label><input type="checkbox" name="{{ $key }}" value="1" class="rounded"> {{ $label }}</label>@endforeach</div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
@@ -357,9 +363,9 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign System Role *</label>
-                    <select name="role_id" id="edit_role_id" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white">
+                    <select name="role_id" id="edit_role_id" required onchange="toggleLorryManagerCard(this, 'editLorryManagerCard')" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white">
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            <option value="{{ $role->id }}" data-lorry-manager="{{ $role->name === 'Lorry Manager' ? '1' : '0' }}">{{ $role->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -367,6 +373,11 @@
                 <div class="flex items-center gap-2 pt-2">
                     <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="rounded border-slate-350 text-blue-600 focus:ring-blue-500 h-4 w-4">
                     <label for="edit_is_active" class="text-xs font-bold text-slate-700 select-none cursor-pointer">Keep this account active</label>
+                </div>
+
+                <div id="editLorryManagerCard" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4">
+                    <h4 class="text-sm font-black text-slate-900">Lorry Manager Assignment</h4><p class="mt-1 text-xs text-slate-500">This user will only be able to manage the selected lorry.</p>
+                    <label class="mt-4 block text-[10px] font-bold uppercase text-slate-500">Assigned Lorry *<select name="lorry_id" id="edit_lorry_id" class="mt-1 w-full rounded-lg border-slate-200 text-sm"><option value="">Select active lorry</option>@foreach($lorries as $lorry)<option value="{{ $lorry->id }}">{{ $lorry->lorry_no }} — {{ $lorry->name }}</option>@endforeach</select></label>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
@@ -444,11 +455,21 @@
             document.getElementById('edit_phone').value = user.phone || '';
             document.getElementById('edit_role_id').value = roleId || '';
             document.getElementById('edit_is_active').checked = !!user.is_active;
+            const assignment = (user.lorry_assignments || []).find(item => item.is_primary) || (user.lorry_assignments || [])[0];
+            document.getElementById('edit_lorry_id').value = assignment ? assignment.lorry_id : '';
+            toggleLorryManagerCard(document.getElementById('edit_role_id'), 'editLorryManagerCard');
             
             // Set form route
             document.getElementById('editUserForm').action = `/users/${user.id}`;
             
             openModal('editUserModal');
+        }
+
+        function toggleLorryManagerCard(select, cardId) {
+            const isLorryManager = select.selectedOptions[0]?.dataset.lorryManager === '1';
+            const card = document.getElementById(cardId);
+            card.classList.toggle('hidden', !isLorryManager);
+            card.querySelector('select[name="lorry_id"]').required = isLorryManager;
         }
 
         function openPasswordModal(user) {

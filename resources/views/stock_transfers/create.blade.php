@@ -117,7 +117,7 @@
                                                 <span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold" x-text="item.available_stock"></span>
                                             </td>
                                             <td class="px-4 py-3 text-right">
-                                                <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity" min="0.01" step="0.01" :max="item.available_stock" required class="w-full px-2 py-1 border border-slate-200 rounded bg-slate-50 text-right text-sm focus:ring-1 focus:ring-blue-500">
+                                                <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity" min="0.01" step="any" :max="item.available_stock" required class="w-full px-2 py-1 border border-slate-200 rounded bg-slate-50 text-right text-sm focus:ring-1 focus:ring-blue-500">
                                             </td>
                                             <td class="px-4 py-3 text-center">
                                                 <button type="button" @click="removeItem(index)" class="text-rose-400 hover:text-rose-600 transition p-1 cursor-pointer">

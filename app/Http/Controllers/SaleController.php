@@ -62,14 +62,14 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments.creator', 'returns.items.product']);
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments.creator', 'invoicePayments.cheque', 'returns.items.product']);
 
         return view('sales.show', compact('sale'));
     }
 
     public function print(Sale $sale)
     {
-        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments']);
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque']);
 
         return view('sales.print', compact('sale'));
     }

@@ -24,6 +24,7 @@ class Purchase extends Model
         'grand_total',
         'total_amount',
         'paid_amount',
+        'cheque_hold_amount',
         'due_amount',
         'status',
         'document_path',
@@ -41,6 +42,7 @@ class Purchase extends Model
         'grand_total' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
+        'cheque_hold_amount' => 'decimal:2',
         'due_amount' => 'decimal:2',
         'stock_updated' => 'boolean',
     ];
@@ -58,6 +60,11 @@ class Purchase extends Model
     public function payments()
     {
         return $this->hasMany(PurchasePayment::class);
+    }
+
+    public function cheques()
+    {
+        return $this->hasMany(Cheque::class);
     }
 
     public function returns()

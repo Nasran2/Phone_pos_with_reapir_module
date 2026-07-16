@@ -1,0 +1,321 @@
+@php
+    $device = $job->device;
+    $checklist = $job->checklist ? json_decode($job->checklist->items ?: '[]', true) : [];
+    $physical = $device && $device->physical_condition ? json_decode($device->physical_condition, true) : [];
+@endphp
+
+<x-layouts::app :title="$job->job_no">
+    <div class="border-b border-slate-200 bg-white px-6 py-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <nav class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Dashboard / Repair Management / {{ $job->job_no }}</nav>
+                <div class="mt-2 flex flex-wrap items-center gap-3">
+                    <h1 class="text-2xl font-black text-slate-900">{{ $job->job_no }}</h1>
+                    @include('repairs.partials.status-badge', ['status' => $job->status])
+                    @if($job->urgent)
+                        <span class="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-black text-red-700">Urgent</span>
+                    @endif
+                </div>
+                <p class="mt-1 text-sm text-slate-500">{{ $job->customer_name }} / {{ $job->customer_phone }} / {{ $job->brand }} {{ $job->model }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('repairs.jobs.print', $job->id) }}" target="_blank" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50">Print</a>
+                <a href="{{ route('repairs.jobs.index') }}" class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-extrabold text-blue-700 hover:bg-blue-100">All Jobs</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
+        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-3">
+            <div class="space-y-6 xl:col-span-2">
+                @include('repairs.partials.flash')
+
+                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-100 px-6 py-5">
+                        <h2 class="text-lg font-black text-slate-900">Job Summary</h2>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 p-6 lg:grid-cols-2">
+                        <div class="rounded-xl bg-slate-50 p-4">
+                            <div class="text-xs font-black uppercase text-slate-400">Problem</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-700">{{ $job->problem_description }}</div>
+                        </div>
+                        <div class="rounded-xl bg-slate-50 p-4">
+                            <div class="text-xs font-black uppercase text-slate-400">Customer Request</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-700">{{ $job->customer_request ?: 'No special request' }}</div>
+                        </div>
+                        <div class="rounded-xl bg-blue-50 p-4">
+                            <div class="text-xs font-black uppercase text-blue-500">Estimated Cost</div>
+                            <div class="mt-2 text-xl font-black text-blue-800">{{ \App\Support\SystemSettings::money((float) $job->estimated_cost) }}</div>
+                        </div>
+                        <div class="rounded-xl bg-emerald-50 p-4">
+                            <div class="text-xs font-black uppercase text-emerald-500">Balance</div>
+                            <div class="mt-2 text-xl font-black text-emerald-800">{{ \App\Support\SystemSettings::money((float) $job->balance_amount) }}</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-100 px-6 py-5">
+                        <h2 class="text-lg font-black text-slate-900">Device & Intake Checklist</h2>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 p-6 lg:grid-cols-2">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-800">Device Identity</h3>
+                            <dl class="mt-3 grid grid-cols-1 gap-3 text-sm">
+                                @foreach([
+                                    'Type' => $device->device_type ?? null,
+                                    'Brand / Model' => trim(($device->brand ?? '') . ' ' . ($device->model ?? '')),
+                                    'IMEI 1' => $device->imei_1 ?? null,
+                                    'IMEI 2' => $device->imei_2 ?? null,
+                                    'Serial' => $device->serial_number ?? null,
+                                    'Battery' => isset($device->battery_percent) ? $device->battery_percent . '%' : null,
+                                    'Accessories' => $device->accessories_received ?? null,
+                                ] as $label => $value)
+                                    <div class="flex items-start justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
+                                        <dt class="font-bold text-slate-500">{{ $label }}</dt>
+                                        <dd class="text-right font-extrabold text-slate-800">{{ $value ?: '-' }}</dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        </div>
+                        <div class="space-y-5">
+                            <div>
+                                <h3 class="text-sm font-black text-slate-800">Checklist</h3>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @forelse($checklist as $item)
+                                        <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{{ $item }}</span>
+                                    @empty
+                                        <span class="text-sm font-semibold text-slate-400">No checklist items selected.</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-slate-800">Physical Condition</h3>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @forelse($physical as $condition)
+                                        <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{{ $condition }}</span>
+                                    @empty
+                                        <span class="text-sm font-semibold text-slate-400">No condition tags selected.</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                            @if($job->images->isNotEmpty())
+                                <div>
+                                    <h3 class="text-sm font-black text-slate-800">Photos</h3>
+                                    <div class="mt-3 grid grid-cols-2 gap-3">
+                                        @foreach($job->images as $image)
+                                            <a href="{{ asset('storage/' . $image->path) }}" target="_blank" class="block overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                                <img src="{{ asset('storage/' . $image->path) }}" alt="{{ $image->type }}" class="h-32 w-full object-cover">
+                                                <div class="px-3 py-2 text-xs font-bold text-slate-500">{{ ucfirst($image->type) }}</div>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-100 px-6 py-5">
+                        <h2 class="text-lg font-black text-slate-900">Parts & Payments</h2>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-800">Parts Used</h3>
+                            <div class="mt-3 space-y-3">
+                                @forelse($job->parts as $part)
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <div class="font-black text-slate-800">{{ $part->product_name }}</div>
+                                                <div class="text-xs text-slate-500">{{ $part->status }} / Qty {{ number_format((float) $part->quantity, 2) }}</div>
+                                            </div>
+                                            <div class="font-black text-slate-900">{{ \App\Support\SystemSettings::money((float) $part->line_total) }}</div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-400">No parts issued.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-800">Payments</h3>
+                            <div class="mt-3 space-y-3">
+                                @forelse($job->payments as $payment)
+                                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <div class="font-black text-emerald-900">{{ $payment->payment_method }}</div>
+                                                <div class="text-xs text-emerald-700">{{ $payment->payment_date }} {{ $payment->reference_no ? '/ ' . $payment->reference_no : '' }}</div>
+                                            </div>
+                                            <div class="font-black text-emerald-900">{{ \App\Support\SystemSettings::money((float) $payment->amount) }}</div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-400">No payments recorded.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-100 px-6 py-5">
+                        <h2 class="text-lg font-black text-slate-900">Status Timeline</h2>
+                    </div>
+                    <div class="space-y-4 p-6">
+                        @forelse($job->logs as $log)
+                            <div class="flex gap-4 rounded-xl bg-slate-50 p-4">
+                                <div class="mt-1 h-3 w-3 rounded-full bg-blue-600"></div>
+                                <div>
+                                    <div class="text-sm font-black text-slate-900">{{ $log->from_status ?: 'New Job' }} to {{ $log->to_status }}</div>
+                                    <div class="mt-1 text-xs font-semibold text-slate-500">{{ \Carbon\Carbon::parse($log->created_at)->format('Y-m-d h:i A') }}</div>
+                                    @if($log->note)
+                                        <div class="mt-2 text-sm text-slate-600">{{ $log->note }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="rounded-xl bg-slate-50 px-4 py-6 text-center text-sm font-bold text-slate-400">No status logs yet.</div>
+                        @endforelse
+                    </div>
+                </section>
+            </div>
+
+            <aside class="space-y-6">
+                @if(auth()->user()->hasPermission('repair.edit'))
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h2 class="text-base font-black text-slate-900">Update Status</h2>
+                        <form method="POST" action="{{ route('repairs.jobs.status', $job->id) }}" class="mt-4 space-y-4">
+                            @csrf
+                            <select name="status" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status }}" @selected($job->status === $status)>{{ $status }}</option>
+                                @endforeach
+                            </select>
+                            <textarea name="note" rows="3" placeholder="Status note" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"></textarea>
+                            <button class="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white hover:bg-blue-700">Save Status</button>
+                        </form>
+                    </section>
+                @endif
+
+                @if(auth()->user()->hasPermission('repair.assign'))
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h2 class="text-base font-black text-slate-900">Assign Technician</h2>
+                        <form method="POST" action="{{ route('repairs.jobs.assign', $job->id) }}" class="mt-4 space-y-4">
+                            @csrf
+                            <select name="technician_id" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                @foreach($technicians as $technician)
+                                    <option value="{{ $technician->id }}" @selected($job->primary_technician_id == $technician->id)>{{ $technician->name }}</option>
+                                @endforeach
+                            </select>
+                            <button class="w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-black text-blue-700 hover:bg-blue-100">Assign</button>
+                        </form>
+                    </section>
+                @endif
+
+                @if(auth()->user()->hasPermission('repair.parts'))
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h2 class="text-base font-black text-slate-900">Issue Repair Part</h2>
+                        <form method="POST" action="{{ route('repairs.jobs.parts', $job->id) }}" class="mt-4 space-y-4">
+                            @csrf
+                            <div>
+                                <select id="part-select" name="product_id" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                    <option value="">Select part...</option>
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}" data-price="{{ $product->retail_price }}" data-stock="{{ $product->stock }}">{{ $product->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="part-stock-display" class="mt-1 text-xs font-bold text-slate-500 hidden">Available Qty: <span id="part-stock-value"></span></div>
+                            </div>
+                            <select name="store_id" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                <option value="">Default store</option>
+                                @foreach($stores as $store)
+                                    <option value="{{ $store->id }}">{{ $store->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" step="0.01" min="0.01" name="quantity" placeholder="Qty" required class="rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                <input type="number" step="0.01" min="0" name="selling_price" id="part-price" placeholder="Price" required class="rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                            </div>
+                            <select name="status" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                <option value="Issued">Issued</option>
+                                <option value="Reserved">Reserved</option>
+                                <option value="Returned">Returned</option>
+                            </select>
+                            <button class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white hover:bg-slate-800">Add Part</button>
+                        </form>
+                    </section>
+                @endif
+
+                @if(auth()->user()->hasPermission('repair.invoice'))
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h2 class="text-base font-black text-slate-900">Record Payment</h2>
+                        <form method="POST" action="{{ route('repairs.jobs.payments', $job->id) }}" class="mt-4 space-y-4">
+                            @csrf
+                            <input type="number" step="0.01" min="0.01" name="amount" placeholder="Amount" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                            <select name="payment_method" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                <option>Cash</option>
+                                <option>Card</option>
+                                <option>Bank Transfer</option>
+                                <option>Online</option>
+                            </select>
+                            <input name="reference_no" placeholder="Reference no" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                            <textarea name="notes" rows="2" placeholder="Payment notes" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"></textarea>
+                            <button class="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700">Record Payment</button>
+                        </form>
+                    </section>
+                @endif
+
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <h2 class="text-base font-black text-slate-900">Public Tracking</h2>
+                    <p class="mt-2 text-sm text-slate-500">Customer can check status using this job number.</p>
+                    <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-bold text-slate-600">{{ url($job->qr_code ?: route('repairs.public.track', ['job' => $job->job_no], false)) }}</div>
+                </section>
+            </aside>
+        </div>
+    </div>
+</x-layouts::app>
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (document.getElementById('part-select')) {
+            new TomSelect('#part-select', {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: 'Search for a part...',
+                maxOptions: 50,
+                onChange: function(value) {
+                    let stockDisplay = document.getElementById('part-stock-display');
+                    let stockValue = document.getElementById('part-stock-value');
+                    let priceInput = document.getElementById('part-price');
+                    
+                    if (!value) {
+                        stockDisplay.classList.add('hidden');
+                        priceInput.value = '';
+                        return;
+                    }
+                    
+                    let select = document.getElementById('part-select');
+                    let option = select.querySelector('option[value="' + value + '"]');
+                    
+                    if (option && option.dataset) {
+                        if (option.dataset.price) {
+                            priceInput.value = option.dataset.price;
+                        }
+                        if (option.dataset.stock !== undefined) {
+                            stockValue.textContent = Number(option.dataset.stock).toFixed(2);
+                            stockDisplay.classList.remove('hidden');
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

@@ -1,5 +1,4 @@
-<div class="relative mb-6 w-full">
-    <flux:heading size="xl" level="1">{{ __('Settings') }}</flux:heading>
-    <flux:subheading size="lg" class="mb-6">{{ __('Manage your profile and account settings') }}</flux:subheading>
-    <flux:separator variant="subtle" />
+<div class="mb-6 flex w-full flex-col gap-3 border-b border-slate-200 bg-white pb-5 md:flex-row md:items-end md:justify-between">
+    <div><div class="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400"><a href="{{ auth()->user()->user_type === 'lorry' ? route('distribution.my-lorry.dashboard') : route('dashboard') }}" class="hover:text-blue-600">Dashboard</a><span>/</span><span>Settings</span></div><h1 class="text-xl font-extrabold text-slate-850">Account Settings</h1><p class="mt-1 text-xs font-medium text-slate-500">Manage your profile, security, and display preferences.</p></div>
+    @if(auth()->user()->user_type === 'lorry')<div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2"><p class="text-[9px] font-bold uppercase text-blue-500">Assigned Lorry</p><p class="text-xs font-extrabold text-blue-800">{{ app(\App\Services\LorryAccessService::class)->currentAssignment(auth()->user())->lorry_name }}</p></div>@endif
 </div>

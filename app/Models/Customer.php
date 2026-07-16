@@ -19,6 +19,7 @@ class Customer extends Model
         'tax_number',
         'points',
         'balance',
+        'cheque_hold_balance',
         'opening_balance',
         'credit_limit',
         'status',
@@ -29,6 +30,7 @@ class Customer extends Model
 
     protected $casts = [
         'balance' => 'decimal:2',
+        'cheque_hold_balance' => 'decimal:2',
         'opening_balance' => 'decimal:2',
         'credit_limit' => 'decimal:2',
         'status' => 'boolean',
@@ -43,5 +45,10 @@ class Customer extends Model
     public function transactions()
     {
         return $this->hasMany(CustomerTransaction::class);
+    }
+
+    public function cheques()
+    {
+        return $this->hasMany(Cheque::class);
     }
 }

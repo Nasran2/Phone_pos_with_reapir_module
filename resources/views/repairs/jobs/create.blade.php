@@ -195,7 +195,7 @@
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Estimated Cost</label>
-                            <input type="number" step="0.01" min="0" name="estimated_cost" value="{{ old('estimated_cost') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                            <input type="number" step="any" min="0" name="estimated_cost" value="{{ old('estimated_cost') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Expected Completion Date</label>

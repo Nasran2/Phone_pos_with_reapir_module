@@ -34,6 +34,16 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\RepairController;
+use App\Http\Controllers\DistributionController;
+use App\Http\Controllers\MyLorryController;
+use App\Http\Controllers\ChequeDashboardController;
+use App\Http\Controllers\ReceivedChequeController;
+use App\Http\Controllers\IssuedChequeController;
+use App\Http\Controllers\ChequeStatusController;
+use App\Http\Controllers\ChequeCalendarController;
+use App\Http\Controllers\ChequeListController;
+use App\Http\Controllers\ChequeReportController;
+use App\Http\Controllers\ChequeSettingsController;
 
 Route::get('/link-storage', function () {
     \Illuminate\Support\Facades\Artisan::call('storage:link');
@@ -402,6 +412,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('damaged-stocks.status')
         ->middleware('permission:damaged_stock.return');
 
+    // Distribution, Lorry Inventory & Lorry Sales
+    Route::prefix('distribution')->name('distribution.')->group(function () {
+        Route::middleware('lorry.user')->group(function () {
+            Route::get('my-lorry', [MyLorryController::class, 'dashboard'])->name('my-lorry.dashboard');
+            Route::get('my-lorry/stock', [MyLorryController::class, 'stock'])->name('my-lorry.stock');
+            Route::get('my-lorry/order', [MyLorryController::class, 'createOrder'])->name('my-lorry.order.create');
+            Route::post('my-lorry/order', [MyLorryController::class, 'storeOrder'])->name('my-lorry.order.store');
+            Route::get('my-lorry/sales', [MyLorryController::class, 'sales'])->name('my-lorry.sales');
+            Route::match(['get','post'], 'my-lorry/expenses', [MyLorryController::class, 'expenses'])->name('my-lorry.expenses');
+        });
+        Route::middleware('permission:distribution.view')->group(function () {
+        Route::get('/', [DistributionController::class, 'dashboard'])->name('dashboard')->middleware('permission:distribution.dashboard');
+        Route::match(['get', 'post'], 'lorries', [DistributionController::class, 'lorries'])->name('lorries.index')->middleware('permission:lorries.view');
+        Route::get('lorries/{lorry}', [DistributionController::class, 'showLorry'])->name('lorries.show')->middleware('permission:lorries.view');
+        Route::put('lorries/{lorry}', [DistributionController::class, 'updateLorry'])->name('lorries.update')->middleware('permission:lorries.edit');
+        Route::delete('lorries/{lorry}', [DistributionController::class, 'destroyLorry'])->name('lorries.destroy')->middleware('permission:lorries.delete');
+        Route::get('stock', [DistributionController::class, 'stock'])->name('stock.index')->middleware('permission:lorry_stock.view');
+        Route::match(['get', 'post'], 'load-stock', [DistributionController::class, 'load'])->name('load')->middleware('permission:lorry_stock.load');
+        Route::match(['get', 'post'], 'return-stock', [DistributionController::class, 'returns'])->name('returns')->middleware('permission:lorry_stock.return');
+        Route::match(['get', 'post'], 'lorry-transfer', [DistributionController::class, 'lorryTransfer'])->name('lorry-transfer')->middleware('permission:lorry_stock.transfer');
+        Route::match(['get', 'post'], 'trips', [DistributionController::class, 'trips'])->name('trips')->middleware('permission:distribution_trips.view');
+        Route::post('trips/{trip}/status', [DistributionController::class, 'updateTripStatus'])->name('trips.status')->middleware('permission:distribution_trips.edit');
+        Route::get('sales', [DistributionController::class, 'sales'])->name('sales')->middleware('permission:lorry_sales.view');
+        Route::match(['get', 'post'], 'sale-returns', [DistributionController::class, 'saleReturns'])->name('sale-returns')->middleware('permission:lorry_returns.view');
+        Route::match(['get', 'post'], 'expenses', [DistributionController::class, 'expenses'])->name('expenses')->middleware('permission:lorry_expenses.view');
+        Route::match(['get', 'post'], 'collections', [DistributionController::class, 'collections'])->name('collections')->middleware('permission:lorry_collections.view');
+        Route::match(['get', 'post'], 'reconciliation', [DistributionController::class, 'reconciliation'])->name('reconciliation')->middleware('permission:lorry_reconciliation.view');
+        Route::get('reports', [DistributionController::class, 'reports'])->name('reports')->middleware('permission:distribution_reports.view');
+        Route::match(['get', 'post'], 'settings', [DistributionController::class, 'settings'])->name('settings')->middleware('permission:distribution.settings');
+        Route::get('product-search', [DistributionController::class, 'productSearch'])->name('product-search')->middleware('permission:lorry_stock.view');
+        });
+    });
+
     // Repair Management
     Route::prefix('repairs')->name('repairs.')->group(function () {
         Route::get('/', [RepairController::class, 'dashboard'])->name('dashboard')->middleware('permission:repair.view');
@@ -421,6 +464,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('technicians/{technician}', [RepairController::class, 'updateTechnician'])->name('technicians.update')->middleware('permission:repair.assign');
         Route::get('jobs/{job}', [RepairController::class, 'show'])->name('jobs.show')->middleware('permission:repair.view');
         Route::get('jobs/{job}/print', [RepairController::class, 'print'])->name('jobs.print')->middleware('permission:repair.view');
+        Route::post('jobs/{job}/workspace', [RepairController::class, 'saveWorkspace'])->name('jobs.workspace')->middleware('permission:repair.edit');
         Route::post('jobs/{job}/status', [RepairController::class, 'updateStatus'])->name('jobs.status')->middleware('permission:repair.edit');
         Route::post('jobs/{job}/assign', [RepairController::class, 'assign'])->name('jobs.assign')->middleware('permission:repair.assign');
         Route::post('jobs/{job}/parts', [RepairController::class, 'issuePart'])->name('jobs.parts')->middleware('permission:repair.parts');
@@ -435,6 +479,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('journal-entries', JournalEntryController::class)->middleware('permission:accounting.view');
         Route::get('ledger', [LedgerBookController::class, 'index'])->name('ledger.index')->middleware('permission:accounting.view');
         Route::resource('capital-drawings', CapitalDrawingController::class)->middleware('permission:accounting.view');
+    });
+
+    Route::prefix('cheques')->name('cheques.')->group(function () {
+        Route::get('/', ChequeDashboardController::class)->name('dashboard')->middleware('permission:cheques.dashboard');
+        Route::get('received', [ReceivedChequeController::class, 'index'])->name('received.index')->middleware('permission:cheques.received.view');
+        Route::get('received/create', [ReceivedChequeController::class, 'create'])->name('received.create')->middleware('permission:cheques.received.create');
+        Route::post('received', [ReceivedChequeController::class, 'store'])->name('received.store')->middleware('permission:cheques.received.create');
+        Route::get('issued', [IssuedChequeController::class, 'index'])->name('issued.index')->middleware('permission:cheques.issued.view');
+        Route::get('issued/create', [IssuedChequeController::class, 'create'])->name('issued.create')->middleware('permission:cheques.issued.create');
+        Route::post('issued', [IssuedChequeController::class, 'store'])->name('issued.store')->middleware('permission:cheques.issued.create');
+        Route::get('list/{view}', ChequeListController::class)->whereIn('view', ['upcoming','today','overdue','passed','returned'])->name('list')->middleware('permission:cheques.view');
+        Route::get('calendar', ChequeCalendarController::class)->name('calendar')->middleware('permission:cheques.calendar');
+        Route::get('reports', [ChequeReportController::class, 'index'])->name('reports')->middleware('permission:cheques.reports');
+        Route::get('reports/pdf', [ChequeReportController::class, 'pdf'])->name('reports.pdf')->middleware('permission:cheques.export_pdf');
+        Route::get('reports/excel', [ChequeReportController::class, 'excel'])->name('reports.excel')->middleware('permission:cheques.export_excel');
+        Route::get('settings', [ChequeSettingsController::class, 'index'])->name('settings')->middleware('permission:cheques.settings');
+        Route::put('settings', [ChequeSettingsController::class, 'update'])->name('settings.update')->middleware('permission:cheques.settings');
+        Route::get('{cheque}', [ReceivedChequeController::class, 'show'])->name('show')->middleware('permission:cheques.view');
+        Route::post('{cheque}/pass', [ChequeStatusController::class, 'pass'])->name('pass')->middleware('permission:cheques.mark_passed');
+        Route::post('{cheque}/return', [ChequeStatusController::class, 'returned'])->name('return')->middleware('permission:cheques.mark_returned');
+        Route::post('{cheque}/cancel', [ChequeStatusController::class, 'cancel'])->name('cancel')->middleware('permission:cheques.cancel');
+        Route::post('{cheque}/replace', [ChequeStatusController::class, 'replace'])->name('replace')->middleware('permission:cheques.replace');
     });
 
     // Reports

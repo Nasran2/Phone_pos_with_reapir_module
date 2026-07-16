@@ -237,11 +237,220 @@ class RepairController extends Controller
         }
     }
 
+    public function saveWorkspace(Request $request, int $job)
+    {
+        $parts = collect($request->input('parts', []))->map(function (array $part): array {
+            $status = $part['status'] ?? 'Issued';
+            $part['status'] = match ($status) {
+                'Used' => 'Issued',
+                'Cancelled' => 'Returned',
+                default => $status,
+            };
+
+            return $part;
+        })->values()->all();
+
+        $request->merge(['parts' => $parts]);
+
+        $validated = $request->validate([
+            'status' => ['required', 'in:' . implode(',', $this->statuses)],
+            'status_note' => ['nullable', 'string', 'max:1000'],
+            'technician_id' => ['nullable', 'exists:repair_technicians,id'],
+            'notify_customer' => ['nullable', 'boolean'],
+            'parts' => ['nullable', 'array'],
+            'parts.*.id' => ['nullable', 'integer'],
+            'parts.*.product_id' => ['required_without:parts.*.id', 'exists:products,id'],
+            'parts.*.quantity' => ['required_with:parts.*.product_id', 'numeric', 'min:0.01'],
+            'parts.*.selling_price' => ['required_with:parts.*.product_id', 'numeric', 'min:0'],
+            'parts.*.store_id' => ['nullable', 'exists:stores,id'],
+            'parts.*.status' => ['required_with:parts.*.product_id', 'in:Reserved,Issued,Returned'],
+            'charges' => ['nullable', 'array'],
+            'charges.labor' => ['nullable', 'numeric', 'min:0'],
+            'charges.diagnosis' => ['nullable', 'numeric', 'min:0'],
+            'charges.service' => ['nullable', 'numeric', 'min:0'],
+            'charges.software' => ['nullable', 'numeric', 'min:0'],
+            'charges.other' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'array'],
+            'discount.type' => ['nullable', 'in:fixed,percentage'],
+            'discount.value' => ['nullable', 'numeric', 'min:0'],
+            'service_items' => ['nullable', 'array'],
+            'service_items.*.id' => ['nullable', 'integer'],
+            'service_items.*.name' => ['nullable', 'string', 'max:120'],
+            'service_items.*.amount' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $currentJob = DB::table('repair_jobs')->where('id', $job)->first();
+        abort_unless($currentJob, 404);
+
+        DB::beginTransaction();
+        try {
+            $technicianId = $validated['technician_id'] ?? null;
+
+            if ((string) ($currentJob->primary_technician_id ?? '') !== (string) ($technicianId ?? '')) {
+                DB::table('repair_jobs')->where('id', $job)->update([
+                    'primary_technician_id' => $technicianId,
+                    'updated_at' => now(),
+                ]);
+
+                if ($technicianId) {
+                    DB::table('repair_assignments')->insert([
+                        'repair_job_id' => $job,
+                        'technician_id' => $technicianId,
+                        'assigned_by' => auth()->id(),
+                        'assigned_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $this->repairLog($job, 'Assigned', 'Technician assigned via workspace.');
+                } else {
+                    $this->repairLog($job, 'Assigned', 'Technician removed via workspace.');
+                }
+            }
+
+            if (isset($validated['parts']) && is_array($validated['parts'])) {
+                foreach ($validated['parts'] as $partData) {
+                    if (isset($partData['id']) && $partData['id']) {
+                        $existingPart = DB::table('repair_parts')
+                            ->where('id', $partData['id'])
+                            ->where('repair_job_id', $job)
+                            ->first();
+
+                        if (!$existingPart) {
+                            continue;
+                        }
+
+                        $existingStoreId = $existingPart->store_id ?? SystemSettings::number('default_store_id', 1, 'business_settings');
+                        $storeId = $partData['store_id'] ?? $existingStoreId;
+                        $quantity = (float) $partData['quantity'];
+                        $sellingPrice = (float) $partData['selling_price'];
+                        $lineTotal = $quantity * $sellingPrice;
+
+                        $stockChanges = [];
+                        if ($existingPart->status === 'Issued') {
+                            $stockChanges[(int) $existingStoreId] = ($stockChanges[(int) $existingStoreId] ?? 0) + (float) $existingPart->quantity;
+                        }
+                        if ($partData['status'] === 'Issued') {
+                            $stockChanges[(int) $storeId] = ($stockChanges[(int) $storeId] ?? 0) - $quantity;
+                        }
+
+                        foreach ($stockChanges as $stockStoreId => $quantityChange) {
+                            if (abs($quantityChange) > 0.0001) {
+                                $this->adjustRepairPartStock($existingPart->product_id, $stockStoreId, $quantityChange, $currentJob, $quantityChange > 0 ? 'repair_part_return' : 'repair_part');
+                            }
+                        }
+
+                        DB::table('repair_parts')->where('id', $existingPart->id)->update([
+                            'store_id' => $storeId,
+                            'quantity' => $quantity,
+                            'selling_price' => $sellingPrice,
+                            'line_total' => $lineTotal,
+                            'status' => $partData['status'],
+                            'updated_at' => now(),
+                        ]);
+                    } elseif (isset($partData['product_id'])) {
+                        $product = DB::table('products')->where('id', $partData['product_id'])->first();
+                        abort_unless($product, 404);
+
+                        $storeId = $partData['store_id'] ?? SystemSettings::number('default_store_id', 1, 'business_settings');
+                        $quantity = (float) $partData['quantity'];
+                        $sellingPrice = (float) $partData['selling_price'];
+                        $lineTotal = $quantity * $sellingPrice;
+
+                        DB::table('repair_parts')->insert([
+                            'repair_job_id' => $job,
+                            'product_id' => $partData['product_id'],
+                            'store_id' => $storeId,
+                            'quantity' => $quantity,
+                            'cost_price' => $product->cost_price ?? 0,
+                            'selling_price' => $sellingPrice,
+                            'line_total' => $lineTotal,
+                            'status' => $partData['status'],
+                            'issued_by' => auth()->id(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        if ($partData['status'] === 'Issued') {
+                            $this->adjustRepairPartStock($product->id, $storeId, -$quantity, $currentJob, 'repair_part');
+                        }
+                    }
+                }
+            }
+
+            $chargePayload = $validated['charges'] ?? [];
+            $chargeValues = [
+                'labor_charge' => (float) ($chargePayload['labor'] ?? $currentJob->labor_charge ?? $currentJob->estimated_cost ?? 0),
+                'diagnosis_fee' => (float) ($chargePayload['diagnosis'] ?? $currentJob->diagnosis_fee ?? 0),
+                'service_charge' => (float) ($chargePayload['service'] ?? $currentJob->service_charge ?? 0),
+                'software_charge' => (float) ($chargePayload['software'] ?? $currentJob->software_charge ?? 0),
+                'other_charge' => (float) ($chargePayload['other'] ?? $currentJob->other_charge ?? 0),
+            ];
+            $partsTotal = (float) DB::table('repair_parts')
+                ->where('repair_job_id', $job)
+                ->where('status', 'Issued')
+                ->sum('line_total');
+            $serviceItems = collect($validated['service_items'] ?? [])
+                ->filter(fn ($item) => trim((string) ($item['name'] ?? '')) !== '')
+                ->values();
+            DB::table('repair_charge_items')->where('repair_job_id', $job)->delete();
+            foreach ($serviceItems as $index => $item) {
+                DB::table('repair_charge_items')->insert([
+                    'repair_job_id' => $job,
+                    'name' => trim((string) $item['name']),
+                    'amount' => (float) $item['amount'],
+                    'sort_order' => $index + 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            $serviceItemsTotal = (float) $serviceItems->sum(fn ($item) => (float) $item['amount']);
+            $discountType = $validated['discount']['type'] ?? $currentJob->discount_type ?? 'fixed';
+            $discountValue = (float) ($validated['discount']['value'] ?? $currentJob->discount_value ?? $currentJob->discount_amount ?? 0);
+            $discountBase = array_sum($chargeValues) + $partsTotal + $serviceItemsTotal;
+            $discountAmount = $discountType === 'percentage'
+                ? round($discountBase * min($discountValue, 100) / 100, 2)
+                : min($discountValue, $discountBase);
+
+            DB::table('repair_jobs')->where('id', $job)->update(array_merge($chargeValues, [
+                'discount_type' => $discountType,
+                'discount_value' => $discountValue,
+                'discount_amount' => $discountAmount,
+                'updated_at' => now(),
+            ]));
+
+            if ($validated['status'] && $currentJob->status !== $validated['status']) {
+                $updates = ['status' => $validated['status'], 'updated_at' => now()];
+                if ($validated['status'] === 'Completed') {
+                    $updates['completed_at'] = now();
+                }
+                if ($validated['status'] === 'Delivered') {
+                    $updates['delivered_at'] = now();
+                }
+                DB::table('repair_jobs')->where('id', $job)->update($updates);
+                $this->logStatus($job, $currentJob->status, $validated['status'], $validated['status_note'] ?? null);
+                if (!empty($validated['notify_customer'])) {
+                    $this->queueNotification($job, $validated['status']);
+                }
+            } elseif (!empty($validated['status_note'])) {
+                 $this->logStatus($job, $currentJob->status, $currentJob->status, $validated['status_note']);
+            }
+
+            $this->recalculateTotals($job);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Workspace saved successfully.']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function show(int $job)
     {
         $repair = $this->jobDetails($job);
 
-        return view('repairs.jobs.show', array_merge($this->formData(), ['job' => $repair, 'statuses' => $this->statuses]));
+        return view('repairs.jobs.show', array_merge($this->formData($repair->store_id), ['job' => $repair, 'statuses' => $this->statuses]));
     }
 
     public function updateStatus(Request $request, int $job)
@@ -567,19 +776,34 @@ class RepairController extends Controller
         $job->checklist = DB::table('repair_checklists')->where('repair_job_id', $id)->first();
         $job->images = DB::table('repair_images')->where('repair_job_id', $id)->get();
         $job->parts = DB::table('repair_parts')->join('products', 'products.id', '=', 'repair_parts.product_id')->select('repair_parts.*', 'products.name as product_name')->where('repair_job_id', $id)->get();
+        $job->charge_items = DB::table('repair_charge_items')->where('repair_job_id', $id)->orderBy('sort_order')->orderBy('id')->get();
         $job->payments = DB::table('repair_payments')->where('repair_job_id', $id)->get();
         $job->logs = DB::table('repair_status_logs')->where('repair_job_id', $id)->latest()->get();
         $job->notes = DB::table('repair_notes')->where('repair_job_id', $id)->latest()->get();
         return $job;
     }
 
-    private function formData(): array
+    private function formData(?int $storeId = null): array
     {
+        $defaultStoreId = $storeId ?? SystemSettings::number('default_store_id', 1, 'business_settings');
+
         return [
             'customers' => DB::table('customers')->whereNull('deleted_at')->orderBy('name')->get(),
             'technicians' => DB::table('repair_technicians')->whereNull('deleted_at')->where('status', 'Active')->orderBy('name')->get(),
             'stores' => DB::table('stores')->where('status', true)->orderBy('name')->get(),
-            'products' => DB::table('products')->whereNull('deleted_at')->where('is_active', true)->orderBy('name')->get(),
+            'products' => DB::table('products')
+                ->leftJoin('product_store_stock', function ($join) use ($defaultStoreId) {
+                    $join->on('product_store_stock.product_id', '=', 'products.id')
+                         ->where('product_store_stock.store_id', '=', $defaultStoreId);
+                })
+                ->whereNull('products.deleted_at')
+                ->where('products.is_active', true)
+                ->select('products.*', DB::raw('COALESCE(product_store_stock.quantity, 0) as stock'))
+                ->orderBy('products.name')
+                ->get(),
+            'productStocks' => DB::table('product_store_stock')
+                ->select('product_id', 'store_id', 'quantity')
+                ->get(),
             'deviceTypes' => $this->deviceTypes,
             'brands' => $this->brands,
             'checklistItems' => $this->checklistItems(),
@@ -587,14 +811,59 @@ class RepairController extends Controller
         ];
     }
 
+    private function adjustRepairPartStock(int $productId, int $storeId, float $quantityChange, object $job, string $type): void
+    {
+        $stock = DB::table('product_store_stock')
+            ->where('product_id', $productId)
+            ->where('store_id', $storeId)
+            ->first();
+
+        $quantityBefore = (float) ($stock->quantity ?? 0);
+        $newQuantity = $quantityBefore + $quantityChange;
+
+        if ($newQuantity < -0.0001) {
+            throw new \RuntimeException('Not enough available stock for the selected repair part.');
+        }
+
+        DB::table('product_store_stock')->updateOrInsert(
+            ['product_id' => $productId, 'store_id' => $storeId],
+            [
+                'quantity' => $newQuantity,
+                'updated_at' => now(),
+                'created_at' => $stock->created_at ?? now(),
+            ]
+        );
+
+        DB::table('stock_histories')->insert([
+            'product_id' => $productId,
+            'store_id' => $storeId,
+            'quantity_before' => $quantityBefore,
+            'quantity_change' => $quantityChange,
+            'new_quantity' => $newQuantity,
+            'type' => $type,
+            'reference_no' => $job->job_no,
+            'note' => $quantityChange < 0 ? 'Repair parts issued' : 'Repair part returned',
+            'reference_type' => 'repair_job',
+            'reference_id' => $job->id,
+            'description' => $quantityChange < 0 ? 'Repair parts issued for service job.' : 'Repair part returned to stock.',
+            'created_by' => auth()->id(),
+            'created_at' => now(),
+        ]);
+    }
+
     private function recalculateTotals(int $job): void
     {
         $partsTotal = DB::table('repair_parts')->where('repair_job_id', $job)->where('status', 'Issued')->sum('line_total');
         $repair = DB::table('repair_jobs')->where('id', $job)->first();
         $labor = (float) ($repair->labor_charge ?: $repair->estimated_cost ?: 0);
+        $extraCharges = (float) ($repair->diagnosis_fee ?? 0)
+            + (float) ($repair->service_charge ?? 0)
+            + (float) ($repair->software_charge ?? 0)
+            + (float) ($repair->other_charge ?? 0);
+        $serviceItemsTotal = (float) DB::table('repair_charge_items')->where('repair_job_id', $job)->sum('amount');
         $discount = (float) $repair->discount_amount;
         $taxRate = (float) SystemSettings::number('default_sale_tax', 0, 'tax_settings');
-        $subtotal = max(0, $labor + $partsTotal - $discount);
+        $subtotal = max(0, $labor + $extraCharges + $serviceItemsTotal + $partsTotal - $discount);
         $tax = SystemSettings::bool('enable_tax_system', true, 'tax_settings') ? round($subtotal * $taxRate / 100, 2) : 0;
         $total = $subtotal + $tax;
         $paid = DB::table('repair_payments')->where('repair_job_id', $job)->sum('amount');

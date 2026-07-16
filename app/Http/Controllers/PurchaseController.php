@@ -382,11 +382,16 @@ class PurchaseController extends Controller
     {
         $calculatedItems = [];
         $subtotal = 0;
+        $shippingCost = (float) ($validated['shipping_cost'] ?? 0);
+        $divideShipping = ($validated['shipping_handling'] ?? 'purchase_total') === 'divide_product_cost';
+        $totalQty = max(collect($items)->sum(fn ($item) => (float) ($item['quantity'] ?? 0)), 1);
+        $shippingPerUnit = $divideShipping ? ($shippingCost / $totalQty) : 0;
 
         foreach ($items as $item) {
             $qty = (float) $item['quantity'];
             $unitCost = (float) $item['unit_cost'];
-            $gross = $qty * $unitCost;
+            $effectiveUnitCost = round($unitCost + $shippingPerUnit, 6);
+            $gross = $qty * $effectiveUnitCost;
             $discountPercent = (float) ($item['discount_percent'] ?? 0);
             $discountAmount = $discountPercent > 0
                 ? round($gross * ($discountPercent / 100), 2)
@@ -400,7 +405,7 @@ class PurchaseController extends Controller
                 'product_id' => (int) $item['product_id'],
                 'quantity' => $qty,
                 'unit_cost' => $unitCost,
-                'cost_price' => $unitCost,
+                'cost_price' => round($effectiveUnitCost, 2),
                 'discount_percent' => $discountPercent,
                 'discount_amount' => $discountAmount,
                 'tax_percent' => $taxPercent,
@@ -420,8 +425,7 @@ class PurchaseController extends Controller
             default => 0,
         };
         $purchaseTax = (float) ($validated['purchase_tax'] ?? 0);
-        $shippingCost = (float) ($validated['shipping_cost'] ?? 0);
-        $grandTotal = round(max($subtotal - $overallDiscount, 0) + $purchaseTax + $shippingCost, 2);
+        $grandTotal = round(max($subtotal - $overallDiscount, 0) + $purchaseTax + ($divideShipping ? 0 : $shippingCost), 2);
         $paidAmount = min((float) ($validated['payment_amount'] ?? 0), $grandTotal);
 
         return [
@@ -470,10 +474,6 @@ class PurchaseController extends Controller
         }
 
         $purchase->loadMissing('items.product');
-        $totalQty = max($purchase->items->sum(fn ($item) => (float) $item->quantity), 1);
-        $shippingPerUnit = $purchase->shipping_handling === 'divide_product_cost'
-            ? ((float) $purchase->shipping_cost / $totalQty)
-            : 0;
 
         foreach ($purchase->items as $item) {
             $product = $item->product;
@@ -488,7 +488,7 @@ class PurchaseController extends Controller
             $stock->quantity = (float) $stock->quantity + (float) $item->quantity;
             $stock->save();
 
-            $effectiveCost = round((float) $item->unit_cost + $shippingPerUnit, 2);
+            $effectiveCost = round((float) ($item->cost_price ?: $item->unit_cost), 2);
             $product->update([
                 'cost_price' => $effectiveCost,
                 'retail_price' => (float) $item->retail_price > 0 ? $item->retail_price : $product->retail_price,

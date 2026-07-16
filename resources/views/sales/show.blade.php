@@ -96,6 +96,7 @@
                         ['Tax', $sale->tax_amount],
                         ['Grand Total', $sale->payable_amount],
                         ['Paid Amount', $sale->paid_amount],
+                        ['Cheque Hold', $sale->cheque_hold_amount],
                         ['Due Amount', $sale->due_amount],
                     ] as [$label, $amount])
                     <div class="flex justify-between py-2 border-b border-slate-100 text-xs">
@@ -104,6 +105,22 @@
                     </div>
                     @endforeach
                 </div>
+
+                @if($sale->invoicePayments->isNotEmpty())
+                <div class="bg-white rounded-2xl border border-slate-200/70 p-5 shadow-xs">
+                    <h3 class="font-black text-slate-850 mb-1">Payment Allocation</h3>
+                    <p class="mb-4 text-[10px] font-semibold text-slate-400">Each row is tracked independently. Cheques remain on hold until passed.</p>
+                    <div class="space-y-2">
+                        @foreach($sale->invoicePayments as $payment)
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+                            <div class="flex items-center justify-between gap-3"><span class="font-black text-slate-800">{{ $payment->payment_method }}</span><span class="font-black">Rs. {{ number_format((float)$payment->amount, 2) }}</span></div>
+                            <div class="mt-1 flex items-center justify-between text-[10px] text-slate-500"><span>{{ $payment->reference_no ?: ($payment->cheque?->cheque_number ? 'Cheque #'.$payment->cheque->cheque_number : 'No reference') }}</span><span class="rounded-full px-2 py-0.5 font-bold uppercase {{ $payment->status === 'cleared' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'hold' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') }}">{{ $payment->status }}</span></div>
+                            @if($payment->cheque)<p class="mt-1 text-[10px] text-slate-500">{{ $payment->cheque->bank_name }} · {{ optional($payment->cheque->cheque_date)->format('Y-m-d') }} · {{ $payment->cheque->current_status }}</p>@endif
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 <div class="bg-white rounded-2xl border border-slate-200/70 p-5 shadow-xs">
                     <h3 class="font-black text-slate-850 mb-4">Payments</h3>
@@ -132,7 +149,7 @@
                         <option value="{{ $method }}">{{ $method }}</option>
                         @endforeach
                     </select>
-                    <input name="amount" type="number" step="0.01" max="{{ $sale->due_amount }}" value="{{ $sale->due_amount }}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                    <input name="amount" type="number" step="any" max="{{ $sale->due_amount }}" value="{{ $sale->due_amount }}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
                     <input name="reference_no" placeholder="Reference no" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
                     <button class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold">Save Payment</button>
                 </form>

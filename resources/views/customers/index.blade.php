@@ -317,14 +317,14 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Credit Limit (Rs.)</label>
-                        <input type="number" step="0.01" name="credit_limit" id="cust_credit_limit" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 50000">
+                        <input type="number" step="any" name="credit_limit" id="cust_credit_limit" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 50000">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div id="openingBalanceField">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Opening Due Balance (Rs.)</label>
-                        <input type="number" step="0.01" name="opening_balance" id="cust_opening_balance" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                        <input type="number" step="any" name="opening_balance" id="cust_opening_balance" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Status *</label>
@@ -375,7 +375,7 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Payment Amount (Rs.) *</label>
-                    <input type="number" step="0.01" min="0.01" name="amount" id="pay_amount" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                    <input type="number" step="any" min="0.01" name="amount" id="pay_amount" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Support\SystemSettings;
 
 class SettingsController extends Controller
 {
@@ -43,6 +44,10 @@ class SettingsController extends Controller
             );
         }
 
+        SystemSettings::clearCache();
+        cache()->forget('settings');
+        cache()->forget('business_settings');
+
         return back()->with('success', $section['label'] . ' saved successfully.');
     }
 
@@ -61,6 +66,10 @@ class SettingsController extends Controller
                 ['value' => $this->serializeValue($field['default'] ?? null), 'updated_at' => now(), 'created_at' => now()]
             );
         }
+
+        SystemSettings::clearCache();
+        cache()->forget('settings');
+        cache()->forget('business_settings');
 
         return back()->with('success', $section['label'] . ' reset to defaults.');
     }

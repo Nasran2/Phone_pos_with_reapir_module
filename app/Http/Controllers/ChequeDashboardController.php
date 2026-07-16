@@ -1,0 +1,6 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\Cheque;
+use App\Services\ChequeAccessService;
+use Illuminate\Http\Request;
+class ChequeDashboardController extends Controller { public function __invoke(Request $r,ChequeAccessService $a){$base=$a->scope(Cheque::query(),$r->user());$summary=['hold'=>(clone$base)->open()->sum('hold_amount'),'upcoming'=>(clone$base)->open()->whereBetween('cheque_date',[today(),today()->addDays(3)])->count(),'today'=>(clone$base)->open()->whereDate('cheque_date',today())->count(),'overdue'=>(clone$base)->open()->whereDate('cheque_date','<',today())->count(),'passed'=>(clone$base)->where('status','passed')->whereMonth('passed_at',now()->month)->sum('passed_amount'),'returned'=>(clone$base)->where('status','returned')->whereMonth('returned_at',now()->month)->sum('returned_amount'),'received'=>(clone$base)->where('cheque_type','received')->sum('amount'),'issued'=>(clone$base)->where('cheque_type','issued')->sum('amount')];$reminders=(clone$base)->with(['customer','supplier'])->open()->whereDate('cheque_date','<=',today()->addDays(3))->orderBy('cheque_date')->limit(12)->get();$recent=(clone$base)->latest()->limit(8)->get();$statuses=(clone$base)->selectRaw('status, COUNT(*) total')->groupBy('status')->pluck('total','status');return view('cheques.dashboard',compact('summary','reminders','recent','statuses'));} }

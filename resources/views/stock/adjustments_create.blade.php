@@ -192,7 +192,7 @@
                 <td class="px-6 py-4 text-right">
                     <input 
                         type="number" 
-                        step="0.01" 
+                        step="any" 
                         min="0.01"
                         name="items[${rowIndex}][quantity]" 
                         class="qty-input w-24 px-2.5 py-2.5.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold"

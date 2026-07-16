@@ -43,9 +43,29 @@
         $isSettingsActive = request()->is('settings*');
         $canAccessRepairs = auth()->check() && auth()->user()->hasPermission('repair.view');
         $isRepairsActive = request()->routeIs('repairs.*');
+        $canAccessDistribution = auth()->check() && auth()->user()->hasPermission('distribution.view') && \App\Support\SystemSettings::bool('enable_distribution_module', true, 'business_settings');
+        $isDistributionActive = request()->routeIs('distribution.*');
+        $canAccessCheques = auth()->check() && auth()->user()->hasPermission('cheques.view') && \App\Models\Setting::get('cheque_enabled', '1') === '1';
+        $chequeBadge = $canAccessCheques && \Illuminate\Support\Facades\Schema::hasTable('cheques') ? \App\Models\Cheque::open()->whereDate('cheque_date', '<=', today()->addDays((int) \App\Models\Setting::get('cheque_reminder_days', 3)))->count() : 0;
+        $distributionMenu = [
+            ['label' => 'Distribution Dashboard', 'route' => 'distribution.dashboard', 'permission' => 'distribution.dashboard'],
+            ['label' => 'Lorry Management', 'route' => 'distribution.lorries.index', 'permission' => 'lorries.view'],
+            ['label' => 'Lorry Stock', 'route' => 'distribution.stock.index', 'permission' => 'lorry_stock.view'],
+            ['label' => 'Load Stock to Lorry', 'route' => 'distribution.load', 'permission' => 'lorry_stock.load'],
+            ['label' => 'Return Stock to Store', 'route' => 'distribution.returns', 'permission' => 'lorry_stock.return'],
+            ['label' => 'Lorry-to-Lorry Transfer', 'route' => 'distribution.lorry-transfer', 'permission' => 'lorry_stock.transfer'],
+            ['label' => 'Distribution Trips', 'route' => 'distribution.trips', 'permission' => 'distribution_trips.view'],
+            ['label' => 'Lorry Sales', 'route' => 'distribution.sales', 'permission' => 'lorry_sales.view'],
+            ['label' => 'Lorry Sale Returns', 'route' => 'distribution.sale-returns', 'permission' => 'lorry_returns.view'],
+            ['label' => 'Lorry Expenses', 'route' => 'distribution.expenses', 'permission' => 'lorry_expenses.view'],
+            ['label' => 'Lorry Collections', 'route' => 'distribution.collections', 'permission' => 'lorry_collections.view'],
+            ['label' => 'Daily Reconciliation', 'route' => 'distribution.reconciliation', 'permission' => 'lorry_reconciliation.view'],
+            ['label' => 'Distribution Reports', 'route' => 'distribution.reports', 'permission' => 'distribution_reports.view'],
+            ['label' => 'Distribution Settings', 'route' => 'distribution.settings', 'permission' => 'distribution.settings'],
+        ];
         $systemName = \App\Support\SystemSettings::get('system_name', 'Phone Shop POS', 'business_settings');
         $businessLogo = \App\Support\SystemSettings::get('business_logo', null, 'business_settings');
-        $businessSubtitle = \App\Support\SystemSettings::get('footer_powered_by', 'Retail & Wholesale', 'business_settings');
+        $businessSubtitle = \App\Support\SystemSettings::get('business_name', config('app.name', 'Phone Shop POS'), 'business_settings');
         $moduleSettings = [
             'retail_pos' => \App\Support\SystemSettings::bool('enable_retail_pos', true, 'pos_settings'),
             'wholesale_pos' => \App\Support\SystemSettings::bool('enable_wholesale_pos', true, 'pos_settings'),
@@ -56,9 +76,39 @@
             'accounting' => \App\Support\SystemSettings::bool('enable_accounting', true, 'business_settings'),
             'retail_sales' => \App\Support\SystemSettings::bool('enable_retail_sales', true, 'business_settings'),
             'wholesale_sales' => \App\Support\SystemSettings::bool('enable_wholesale_sales', true, 'business_settings'),
+            'distribution' => \App\Support\SystemSettings::bool('enable_distribution_module', true, 'business_settings'),
         ];
     @endphp
+    @if(auth()->check() && auth()->user()->user_type === 'lorry')
+    <style>
+        body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        body select,
+        body textarea {
+            border: 1.5px solid #cbd5e1 !important;
+            background-color: #fff !important;
+            color: #0f172a !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        }
+        body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        body select { min-height: 42px; }
+        body input:focus, body select:focus, body textarea:focus {
+            outline: none !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .14) !important;
+        }
+        body input::placeholder, body textarea::placeholder { color: #94a3b8 !important; }
+    </style>
+    @endif
     
+    @if(auth()->check() && auth()->user()->user_type === 'lorry')
+    @php($myAssignment = app(\App\Services\LorryAccessService::class)->currentAssignment(auth()->user()))
+    <aside class="hidden min-h-screen w-64 shrink-0 self-stretch flex-col border-r border-[#182647] bg-[#0c1630] text-white lg:flex">
+        <div class="flex items-center gap-3 border-b border-[#182647] bg-[#091024] px-5 py-5"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20"><svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="12" rx="2"/><path d="M12 15v4M9 19h6"/></svg></div><div><h2 class="text-sm font-bold">{{ $systemName }}</h2><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lorry Workspace</p></div></div>
+        <div class="border-b border-[#182647] p-5"><p class="text-[10px] font-bold uppercase tracking-widest text-blue-400">Assigned Lorry</p><h2 class="mt-2 text-sm font-bold">{{ $myAssignment->lorry_name }}</h2><p class="text-[10px] text-slate-400">{{ $myAssignment->plate_no ?: $myAssignment->lorry_no }}</p></div>
+        <nav class="flex-1 space-y-2 overflow-y-auto p-4"><a href="{{ route('distribution.my-lorry.dashboard') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.dashboard') ? 'bg-blue-600':'hover:bg-white/10' }}">Dashboard</a><a href="{{ route('distribution.my-lorry.stock') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.stock') ? 'bg-blue-600':'hover:bg-white/10' }}">Lorry Stock</a>@if($myAssignment->can_create_orders)<a href="{{ route('distribution.my-lorry.order.create') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.order.*') ? 'bg-blue-600':'hover:bg-white/10' }}">Create Order / POS</a>@endif<a href="{{ route('distribution.my-lorry.sales') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.sales') ? 'bg-blue-600':'hover:bg-white/10' }}">Sales</a>@if($myAssignment->can_add_expenses)<a href="{{ route('distribution.my-lorry.expenses') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.expenses') ? 'bg-blue-600':'hover:bg-white/10' }}">Expenses</a>@endif @if($canAccessCheques)<a href="{{ route('cheques.received.index') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('cheques.*') ? 'bg-blue-600':'hover:bg-white/10' }}">Cheques @if($chequeBadge)<span class="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px]">{{ $chequeBadge }}</span>@endif</a>@endif <a href="{{ route('profile.edit') }}" class="block rounded-xl px-4 py-3 font-bold hover:bg-white/10">Profile</a></nav>
+        <form method="POST" action="{{ route('logout') }}" class="sticky bottom-0 mt-auto border-t border-[#182647] bg-[#0c1630] p-4">@csrf<button class="w-full rounded-xl bg-rose-500/15 px-4 py-3 font-bold text-rose-300 transition hover:bg-rose-500/25">Logout</button></form>
+    </aside>
+    @else
     <!-- Desktop Sidebar (Hidden on mobile) -->
     <aside class="w-64 bg-[#0c1630] text-slate-300 flex flex-col border-r border-[#182647] h-screen max-h-screen overflow-hidden sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
         <!-- Brand Logo Header -->
@@ -265,6 +315,30 @@
                 </div>
                 @endif
 
+                <!-- Distribution Dropdown -->
+                @if ($canAccessDistribution)
+                <div>
+                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ $isDistributionActive ? 'bg-[#182647]/50 text-white' : '' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 {{ $isDistributionActive ? 'text-white' : 'text-slate-400' }} group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>
+                            </svg>
+                            <span>Distribution</span>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ $isDistributionActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 max-h-[42vh] overflow-y-auto custom-scrollbar {{ $isDistributionActive ? '' : 'hidden' }}">
+                        @foreach ($distributionMenu as $item)
+                            @if (auth()->user()->hasPermission($item['permission']))
+                            <a href="{{ route($item['route']) }}" class="block py-2 text-xs font-medium {{ request()->routeIs($item['route']) ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">{{ $item['label'] }}</a>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <!-- Store Stock Dropdown -->
                 @if ($moduleSettings['stock'] && auth()->user()->hasPermission('stock.view'))
                 <div>
@@ -346,6 +420,22 @@
                         @if (auth()->user()->hasPermission('t_account.view') || auth()->user()->hasPermission('reports.profit_loss'))
                         <a href="{{ route('accounting.capital-drawings.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('accounting.capital-drawings.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Capital & Drawings</a>
                         @endif
+                    </div>
+                </div>
+                @endif
+
+                @if ($canAccessCheques)
+                <div>
+                    <button onclick="toggleSubmenu(this)" class="group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition hover:bg-[#182647] hover:text-white {{ request()->routeIs('cheques.*') ? 'bg-[#182647]/50 text-white' : '' }}">
+                        <div class="flex items-center gap-3"><svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h6M7 14h3M16 13l1.5 1.5L20 12"/></svg><span>Cheque Management</span>@if($chequeBadge)<span class="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-bold text-white">{{ $chequeBadge }}</span>@endif</div>
+                        <svg class="chevron-icon h-4 w-4 text-slate-500 {{ request()->routeIs('cheques.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="mt-0.5 space-y-1 rounded-lg bg-[#091024]/40 py-1 pl-10 pr-2 {{ request()->routeIs('cheques.*') ? '' : 'hidden' }}">
+                        <a href="{{ route('cheques.dashboard') }}" class="block py-2 text-xs {{ request()->routeIs('cheques.dashboard')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Cheque Dashboard</a>
+                        <a href="{{ route('cheques.received.index') }}" class="block py-2 text-xs {{ request()->routeIs('cheques.received.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Received Cheques</a>
+                        <a href="{{ route('cheques.issued.index') }}" class="block py-2 text-xs {{ request()->routeIs('cheques.issued.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Issued Cheques</a>
+                        <a href="{{ route('cheques.list','upcoming') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Upcoming Cheques</a><a href="{{ route('cheques.list','today') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Today Cheques</a><a href="{{ route('cheques.list','overdue') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Overdue / Pending</a><a href="{{ route('cheques.list','passed') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Passed Cheques</a><a href="{{ route('cheques.list','returned') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Returned Cheques</a>
+                        <a href="{{ route('cheques.calendar') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Cheque Calendar</a><a href="{{ route('cheques.reports') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Cheque Reports</a>@if(auth()->user()->hasPermission('cheques.settings'))<a href="{{ route('cheques.settings') }}" class="block py-2 text-xs text-slate-400 hover:text-white">Cheque Settings</a>@endif
                     </div>
                 </div>
                 @endif
@@ -626,8 +716,25 @@
                     </div>
                     @endif
 
+                    @if ($canAccessDistribution)
+                    <div class="py-1">
+                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Distribution</span>
+                        <div class="mt-1 space-y-1 pl-3 max-h-[44vh] overflow-y-auto custom-scrollbar">
+                            @foreach ($distributionMenu as $item)
+                                @if (auth()->user()->hasPermission($item['permission']))
+                                <a href="{{ route($item['route']) }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs($item['route']) ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">{{ $item['label'] }}</a>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     @if ($moduleSettings['expense'] && (auth()->user()->hasPermission('expenses.view') || auth()->user()->hasPermission('reports.expense')))
                     <a href="{{ route('accounting.expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('accounting.expenses.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Expenses</a>
+                    @endif
+
+                    @if ($canAccessCheques)
+                    <div class="py-1"><span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Cheque Management @if($chequeBadge) ({{ $chequeBadge }}) @endif</span><div class="mt-1 space-y-1 pl-3"><a href="{{ route('cheques.dashboard') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Dashboard</a><a href="{{ route('cheques.received.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Received</a><a href="{{ route('cheques.issued.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Issued</a><a href="{{ route('cheques.list','upcoming') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Upcoming</a><a href="{{ route('cheques.list','overdue') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Overdue</a><a href="{{ route('cheques.calendar') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Calendar</a><a href="{{ route('cheques.reports') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Reports</a></div></div>
                     @endif
 
                     @if ($canAccessReports)
@@ -672,6 +779,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Main Content Area Wrapper -->
     <main class="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 overflow-x-hidden">

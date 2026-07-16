@@ -45,7 +45,7 @@
                                             <option value="{{ $status }}" @selected($technician->status === $status)>{{ $status }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="number" step="0.01" min="0" max="100" name="commission_rate" value="{{ $technician->commission_rate }}" placeholder="Commission %" class="rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                    <input type="number" step="any" min="0" max="100" name="commission_rate" value="{{ $technician->commission_rate }}" placeholder="Commission %" class="rounded-xl border border-slate-200 px-4 py-3 text-sm">
                                 </div>
                                 <textarea name="notes" rows="2" placeholder="Notes" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">{{ $technician->notes }}</textarea>
                                 <button class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white hover:bg-blue-700">Update Technician</button>
@@ -71,7 +71,7 @@
                             <option>Inactive</option>
                             <option>On Leave</option>
                         </select>
-                        <input type="number" step="0.01" min="0" max="100" name="commission_rate" placeholder="Commission %" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                        <input type="number" step="any" min="0" max="100" name="commission_rate" placeholder="Commission %" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
                         <textarea name="notes" rows="3" placeholder="Notes" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"></textarea>
                         <button class="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white hover:bg-blue-700">Save Technician</button>
                     </form>

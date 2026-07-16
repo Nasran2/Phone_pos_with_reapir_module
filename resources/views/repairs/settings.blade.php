@@ -18,7 +18,7 @@
                     <div>
                         <label class="text-sm font-extrabold text-slate-800">Default Labor Charge</label>
                         <p class="mt-1 text-xs font-semibold text-slate-500">Suggested base charge for jobs that do not use parts.</p>
-                        <input type="number" step="0.01" min="0" name="default_labor_charge" value="{{ old('default_labor_charge', $settings['repair_default_labor_charge'] ?? 0) }}" class="mt-3 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                        <input type="number" step="any" min="0" name="default_labor_charge" value="{{ old('default_labor_charge', $settings['repair_default_labor_charge'] ?? 0) }}" class="mt-3 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
                     </div>
                     @foreach([
                         'notify_checkin' => 'Notify on Check-In',

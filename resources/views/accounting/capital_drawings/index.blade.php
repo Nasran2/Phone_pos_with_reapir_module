@@ -128,7 +128,7 @@
                         <label class="block text-sm font-bold text-slate-700 mb-1">Amount *</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 sm:text-sm">Rs.</span>
-                            <input type="number" step="0.01" name="amount" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm pl-9">
+                            <input type="number" step="any" name="amount" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm pl-9">
                         </div>
                     </div>
                     <div class="md:col-span-2">
@@ -186,7 +186,7 @@
                         <label class="block text-sm font-bold text-slate-700 mb-1">Amount *</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 sm:text-sm">Rs.</span>
-                            <input type="number" step="0.01" name="amount" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-rose-500 focus:ring-rose-500 sm:text-sm pl-9">
+                            <input type="number" step="any" name="amount" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-rose-500 focus:ring-rose-500 sm:text-sm pl-9">
                         </div>
                     </div>
                     <div class="md:col-span-2">

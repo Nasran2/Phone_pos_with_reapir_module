@@ -114,15 +114,23 @@ class RetailPosController extends Controller
     /**
      * Store a completed retail sale from the POS.
      */
-    public function store(Request $request)
+    public function store(Request $request, \App\Services\MixedPaymentService $mixedPayments)
     {
         $request->validate([
             'customer_id' => 'required',
             'items' => 'required|array|min:1',
             'total_amount' => 'required|numeric',
             'payable_amount' => 'required|numeric',
-            'payments' => 'required|array',
-            'paid_amount' => 'required|numeric',
+            'payments' => 'nullable|array',
+            'payment_rows' => 'nullable|array',
+            'paid_amount' => 'nullable|numeric',
+            'cheque.cheque_number' => 'nullable|string|max:100',
+            'cheque.cheque_date' => 'nullable|date',
+            'cheque.bank_name' => 'nullable|string|max:150',
+            'cheque.branch_name' => 'nullable|string|max:150',
+            'cheque.account_holder_name' => 'nullable|string|max:150',
+            'cheque.account_number' => 'nullable|string|max:100',
+            'cheque.reference_number' => 'nullable|string|max:100',
             'hold_id' => 'nullable|integer|exists:hold_sales,id',
         ]);
 
@@ -141,8 +149,7 @@ class RetailPosController extends Controller
             }
             $totalProfitAmount = $request->payable_amount - $totalCostAmount;
 
-            $dueAmount = max(0, $request->payable_amount - $request->paid_amount);
-            $paymentStatus = $dueAmount <= 0.009 ? 'Paid' : ((float) $request->paid_amount > 0 ? 'Partial' : 'Due');
+            $paymentRows = $mixedPayments->rowsFromRequest($request->all(), (float) $request->payable_amount);
 
             // 1. Insert Sales Record
             $saleId = DB::table('sales')->insertGetId([
@@ -151,12 +158,14 @@ class RetailPosController extends Controller
                 'sale_date' => $today,
                 'pos_type' => 'retail',
                 'total_amount' => $request->total_amount,
+                'discount_type' => $request->discount_type ?? 'fixed',
                 'discount_amount' => $request->discount_amount ?? 0,
                 'tax_amount' => $request->tax_amount ?? 0,
                 'payable_amount' => $request->payable_amount,
-                'paid_amount' => $request->paid_amount,
-                'due_amount' => $dueAmount,
-                'payment_status' => $paymentStatus,
+                'paid_amount' => 0,
+                'cheque_hold_amount' => 0,
+                'due_amount' => $request->payable_amount,
+                'payment_status' => 'Due',
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
                 'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
@@ -256,29 +265,10 @@ class RetailPosController extends Controller
                 }
             }
 
-            // 3. Save Split Payments
-            foreach ($request->payments as $method => $amount) {
-                if ($amount > 0) {
-                    DB::table('sale_payments')->insert([
-                        'sale_id' => $saleId,
-                        'payment_date' => $today,
-                        'amount' => $amount,
-                        'payment_method' => $method,
-                        'reference_no' => $request->payment_references[$method] ?? null,
-                        'note' => 'Retail POS Split Payment',
-                        'created_by' => auth()->id(),
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
-            }
-
-            // 4. Update customer balance (if due is recorded) and calculate loyalty points
-            if ($dueAmount > 0) {
-                DB::table('customers')
-                    ->where('id', $request->customer_id)
-                    ->increment('balance', $dueAmount);
-            }
+            DB::table('customers')->where('id', $request->customer_id)->increment('balance', $request->payable_amount);
+            $allocation = $mixedPayments->allocateSale(\App\Models\Sale::findOrFail($saleId), $paymentRows, [
+                'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+            ]);
 
             // Loyalty Points: 1 point per Rs. 1,000 spent
             $pointsEarned = floor($request->payable_amount / 1000);
@@ -301,10 +291,14 @@ class RetailPosController extends Controller
                 'success' => true,
                 'invoice_no' => $invoiceNo,
                 'sale_id' => $saleId,
-                'change' => max(0, $request->paid_amount - $request->payable_amount),
+                'change' => max(0, collect($paymentRows)->where('method', 'Cash')->sum('amount') - $request->payable_amount),
+                'cheque_hold_amount' => $allocation['hold'],
                 'points_earned' => $pointsEarned
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
