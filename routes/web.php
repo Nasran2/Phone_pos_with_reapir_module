@@ -464,6 +464,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('technicians/{technician}', [RepairController::class, 'updateTechnician'])->name('technicians.update')->middleware('permission:repair.assign');
         Route::get('jobs/{job}', [RepairController::class, 'show'])->name('jobs.show')->middleware('permission:repair.view');
         Route::get('jobs/{job}/print', [RepairController::class, 'print'])->name('jobs.print')->middleware('permission:repair.view');
+        Route::get('jobs/{job}/invoice', [RepairController::class, 'printInvoice'])->name('jobs.invoice')->middleware('permission:repair.view');
         Route::post('jobs/{job}/workspace', [RepairController::class, 'saveWorkspace'])->name('jobs.workspace')->middleware('permission:repair.edit');
         Route::post('jobs/{job}/status', [RepairController::class, 'updateStatus'])->name('jobs.status')->middleware('permission:repair.edit');
         Route::post('jobs/{job}/assign', [RepairController::class, 'assign'])->name('jobs.assign')->middleware('permission:repair.assign');

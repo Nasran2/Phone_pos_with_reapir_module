@@ -73,7 +73,7 @@
 
         <!-- Problem & Request -->
         <div class="mb-6 border-l-4 border-slate-900 pl-4 py-1">
-            <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Problem / Complaint</h3>
+            <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Customer Complaint</h3>
             <p class="text-sm font-bold text-slate-900">{{ $job->problem_description }}</p>
             
             @if($job->customer_request)

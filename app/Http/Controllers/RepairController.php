@@ -649,7 +649,7 @@ class RepairController extends Controller
 
     public function queue()
     {
-        $columns = ['Checked In', 'Assigned', 'Waiting Parts', 'Under Repair', 'Quality Check', 'Ready for Pickup', 'Delivered'];
+        $columns = ['Checked In', 'Assigned', 'Waiting Parts', 'Under Repair', 'Quality Check', 'Ready for Pickup', 'Completed'];
         $jobs = $this->jobsQuery()->whereIn('repair_jobs.status', $columns)->get()->groupBy('status');
 
         return view('repairs.queue', compact('columns', 'jobs'));
@@ -739,6 +739,11 @@ class RepairController extends Controller
     public function print(int $job)
     {
         return view('repairs.print', ['job' => $this->jobDetails($job)]);
+    }
+
+    public function printInvoice(int $job)
+    {
+        return view('repairs.invoice', ['job' => $this->jobDetails($job)]);
     }
 
     public function publicTrack(Request $request)

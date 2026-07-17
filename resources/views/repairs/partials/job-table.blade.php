@@ -7,6 +7,7 @@
                 <th class="px-5 py-4">Device</th>
                 <th class="px-5 py-4">Status</th>
                 <th class="px-5 py-4">Technician</th>
+                <th class="px-5 py-4 text-right">Total</th>
                 <th class="px-5 py-4 text-right">Balance</th>
                 <th class="px-5 py-4 text-right">Action</th>
             </tr>
@@ -28,6 +29,7 @@
                     </td>
                     <td class="px-5 py-4">@include('repairs.partials.status-badge', ['status' => $job->status])</td>
                     <td class="px-5 py-4 text-slate-600">{{ $job->technician_name ?: 'Unassigned' }}</td>
+                    <td class="px-5 py-4 text-right font-bold text-slate-700">{{ \App\Support\SystemSettings::money((float) ($job->total_amount ?: $job->estimated_cost)) }}</td>
                     <td class="px-5 py-4 text-right font-extrabold text-slate-900">{{ \App\Support\SystemSettings::money((float) $job->balance_amount) }}</td>
                     <td class="px-5 py-4 text-right">
                         <a href="{{ route('repairs.jobs.show', $job->id) }}" class="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-extrabold text-blue-700 hover:bg-blue-100">
@@ -37,7 +39,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-5 py-12 text-center">
+                    <td colspan="8" class="px-5 py-12 text-center">
                         <div class="mx-auto max-w-sm rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8">
                             <div class="text-sm font-extrabold text-slate-700">No repair jobs found</div>
                             <div class="mt-1 text-xs text-slate-500">New check-ins will appear here as job cards.</div>

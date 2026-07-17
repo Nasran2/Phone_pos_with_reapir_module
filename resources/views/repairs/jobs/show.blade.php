@@ -33,8 +33,11 @@
                 </h1>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('repairs.jobs.print', $job->id) }}" target="_blank" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors shadow-sm">
-                    <i data-lucide="printer" class="w-4 h-4 text-slate-500"></i> Print Job Card
+                <a href="{{ route('repairs.jobs.print', $job->id) }}" target="_blank" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-sm">
+                    Print Job Card
+                </a>
+                <a x-show="['Completed', 'Ready for Pickup', 'Delivered'].includes(currentStatus)" style="display: none;" href="{{ route('repairs.jobs.invoice', $job->id) }}" target="_blank" class="px-5 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-bold text-emerald-700 hover:bg-emerald-50 flex items-center justify-center transition-colors shadow-sm">
+                    Print Bill
                 </a>
                 <a href="{{ route('repairs.jobs.index') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white border border-slate-800 rounded-xl text-sm font-bold transition-colors shadow-sm">
                     All Jobs
@@ -54,7 +57,7 @@
                                  'bg-green-500 text-white shadow-md': steps.indexOf(currentStatus) > index,
                                  'bg-slate-100 text-slate-400 border border-slate-300': steps.indexOf(currentStatus) < index
                              }">
-                            <span x-show="steps.indexOf(currentStatus) > index"><i data-lucide="check" class="w-5 h-5"></i></span>
+                            <span x-show="steps.indexOf(currentStatus) > index"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 6 9 17l-5-5"/></svg></span>
                             <span x-show="steps.indexOf(currentStatus) <= index" x-text="index + 1"></span>
                         </div>
                         <span class="mt-3 text-[11px] uppercase tracking-wider font-bold text-center w-24"
@@ -198,7 +201,7 @@
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         <div class="p-5 border-b border-slate-100">
                             <h3 class="text-sm font-black text-slate-800 flex items-center gap-2 mb-3">
-                                <i data-lucide="alert-circle" class="w-4 h-4 text-red-500"></i> Problem / Complaint
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-red-500"></i> Customer Complaint
                             </h3>
                             <p class="text-sm font-medium text-slate-700 bg-red-50 p-4 rounded-xl border border-red-100 leading-relaxed">
                                 {{ $job->problem_description ?? 'No description provided.' }}
@@ -335,7 +338,7 @@
                                         <div class="flex items-center gap-3 shrink-0">
                                             <div class="text-sm font-black text-slate-900" x-text="formatMoney(product.retail_price)"></div>
                                             <button class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                                             </button>
                                         </div>
                                     </div>
@@ -362,7 +365,7 @@
                                             </div>
                                         </div>
                                         <button @click="removePart(index)" type="button" class="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 text-xs font-black text-red-600 hover:bg-red-100">
-                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                             Remove
                                         </button>
                                     </div>
@@ -439,7 +442,7 @@
                                             <input type="number" min="0" step="any" x-model.number="item.amount" @input="recalculateTotals()" class="h-11 w-full rounded-lg border border-slate-200 pl-11 pr-3 text-right text-base font-black text-slate-800 focus:ring-2 focus:ring-blue-500">
                                         </div>
                                         <button type="button" @click="removeServiceItem(index)" class="md:col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 text-xs font-black text-red-600 hover:bg-red-100">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                             Delete
                                         </button>
                                     </div>
@@ -668,9 +671,19 @@
                     msg = 'Warning: You are about to mark this job as ' + newStatus + '. Are you sure?';
                 }
 
-                if (confirm(msg)) {
-                    this.currentStatus = newStatus;
-                }
+                Swal.fire({
+                    title: 'Confirm Status Change',
+                    text: msg,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, change it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.currentStatus = newStatus;
+                    }
+                });
             },
 
             searchParts() {
@@ -736,8 +749,9 @@
             },
 
             addPart(product) {
-                if (this.availableQtyForProduct(product.id, this.defaultStoreId) <= 0) {
-                    alert('This part has no available quantity in the selected store.');
+                let available = this.baseStock(product.id, this.defaultStoreId) + this.originalIssuedQty(product.id, this.defaultStoreId);
+                if (available <= 0) {
+                    Swal.fire('Out of Stock', 'This part has no available quantity in the selected store.', 'warning');
                     return;
                 }
 
@@ -765,7 +779,7 @@
 
             increasePart(part) {
                 if (part.status === 'Issued' && this.availableQty(part) <= 0) {
-                    alert('No more available quantity in this store.');
+                    Swal.fire('Stock Limit', 'No more available quantity in this store.', 'warning');
                     return;
                 }
 
@@ -781,13 +795,24 @@
             removePart(index) {
                 if (this.parts[index].id) {
                     // Saved parts are returned so stock can be restored correctly on save.
-                    if (confirm('This part has already been saved. Mark it as returned and restore stock?')) {
-                        this.parts[index].status = 'Returned';
-                    }
+                    Swal.fire({
+                        title: 'Return Part?',
+                        text: 'This part has already been saved. Mark it as returned and restore stock?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Yes, return it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.parts[index].status = 'Returned';
+                            this.recalculateTotals();
+                        }
+                    });
                 } else {
                     this.parts.splice(index, 1);
+                    this.recalculateTotals();
                 }
-                this.recalculateTotals();
             },
 
             addServiceItem(name, amount = 0) {
@@ -866,16 +891,27 @@
                         throw new Error(raw ? raw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220) : 'Server returned an empty response.');
                     }
 
-                    if (response.ok && data.success) {
-                        window.location.reload();
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Workspace saved successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
                     } else {
-                        const validationMessage = data.errors ? Object.values(data.errors).flat().join('\n') : null;
-                        alert('Error saving changes: ' + (validationMessage || data.message || 'Unknown error'));
-                        this.isSaving = false;
+                        let validationMessage = '';
+                        if (response.status === 422 && data.errors) {
+                            validationMessage = Object.values(data.errors).flat().join('\n');
+                        }
+                        Swal.fire('Error', 'Error saving changes: ' + (validationMessage || data.message || 'Unknown error'), 'error');
                     }
                 } catch (error) {
-                    console.error('Save error:', error);
-                    alert('A network error occurred while saving: ' + (error.message || 'Please try again.'));
+                    console.error('Error:', error);
+                    Swal.fire('Network Error', 'A network error occurred while saving: ' + (error.message || 'Please try again.'), 'error');
+                } finally {
                     this.isSaving = false;
                 }
             }
