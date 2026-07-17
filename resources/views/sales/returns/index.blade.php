@@ -28,8 +28,8 @@
                 <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
                 <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
                 <div class="flex gap-2 justify-end">
-                    <a href="{{ route('sales-returns.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Clear</a>
-                    <button class="px-4 py-2 bg-slate-850 hover:bg-slate-950 text-white rounded-lg text-xs font-bold">Filter</button>
+                    <a href="{{ route('sales-returns.index') }}" class="flex items-center justify-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Clear</a>
+                    <button class="flex items-center justify-center px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold">Filter</button>
                 </div>
             </form>
         </div>
