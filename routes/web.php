@@ -435,9 +435,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::match(['get', 'post'], 'trips', [DistributionController::class, 'trips'])->name('trips')->middleware('permission:distribution_trips.view');
         Route::post('trips/{trip}/status', [DistributionController::class, 'updateTripStatus'])->name('trips.status')->middleware('permission:distribution_trips.edit');
         Route::get('sales', [DistributionController::class, 'sales'])->name('sales')->middleware('permission:lorry_sales.view');
-        Route::match(['get', 'post'], 'sale-returns', [DistributionController::class, 'saleReturns'])->name('sale-returns')->middleware('permission:lorry_returns.view');
         Route::match(['get', 'post'], 'expenses', [DistributionController::class, 'expenses'])->name('expenses')->middleware('permission:lorry_expenses.view');
-        Route::match(['get', 'post'], 'collections', [DistributionController::class, 'collections'])->name('collections')->middleware('permission:lorry_collections.view');
         Route::match(['get', 'post'], 'reconciliation', [DistributionController::class, 'reconciliation'])->name('reconciliation')->middleware('permission:lorry_reconciliation.view');
         Route::get('reports', [DistributionController::class, 'reports'])->name('reports')->middleware('permission:distribution_reports.view');
         Route::match(['get', 'post'], 'settings', [DistributionController::class, 'settings'])->name('settings')->middleware('permission:distribution.settings');
