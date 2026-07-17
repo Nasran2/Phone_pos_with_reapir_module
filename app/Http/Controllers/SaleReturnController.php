@@ -74,137 +74,314 @@ class SaleReturnController extends Controller
             $selectedSale = Sale::with(['customer', 'items.product', 'items.variant', 'items.returnedItems'])
                 ->find($request->input('sale_id'));
         }
+        
+        $customers = Customer::orderBy('name')->get();
+        $products = \App\Models\Product::with(['variants', 'serials' => function($q) {
+            $q->where('status', 'available');
+        }])->where('is_active', true)->get();
 
-        return view('sales.returns.form', compact('sales', 'selectedSale'));
+        return view('sales.returns.form', compact('sales', 'selectedSale', 'customers', 'products'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'sale_id' => ['required', 'exists:sales,id'],
+            'source_type' => ['required', 'in:invoice,old'],
+            'sale_id' => ['required_if:source_type,invoice', 'nullable', 'exists:sales,id'],
+            'customer_id' => ['required_if:source_type,old', 'nullable', 'exists:customers,id'],
+            'return_type' => ['required', 'in:refund,replacement,exchange'],
             'return_date' => ['required', 'date'],
-            'refund_method' => ['required', Rule::in(['Cash', 'Bank Transfer', 'Card', 'Customer Credit', 'No Refund'])],
+            'refund_method' => ['required', 'string'],
             'refund_amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_method' => ['nullable', 'string'],
+            'payment_amount' => ['nullable', 'numeric', 'min:0'],
             'reason' => ['nullable', 'string'],
             'items' => ['required', 'array'],
-            'items.*.sale_item_id' => ['required', 'exists:sale_items,id'],
+            'items.*.sale_item_id' => ['required_if:source_type,invoice', 'nullable', 'exists:sale_items,id'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
             'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
+            'exchange_items' => ['required_if:return_type,exchange', 'array'],
+            'exchange_items.*.product_id' => ['required_with:exchange_items', 'exists:products,id'],
+            'exchange_items.*.unit_price' => ['required_with:exchange_items', 'numeric', 'min:0'],
+            'exchange_items.*.quantity' => ['required_with:exchange_items', 'numeric', 'min:1'],
         ]);
-
-        $sale = Sale::with(['customer', 'items.returnedItems'])->findOrFail($validated['sale_id']);
 
         DB::beginTransaction();
 
         try {
-            $returnItems = [];
-            $totalAmount = 0;
-            $totalCost = 0;
-            $totalProfit = 0;
+            $sale = null;
+            $customerId = $validated['customer_id'] ?? null;
+            $returnItemsData = [];
+            $totalReturnAmount = 0;
+            $totalReturnCost = 0;
+            $totalReturnProfit = 0;
 
-            foreach ($validated['items'] as $inputItem) {
-                $qty = (float) ($inputItem['quantity'] ?? 0);
-                if ($qty <= 0) {
-                    continue;
+            if ($validated['source_type'] === 'invoice') {
+                $sale = Sale::with(['customer', 'items.returnedItems', 'items.product'])->findOrFail($validated['sale_id']);
+                $customerId = $sale->customer_id;
+                
+                foreach ($validated['items'] as $inputItem) {
+                    $qty = (float) ($inputItem['quantity'] ?? 0);
+                    if ($qty <= 0) continue;
+
+                    $saleItem = SaleItem::with(['product', 'variant', 'returnedItems'])->where('sale_id', $sale->id)->findOrFail($inputItem['sale_item_id']);
+                    $returnedQty = (float) $saleItem->returnedItems->sum('quantity');
+                    $remainingQty = (float) $saleItem->quantity - $returnedQty;
+
+                    if ($qty > $remainingQty + 0.0001) {
+                        return back()->withInput()->withErrors(['items' => "Return quantity for {$saleItem->product->name} exceeds available sold quantity."]);
+                    }
+
+                    $unitPrice = (float) ($saleItem->unit_price ?: $saleItem->selling_price);
+                    $costPrice = (float) $saleItem->cost_price;
+                    $lineTotal = round($unitPrice * $qty, 2);
+                    $costTotal = round($costPrice * $qty, 2);
+                    $profitTotal = round(($unitPrice - $costPrice) * $qty, 2);
+
+                    $returnItemsData[] = [
+                        'sale_item_id' => $saleItem->id,
+                        'product_id' => $saleItem->product_id,
+                        'variant_id' => $saleItem->variant_id,
+                        'quantity' => $qty,
+                        'unit_price' => $unitPrice,
+                        'cost_price' => $costPrice,
+                        'line_total' => $lineTotal,
+                        'cost_total' => $costTotal,
+                        'profit_total' => $profitTotal,
+                        'sale_item' => $saleItem,
+                    ];
+                    $totalReturnAmount += $lineTotal;
+                    $totalReturnCost += $costTotal;
+                    $totalReturnProfit += $profitTotal;
                 }
+            } else {
+                // Old Return
+                foreach ($validated['items'] as $inputItem) {
+                    $qty = (float) ($inputItem['quantity'] ?? 0);
+                    if ($qty <= 0) continue;
 
-                $saleItem = SaleItem::with(['product', 'variant', 'returnedItems'])
-                    ->where('sale_id', $sale->id)
-                    ->findOrFail($inputItem['sale_item_id']);
-
-                $returnedQty = (float) $saleItem->returnedItems->sum('quantity');
-                $remainingQty = (float) $saleItem->quantity - $returnedQty;
-
-                if ($qty > $remainingQty + 0.0001) {
-                    return back()->withInput()->withErrors([
-                        'items' => "Return quantity for {$saleItem->product->name} is higher than remaining sold quantity.",
-                    ]);
+                    $product = \App\Models\Product::findOrFail($inputItem['product_id']);
+                    $unitPrice = (float) ($inputItem['unit_price'] ?? $product->cost_price);
+                    $lineTotal = round($unitPrice * $qty, 2);
+                    
+                    $returnItemsData[] = [
+                        'sale_item_id' => null,
+                        'product_id' => $product->id,
+                        'variant_id' => null,
+                        'quantity' => $qty,
+                        'unit_price' => $unitPrice,
+                        'cost_price' => $product->cost_price, // current cost
+                        'line_total' => $lineTotal,
+                        'cost_total' => round((float)$product->cost_price * $qty, 2),
+                        'profit_total' => 0,
+                        'sale_item' => null,
+                    ];
+                    $totalReturnAmount += $lineTotal;
+                    $totalReturnCost += round((float)$product->cost_price * $qty, 2);
                 }
-
-                $unitPrice = (float) ($saleItem->unit_price ?: $saleItem->selling_price);
-                $lineTotal = round($unitPrice * $qty, 2);
-                $costTotal = round((float) $saleItem->cost_price * $qty, 2);
-                $profitTotal = round(($unitPrice - (float) $saleItem->cost_price) * $qty, 2);
-
-                $returnItems[] = [
-                    'sale_item' => $saleItem,
-                    'quantity' => $qty,
-                    'unit_price' => $unitPrice,
-                    'line_total' => $lineTotal,
-                    'cost_total' => $costTotal,
-                    'profit_total' => $profitTotal,
-                ];
-                $totalAmount += $lineTotal;
-                $totalCost += $costTotal;
-                $totalProfit += $profitTotal;
             }
 
-            if (empty($returnItems)) {
-                return back()->withInput()->withErrors(['items' => 'Select at least one item quantity to return.']);
+            if (empty($returnItemsData)) {
+                return back()->withInput()->withErrors(['items' => 'Select at least one item to return.']);
             }
 
-            $oldDue = (float) $sale->due_amount;
-            $dueReduction = min($oldDue, $totalAmount);
-            $remainingRefundable = max(0, $totalAmount - $dueReduction);
-            $requestedRefund = min((float) ($validated['refund_amount'] ?? 0), $remainingRefundable);
-            $refundAmount = in_array($validated['refund_method'], ['No Refund', 'Customer Credit'], true) ? 0 : $requestedRefund;
-            $creditAmount = $validated['refund_method'] === 'Customer Credit' ? $remainingRefundable : 0;
+            // Calculate Exchange Items
+            $exchangeItemsData = [];
+            $totalExchangeAmount = 0;
+            $totalExchangeCost = 0;
+            $totalExchangeProfit = 0;
 
+            if ($validated['return_type'] === 'exchange') {
+                foreach ($validated['exchange_items'] ?? [] as $exItem) {
+                    $product = \App\Models\Product::findOrFail($exItem['product_id']);
+                    $qty = (float) $exItem['quantity'];
+                    $unitPrice = (float) $exItem['unit_price'];
+                    $costPrice = (float) $product->cost_price;
+                    $lineTotal = round($unitPrice * $qty, 2);
+                    $costTotal = round($costPrice * $qty, 2);
+                    
+                    $exchangeItemsData[] = [
+                        'product' => $product,
+                        'quantity' => $qty,
+                        'unit_price' => $unitPrice,
+                        'cost_price' => $costPrice,
+                        'line_total' => $lineTotal,
+                        'cost_total' => $costTotal,
+                        'profit_amount' => round(($unitPrice - $costPrice) * $qty, 2)
+                    ];
+                    $totalExchangeAmount += $lineTotal;
+                    $totalExchangeCost += $costTotal;
+                    $totalExchangeProfit += round(($unitPrice - $costPrice) * $qty, 2);
+                }
+            } elseif ($validated['return_type'] === 'replacement') {
+                // Replacement is effectively an exchange for the EXACT same items being returned
+                foreach ($returnItemsData as $retItem) {
+                    $product = \App\Models\Product::findOrFail($retItem['product_id']);
+                    $exchangeItemsData[] = [
+                        'product' => $product,
+                        'quantity' => $retItem['quantity'],
+                        'unit_price' => $retItem['unit_price'],
+                        'cost_price' => $retItem['cost_price'],
+                        'line_total' => $retItem['line_total'],
+                        'cost_total' => $retItem['cost_total'],
+                        'profit_amount' => 0 // Replacement makes no profit
+                    ];
+                    $totalExchangeAmount += $retItem['line_total'];
+                    $totalExchangeCost += $retItem['cost_total'];
+                }
+            }
+
+            $netDifference = $totalExchangeAmount - $totalReturnAmount;
+            
+            // Handle Refund/Payment
+            $refundAmount = 0;
+            $paymentAmount = 0;
+            $refundMethod = $validated['refund_method'];
+            $paymentMethod = $validated['payment_method'] ?? 'Cash';
+
+            if ($netDifference < 0) {
+                // Shop owes customer (Refund)
+                $amountToRefund = abs($netDifference);
+                if (in_array($refundMethod, ['No Refund', 'Customer Credit'])) {
+                    $refundAmount = 0;
+                } else {
+                    $refundAmount = min((float) ($validated['refund_amount'] ?? $amountToRefund), $amountToRefund);
+                }
+            } elseif ($netDifference > 0) {
+                // Customer owes shop (Payment)
+                if ($paymentMethod !== 'Due') {
+                    $paymentAmount = min((float) ($validated['payment_amount'] ?? $netDifference), $netDifference);
+                }
+            }
+
+            // Create Return Record
             $saleReturn = SaleReturn::create([
-                'sale_id' => $sale->id,
-                'customer_id' => $sale->customer_id,
+                'sale_id' => $sale ? $sale->id : null,
+                'customer_id' => $customerId,
                 'return_no' => $this->generateReturnNo(),
                 'return_date' => $validated['return_date'],
-                'total_amount' => $totalAmount,
-                'refund_method' => $validated['refund_method'],
+                'return_type' => $validated['return_type'],
+                'total_amount' => $totalReturnAmount,
+                'refund_method' => $netDifference <= 0 ? $refundMethod : 'No Refund',
                 'refund_amount' => $refundAmount,
-                'refund_status' => $this->refundStatus($validated['refund_method'], $refundAmount, $remainingRefundable),
+                'refund_status' => $netDifference < 0 ? $this->refundStatus($refundMethod, $refundAmount, abs($netDifference)) : 'Completed',
                 'reason' => $validated['reason'] ?? null,
                 'note' => $validated['reason'] ?? null,
                 'created_by' => auth()->id(),
             ]);
 
-            foreach ($returnItems as $returnItem) {
-                $saleItem = $returnItem['sale_item'];
-
+            // Create Return Items
+            foreach ($returnItemsData as $retData) {
                 $saleReturn->items()->create([
-                    'sale_item_id' => $saleItem->id,
-                    'product_id' => $saleItem->product_id,
-                    'variant_id' => $saleItem->variant_id,
-                    'quantity' => $returnItem['quantity'],
-                    'unit_price' => $returnItem['unit_price'],
-                    'refund_amount' => $returnItem['line_total'],
-                    'selling_price' => $returnItem['unit_price'],
-                    'cost_price' => $saleItem->cost_price,
-                    'profit_amount' => $returnItem['profit_total'],
-                    'subtotal' => $returnItem['line_total'],
+                    'sale_item_id' => $retData['sale_item_id'],
+                    'product_id' => $retData['product_id'],
+                    'variant_id' => $retData['variant_id'],
+                    'return_type' => $validated['return_type'],
+                    'quantity' => $retData['quantity'],
+                    'unit_price' => $retData['unit_price'],
+                    'refund_amount' => $retData['line_total'],
+                    'selling_price' => $retData['unit_price'],
+                    'cost_price' => $retData['cost_price'],
+                    'profit_amount' => $retData['profit_total'],
+                    'subtotal' => $retData['line_total'],
                 ]);
 
-                $this->restoreStock($saleItem, $returnItem['quantity'], $saleReturn->return_no, clone $sale);
+                // Restore Stock
+                if ($retData['sale_item']) {
+                    $this->restoreStock($retData['sale_item'], $retData['quantity'], $saleReturn->return_no, clone $sale);
+                } else {
+                    // Legacy Return stock restore
+                    $this->incrementProductStock($retData['product_id'], $retData['quantity'], $saleReturn->return_no);
+                }
             }
 
-            $sale->total_amount = max(0, (float) $sale->total_amount - $totalAmount);
-            $sale->payable_amount = max(0, (float) $sale->payable_amount - $totalAmount);
-            $sale->paid_amount = max(0, (float) $sale->paid_amount - $refundAmount);
-            $sale->due_amount = max(0, $oldDue - $dueReduction);
-            $sale->total_cost_amount = max(0, (float) $sale->total_cost_amount - $totalCost);
-            $sale->total_profit_amount = max(0, (float) $sale->total_profit_amount - $totalProfit);
-            $sale->payment_status = $sale->payable_amount <= 0.009 ? 'Refunded' : $this->paymentStatus($sale);
-            $sale->save();
-
-            if ($sale->customer) {
-                $customerAdjustment = -$dueReduction - $creditAmount;
-                $this->adjustCustomerBalance($sale->customer, $customerAdjustment, 'sale_return', $saleReturn, $saleReturn->return_no);
+            // If Invoice Return, update original sale
+            if ($sale) {
+                $oldDue = (float) $sale->due_amount;
+                // Only reduce due by return amount if it's a refund and they chose Customer Credit? 
+                // Actually, old system applied returns directly to due first. We should keep it simple: Return reduces payable.
+                $dueReduction = min($oldDue, $totalReturnAmount);
+                
+                $sale->total_amount = max(0, (float) $sale->total_amount - $totalReturnAmount);
+                $sale->payable_amount = max(0, (float) $sale->payable_amount - $totalReturnAmount);
+                
+                // If they did NOT give cash refund, then the paid amount stays same (or reduces if it was fully paid)
+                // For simplicity, we just recalculate due.
+                $sale->paid_amount = max(0, (float) $sale->paid_amount - $refundAmount);
+                $sale->due_amount = max(0, (float) $sale->payable_amount - (float) $sale->paid_amount);
+                
+                $sale->total_cost_amount = max(0, (float) $sale->total_cost_amount - $totalReturnCost);
+                $sale->total_profit_amount = max(0, (float) $sale->total_profit_amount - $totalReturnProfit);
+                $sale->payment_status = $sale->payable_amount <= 0.009 ? 'Refunded' : $this->paymentStatus($sale);
+                $sale->save();
             }
 
-            ActivityLog::log('Create', 'Sales Return Module', "Created sale return {$saleReturn->return_no}");
+            // Create Exchange Sale if needed
+            if (!empty($exchangeItemsData)) {
+                $exchangeSale = Sale::create([
+                    'customer_id' => $customerId,
+                    'invoice_no' => \App\Models\Sale::generateInvoiceNo(),
+                    'sale_date' => $validated['return_date'],
+                    'pos_type' => 'retail',
+                    'total_amount' => $totalExchangeAmount,
+                    'discount_amount' => 0,
+                    'payable_amount' => $totalExchangeAmount,
+                    'paid_amount' => $totalExchangeAmount > 0 ? min($paymentAmount + $totalReturnAmount, $totalExchangeAmount) : 0, // Apply return credit
+                    'due_amount' => max(0, $totalExchangeAmount - ($paymentAmount + $totalReturnAmount)),
+                    'total_cost_amount' => $totalExchangeCost,
+                    'total_profit_amount' => $totalExchangeProfit,
+                    'status' => 'final',
+                    'payment_status' => 'Paid',
+                    'notes' => 'Exchange invoice for Return ' . $saleReturn->return_no,
+                    'created_by' => auth()->id(),
+                ]);
+
+                foreach ($exchangeItemsData as $exItem) {
+                    $newSaleItem = $exchangeSale->items()->create([
+                        'product_id' => $exItem['product']->id,
+                        'quantity' => $exItem['quantity'],
+                        'cost_price' => $exItem['cost_price'],
+                        'selling_price' => $exItem['unit_price'],
+                        'unit_price' => $exItem['unit_price'],
+                        'profit_amount' => $exItem['profit_amount'],
+                        'subtotal' => $exItem['line_total'],
+                        'line_total' => $exItem['line_total'],
+                    ]);
+                    
+                    // Reduce Stock
+                    $this->decrementProductStock($exItem['product']->id, $exItem['quantity'], $exchangeSale->invoice_no);
+                }
+
+                $exchangeSale->payment_status = $exchangeSale->due_amount > 0 ? 'Partial' : 'Paid';
+                if ($exchangeSale->due_amount == $exchangeSale->payable_amount) $exchangeSale->payment_status = 'Due';
+                $exchangeSale->save();
+
+                $saleReturn->update(['exchange_sale_id' => $exchangeSale->id]);
+            }
+
+            // Handle Customer Ledger Adjustments
+            if ($customerId) {
+                $customer = \App\Models\Customer::find($customerId);
+                if ($customer) {
+                    if ($netDifference < 0 && $refundMethod === 'Customer Credit') {
+                        // Shop owes customer, added to due (Negative due = credit)
+                        $this->adjustCustomerBalance($customer, $netDifference, 'sale_return', $saleReturn, $saleReturn->return_no);
+                    } elseif ($netDifference > 0 && $paymentMethod === 'Due') {
+                        // Customer owes shop, added to due
+                        $this->adjustCustomerBalance($customer, $netDifference, 'sale_exchange', $exchangeSale ?? $saleReturn, $saleReturn->return_no);
+                    }
+                }
+            }
+
+            ActivityLog::log('Create', 'Sales Return Module', "Processed return/exchange {$saleReturn->return_no}");
             DB::commit();
 
-            return redirect()->route('sales-returns.show', $saleReturn)->with('success', 'Sale return completed successfully.');
+            return redirect()->route('sales-returns.show', $saleReturn)->with('success', 'Return/Exchange completed successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-
-            return back()->withInput()->withErrors(['return' => 'Unable to save return. ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['return' => 'Unable to process return. ' . $e->getMessage()]);
         }
     }
 
@@ -316,6 +493,46 @@ class SaleReturnController extends Controller
             'created_by' => auth()->id(),
             'store_id' => $sale->store_id ?? \App\Models\Setting::get('default_store_id', 1),
         ]);
+    }
+
+    private function incrementProductStock(int $productId, float $quantity, string $returnNo): void
+    {
+        $product = \App\Models\Product::find($productId);
+        if ($product && $product->manage_stock) {
+            $product->increment('current_stock', $quantity);
+
+            \App\Models\StockHistory::create([
+                'product_id' => $product->id,
+                'variant_id' => null,
+                'type' => 'sale_return',
+                'quantity' => $quantity,
+                'reference_type' => SaleReturn::class,
+                'reference_id' => null,
+                'reference_no' => $returnNo,
+                'note' => "Restored stock from Legacy Return {$returnNo}",
+                'created_by' => auth()->id(),
+            ]);
+        }
+    }
+
+    private function decrementProductStock(int $productId, float $quantity, string $invoiceNo): void
+    {
+        $product = \App\Models\Product::find($productId);
+        if ($product && $product->manage_stock) {
+            $product->decrement('current_stock', $quantity);
+
+            \App\Models\StockHistory::create([
+                'product_id' => $product->id,
+                'variant_id' => null,
+                'type' => 'sale',
+                'quantity' => -$quantity,
+                'reference_type' => Sale::class,
+                'reference_id' => null,
+                'reference_no' => $invoiceNo,
+                'note' => "Deducted stock for Exchange Invoice {$invoiceNo}",
+                'created_by' => auth()->id(),
+            ]);
+        }
     }
 
     private function adjustCustomerBalance(Customer $customer, float $amount, string $type, ?object $source = null, ?string $referenceNo = null): void
