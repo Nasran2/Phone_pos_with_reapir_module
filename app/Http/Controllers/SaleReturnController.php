@@ -101,6 +101,7 @@ class SaleReturnController extends Controller
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
             'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
+            'items.*.stock_action' => ['nullable', 'in:return_to_stock,scrap'],
             'exchange_items' => ['required_if:return_type,exchange', 'array'],
             'exchange_items.*.product_id' => ['required_with:exchange_items', 'exists:products,id'],
             'exchange_items.*.unit_price' => ['required_with:exchange_items', 'numeric', 'min:0'],
@@ -149,6 +150,7 @@ class SaleReturnController extends Controller
                         'line_total' => $lineTotal,
                         'cost_total' => $costTotal,
                         'profit_total' => $profitTotal,
+                        'stock_action' => $inputItem['stock_action'] ?? 'return_to_stock',
                         'sale_item' => $saleItem,
                     ];
                     $totalReturnAmount += $lineTotal;
@@ -175,6 +177,7 @@ class SaleReturnController extends Controller
                         'line_total' => $lineTotal,
                         'cost_total' => round((float)$product->cost_price * $qty, 2),
                         'profit_total' => 0,
+                        'stock_action' => $inputItem['stock_action'] ?? 'return_to_stock',
                         'sale_item' => null,
                     ];
                     $totalReturnAmount += $lineTotal;
@@ -285,14 +288,43 @@ class SaleReturnController extends Controller
                     'cost_price' => $retData['cost_price'],
                     'profit_amount' => $retData['profit_total'],
                     'subtotal' => $retData['line_total'],
+                    'stock_action' => $retData['stock_action'],
                 ]);
 
-                // Restore Stock
-                if ($retData['sale_item']) {
-                    $this->restoreStock($retData['sale_item'], $retData['quantity'], $saleReturn->return_no, clone $sale);
+                // Restore Stock or Scrap
+                if ($retData['stock_action'] === 'scrap') {
+                    // Create an Expense
+                    $expenseCategory = \App\Models\ExpenseCategory::firstOrCreate(
+                        ['name' => 'Scrap & Damaged Returns'],
+                        ['description' => 'Cost of scrapped and damaged returns']
+                    );
+                    \App\Models\Expense::create([
+                        'expense_category_id' => $expenseCategory->id,
+                        'amount' => $retData['cost_total'],
+                        'expense_date' => $validated['return_date'],
+                        'reference_no' => $saleReturn->return_no,
+                        'note' => 'Scrap return for Product ID ' . $retData['product_id'],
+                        'created_by' => auth()->id(),
+                    ]);
+                    
+                    // Create DamagedStock record to keep tracking straight
+                    \App\Models\DamagedStock::create([
+                        'damage_no' => 'DS-RET-' . rand(1000, 9999) . '-' . $retData['product_id'],
+                        'product_id' => $retData['product_id'],
+                        'quantity' => $retData['quantity'],
+                        'damage_type' => 'Customer Return',
+                        'reason' => 'Scrapped during return: ' . $saleReturn->return_no,
+                        'status' => 'Scrapped',
+                        'estimated_loss' => $retData['cost_total'],
+                        'created_by' => auth()->id(),
+                    ]);
                 } else {
-                    // Legacy Return stock restore
-                    $this->incrementProductStock($retData['product_id'], $retData['quantity'], $saleReturn->return_no);
+                    if ($retData['sale_item']) {
+                        $this->restoreStock($retData['sale_item'], $retData['quantity'], $saleReturn->return_no, clone $sale);
+                    } else {
+                        // Legacy Return stock restore
+                        $this->incrementProductStock($retData['product_id'], $retData['quantity'], $saleReturn->return_no);
+                    }
                 }
             }
 

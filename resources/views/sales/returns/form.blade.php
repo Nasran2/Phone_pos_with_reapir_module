@@ -129,6 +129,7 @@
                                     <th class="p-3 border-b border-slate-200">Product</th>
                                     <th class="p-3 border-b border-slate-200 text-right">Sold Qty</th>
                                     <th class="p-3 border-b border-slate-200 text-right">Unit Price</th>
+                                    <th class="p-3 border-b border-slate-200">Condition</th>
                                     <th class="p-3 border-b border-slate-200 text-right">Return Qty</th>
                                 </tr>
                             </thead>
@@ -142,6 +143,12 @@
                                         </td>
                                         <td class="p-3 text-right" x-text="item.max_qty"></td>
                                         <td class="p-3 text-right font-mono" x-text="formatCurrency(item.unit_price)"></td>
+                                        <td class="p-3">
+                                            <select x-model="item.stock_action" :name="'items['+index+'][stock_action]'" class="w-36 px-2 py-1.5 border border-slate-200 rounded text-xs bg-white">
+                                                <option value="return_to_stock">Return to Stock</option>
+                                                <option value="scrap">Scrap (Damaged)</option>
+                                            </select>
+                                        </td>
                                         <td class="p-3 text-right">
                                             <input type="number" step="any" min="0" :max="item.max_qty" x-model="item.qty" :name="'items['+index+'][quantity]'" class="w-20 px-2 py-1.5 border border-slate-200 rounded text-right text-sm">
                                         </td>
@@ -167,6 +174,7 @@
                                 <tr>
                                     <th class="p-3 border-b border-slate-200">Product</th>
                                     <th class="p-3 border-b border-slate-200 text-right">Expense/Unit Value</th>
+                                    <th class="p-3 border-b border-slate-200">Condition</th>
                                     <th class="p-3 border-b border-slate-200 text-right">Return Qty</th>
                                     <th class="p-3 border-b border-slate-200 w-10"></th>
                                 </tr>
@@ -180,6 +188,12 @@
                                             <input type="hidden" :name="'items['+index+'][unit_price]'" :value="item.unit_price">
                                         </td>
                                         <td class="p-3 text-right font-mono" x-text="formatCurrency(item.unit_price)"></td>
+                                        <td class="p-3">
+                                            <select x-model="item.stock_action" :name="'items['+index+'][stock_action]'" class="w-36 px-2 py-1.5 border border-slate-200 rounded text-xs bg-white">
+                                                <option value="return_to_stock">Return to Stock</option>
+                                                <option value="scrap">Scrap (Damaged)</option>
+                                            </select>
+                                        </td>
                                         <td class="p-3 text-right">
                                             <input type="number" step="any" min="0" x-model="item.qty" :name="'items['+index+'][quantity]'" class="w-20 px-2 py-1.5 border border-slate-200 rounded text-right text-sm">
                                         </td>
@@ -443,7 +457,8 @@
                             name: item.product ? item.product.name : 'Unknown',
                             max_qty: maxQty > 0 ? maxQty : 0,
                             qty: 0,
-                            unit_price: parseFloat(item.unit_price || item.selling_price)
+                            unit_price: parseFloat(item.unit_price || item.selling_price),
+                            stock_action: 'return_to_stock'
                         };
                     });
                 },
@@ -457,7 +472,8 @@
                             product_id: prod.id,
                             name: prod.name,
                             qty: 1,
-                            unit_price: parseFloat(prod.cost_price || 0)
+                            unit_price: parseFloat(prod.cost_price || 0),
+                            stock_action: 'return_to_stock'
                         });
                         this.oldReturnProductSelect = '';
                     }
