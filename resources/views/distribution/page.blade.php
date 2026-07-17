@@ -228,7 +228,6 @@
                             <label class="block text-xs font-black uppercase tracking-wide">Role in Lorry<input value="Lorry Manager" readonly class="mt-2 bg-slate-100"></label>
                             <label class="block text-xs font-black uppercase tracking-wide">Start Date<input type="date" name="assignment_start_date" value="{{ old('assignment_start_date', today()->toDateString()) }}" class="mt-2"></label>
                         </div>
-                        <div class="flex flex-wrap gap-3 text-xs font-bold text-slate-700">@foreach(['can_sell'=>'Can sell','can_create_orders'=>'Create orders','can_collect'=>'Collect payments','can_add_expenses'=>'Add expenses','can_view_cost'=>'View cost','can_view_profit'=>'View profit','can_reconcile'=>'Reconcile'] as $key=>$label)<label class="flex items-center gap-2"><input type="checkbox" name="{{ $key }}" value="1" class="h-4 w-4 rounded border-slate-300" @checked(old($key))> {{ $label }}</label>@endforeach</div>
                     </section>
                     <button class="w-full rounded-2xl bg-blue-600 px-4 py-4 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700">Save Lorry</button>
                 </form>

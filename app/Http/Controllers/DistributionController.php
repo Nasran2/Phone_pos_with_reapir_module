@@ -66,7 +66,7 @@ class DistributionController extends Controller
 
             $assignment = collect($data)->only(['assigned_user_id', 'assignment_start_date', 'assignment_end_date'])->all();
             $permissions = collect(['can_sell', 'can_create_orders', 'can_collect', 'can_add_expenses', 'can_view_cost', 'can_view_profit', 'can_reconcile'])
-                ->mapWithKeys(fn ($key) => [$key => $request->boolean($key)])->all();
+                ->mapWithKeys(fn ($key) => [$key => true])->all();
             $data = collect($data)->except(['assigned_user_id', 'assignment_start_date', 'assignment_end_date'])->all();
             $data['current_odometer'] = $data['opening_odometer'] ?? 0;
             $data['created_by'] = auth()->id();
@@ -638,11 +638,8 @@ class DistributionController extends Controller
             ['label' => 'Load Stock to Lorry', 'route' => 'distribution.load', 'permission' => 'lorry_stock.load'],
             ['label' => 'Return Stock to Store', 'route' => 'distribution.returns', 'permission' => 'lorry_stock.return'],
             ['label' => 'Lorry-to-Lorry Transfer', 'route' => 'distribution.lorry-transfer', 'permission' => 'lorry_stock.transfer'],
-            ['label' => 'Distribution Trips', 'route' => 'distribution.trips', 'permission' => 'distribution_trips.view'],
             ['label' => 'Lorry Sales', 'route' => 'distribution.sales', 'permission' => 'lorry_sales.view'],
-            ['label' => 'Lorry Sale Returns', 'route' => 'distribution.sale-returns', 'permission' => 'lorry_returns.view'],
             ['label' => 'Lorry Expenses', 'route' => 'distribution.expenses', 'permission' => 'lorry_expenses.view'],
-            ['label' => 'Lorry Collections', 'route' => 'distribution.collections', 'permission' => 'lorry_collections.view'],
             ['label' => 'Daily Reconciliation', 'route' => 'distribution.reconciliation', 'permission' => 'lorry_reconciliation.view'],
             ['label' => 'Distribution Reports', 'route' => 'distribution.reports', 'permission' => 'distribution_reports.view'],
             ['label' => 'Distribution Settings', 'route' => 'distribution.settings', 'permission' => 'distribution.settings'],

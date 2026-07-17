@@ -57,7 +57,6 @@ class MyLorryController extends Controller
     public function createOrder(Request $request)
     {
         $assignment = $this->access->currentAssignment($request->user());
-        abort_unless($assignment->can_create_orders, 403, 'Your assignment does not allow order creation.');
         $tripId = DB::table('distribution_trips')->where('lorry_id', $assignment->lorry_id)->where('status', 'active')->value('id');
 
         return redirect()->route('pos.wholesale', array_filter([
@@ -70,7 +69,6 @@ class MyLorryController extends Controller
     public function storeOrder(Request $request)
     {
         $assignment = $this->access->currentAssignment($request->user());
-        abort_unless($assignment->can_create_orders, 403);
         $data = $request->validate(['customer_id'=>['required','exists:customers,id'],'status'=>['required','in:draft,confirmed'],'notes'=>['nullable','string','max:1000'],'discount_type'=>['nullable','in:fixed,percentage'],'discount_amount'=>['nullable','numeric','min:0'],'payment_method'=>['nullable','string','max:50'],'items'=>['required','array','min:1'],'items.*.product_id'=>['required','integer','exists:products,id'],'items.*.quantity'=>['required','numeric','min:0.01']]);
         DB::transaction(function () use ($data, $assignment, $request) {
             $lines = []; $subtotal = 0;
@@ -116,7 +114,6 @@ class MyLorryController extends Controller
     public function expenses(Request $request)
     {
         $assignment = $this->access->currentAssignment($request->user());
-        abort_unless($assignment->can_add_expenses, 403, 'Your assignment does not allow expenses.');
         if ($request->isMethod('post')) {
             $data = $request->validate(['expense_date'=>['required','date'],'expense_category_id'=>['required','exists:expense_categories,id'],'title'=>['required','string','max:255'],'amount'=>['required','numeric','min:0.01'],'payment_method'=>['required','in:Cash,Bank Transfer,Card,Other'],'paid_from_account_id'=>['required','exists:accounts,id'],'reference_no'=>['nullable','string','max:100'],'description'=>['nullable','string','max:1000']]);
             $tripId = DB::table('distribution_trips')->where('lorry_id',$assignment->lorry_id)->where('status','active')->value('id');
