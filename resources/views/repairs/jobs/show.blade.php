@@ -493,9 +493,14 @@
                             <div class="flex items-center gap-2">
                                 <i data-lucide="credit-card" class="w-4 h-4 text-emerald-600"></i> Record Payment
                             </div>
-                            <span class="text-[11px] uppercase tracking-wider font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md">
-                                Paid: <span x-text="formatMoney(paidAmount)"></span>
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] uppercase tracking-wider font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md">
+                                    Paid: <span x-text="formatMoney(paidAmount)"></span>
+                                </span>
+                                <span class="text-[11px] uppercase tracking-wider font-bold bg-red-50 text-red-700 px-2 py-1 rounded-md">
+                                    Bal: <span x-text="formatMoney(Math.max(0, grandTotal - paidAmount))"></span>
+                                </span>
+                            </div>
                         </h3>
                         <form action="{{ route('repairs.jobs.payments', $job->id) }}" method="POST" class="space-y-4">
                             @csrf

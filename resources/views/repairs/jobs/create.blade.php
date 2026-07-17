@@ -14,7 +14,7 @@
         <div class="mx-auto max-w-7xl space-y-6">
             @include('repairs.partials.flash')
 
-            <form method="POST" action="{{ route('repairs.jobs.store') }}" enctype="multipart/form-data" class="space-y-6">
+            <form method="POST" action="{{ route('repairs.jobs.store') }}" enctype="multipart/form-data" class="space-y-6" x-data="checkInForm()">
                 @csrf
 
                 <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -23,38 +23,57 @@
                         <p class="mt-1 text-sm text-slate-500">Select an existing customer or fill the new customer fields below.</p>
                     </div>
                     <div class="grid grid-cols-1 gap-5 p-6 lg:grid-cols-2">
-                        <div class="lg:col-span-2">
+                        <div class="lg:col-span-2 relative" @click.away="customerDropdownOpen = false">
                             <label class="text-sm font-extrabold text-slate-800">Existing Customer</label>
-                            <select name="customer_id" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="">Create a new customer</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }} / {{ $customer->phone }}</option>
-                                @endforeach
-                            </select>
+                            <!-- Custom Select Input -->
+                            <div class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 cursor-pointer flex justify-between items-center" @click="customerDropdownOpen = !customerDropdownOpen">
+                                <span x-text="selectedCustomerName()"></span>
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            <input type="hidden" name="customer_id" :value="customerId">
+                            
+                            <!-- Dropdown List -->
+                            <div x-show="customerDropdownOpen" class="absolute z-40 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden" x-transition style="display: none;">
+                                <div class="p-2 border-b border-slate-100 bg-slate-50">
+                                    <input type="text" x-model="customerSearch" placeholder="Search customer by name or phone..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                </div>
+                                <div class="max-h-60 overflow-y-auto p-1">
+                                    <div @click="customerId = ''; customerDropdownOpen = false" class="px-3 py-2 hover:bg-slate-50 cursor-pointer rounded-lg text-sm text-slate-700 font-extrabold border-b border-slate-50 text-blue-600 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Create a new customer
+                                    </div>
+                                    <template x-for="customer in filteredCustomers" :key="customer.id">
+                                        <div @click="customerId = customer.id; customerDropdownOpen = false" class="px-3 py-2 hover:bg-slate-50 cursor-pointer rounded-lg text-sm border-b border-slate-50">
+                                            <span class="block font-bold text-slate-800" x-text="customer.name"></span>
+                                            <span class="block text-xs text-slate-500" x-text="customer.phone || 'No phone'"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Customer Name</label>
-                            <input name="customer_name" value="{{ old('customer_name') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input name="customer_name" x-model="customerName" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Phone</label>
-                            <input name="customer_phone" value="{{ old('customer_phone') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input name="customer_phone" x-model="customerPhone" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">WhatsApp</label>
-                            <input name="customer_whatsapp" value="{{ old('customer_whatsapp') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input name="customer_whatsapp" x-model="customerWhatsapp" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Email</label>
-                            <input type="email" name="customer_email" value="{{ old('customer_email') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input type="email" name="customer_email" x-model="customerEmail" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">NIC / ID</label>
-                            <input name="customer_nic" value="{{ old('customer_nic') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input name="customer_nic" x-model="customerNic" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Address</label>
-                            <input name="customer_address" value="{{ old('customer_address') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input name="customer_address" x-model="customerAddress" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                     </div>
                 </section>
@@ -66,20 +85,36 @@
                     </div>
                     <div class="grid grid-cols-1 gap-5 p-6 lg:grid-cols-3">
                         <div>
-                            <label class="text-sm font-extrabold text-slate-800">Device Type</label>
-                            <select name="device_type" required class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
-                                @foreach($deviceTypes as $type)
-                                    <option value="{{ $type }}" @selected(old('device_type') === $type)>{{ $type }}</option>
-                                @endforeach
-                            </select>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-sm font-extrabold text-slate-800">Device Type</label>
+                                <button type="button" @click="toggleCustomDeviceType()" class="text-xs font-bold text-blue-600 hover:text-blue-800" x-text="isCustomDeviceType ? 'Select from list' : '+ Add New'"></button>
+                            </div>
+                            <template x-if="!isCustomDeviceType">
+                                <select name="device_type" x-model="deviceTypeSelect" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                    @foreach($deviceTypes as $type)
+                                        <option value="{{ $type }}">{{ $type }}</option>
+                                    @endforeach
+                                </select>
+                            </template>
+                            <template x-if="isCustomDeviceType">
+                                <input name="device_type" x-model="deviceTypeCustom" placeholder="Enter custom device type" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            </template>
                         </div>
                         <div>
-                            <label class="text-sm font-extrabold text-slate-800">Brand</label>
-                            <select name="brand" required class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
-                                @foreach($brands as $brand)
-                                    <option value="{{ $brand }}" @selected(old('brand') === $brand)>{{ $brand }}</option>
-                                @endforeach
-                            </select>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-sm font-extrabold text-slate-800">Brand</label>
+                                <button type="button" @click="toggleCustomBrand()" class="text-xs font-bold text-blue-600 hover:text-blue-800" x-text="isCustomBrand ? 'Select from list' : '+ Add New'"></button>
+                            </div>
+                            <template x-if="!isCustomBrand">
+                                <select name="brand" x-model="brandSelect" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                    @foreach($brands as $brand)
+                                        <option value="{{ $brand }}">{{ $brand }}</option>
+                                    @endforeach
+                                </select>
+                            </template>
+                            <template x-if="isCustomBrand">
+                                <input name="brand" x-model="brandCustom" placeholder="Enter custom brand" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            </template>
                         </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Model</label>
@@ -97,12 +132,62 @@
                             <label class="text-sm font-extrabold text-slate-800">Serial Number</label>
                             <input name="serial_number" value="{{ old('serial_number') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
                         </div>
-                        @foreach(['color' => 'Color', 'storage' => 'Storage', 'ram' => 'RAM', 'carrier' => 'Carrier / Network', 'pattern_lock' => 'Pattern Lock', 'password' => 'Password', 'pin' => 'PIN'] as $field => $label)
+                        @foreach(['color' => 'Color', 'storage' => 'Storage', 'ram' => 'RAM', 'carrier' => 'Carrier / Network', 'password' => 'Password', 'pin' => 'PIN'] as $field => $label)
                             <div>
                                 <label class="text-sm font-extrabold text-slate-800">{{ $label }}</label>
                                 <input name="{{ $field }}" value="{{ old($field) }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
                             </div>
                         @endforeach
+                        
+                        <div class="lg:col-span-3" x-data="patternLock()">
+                            <label class="text-sm font-extrabold text-slate-800">Pattern Lock</label>
+                            <div class="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                                
+                                <!-- Pattern Lock UI -->
+                                <div class="relative w-56 h-56 bg-white rounded-xl shadow-sm border border-slate-200 p-4 touch-none select-none"
+                                     @mousedown="startDrawing($event)"
+                                     @mousemove="draw($event)"
+                                     @mouseup="stopDrawing"
+                                     @mouseleave="stopDrawing"
+                                     @touchstart.prevent="startDrawing($event.touches[0])"
+                                     @touchmove.prevent="draw($event.touches[0])"
+                                     @touchend="stopDrawing">
+                                     
+                                    <!-- SVG Lines -->
+                                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-10">
+                                        <template x-for="(line, index) in lines" :key="index">
+                                            <line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2" stroke="#3b82f6" stroke-width="4" stroke-linecap="round"></line>
+                                        </template>
+                                        <template x-if="activeLine">
+                                            <line :x1="activeLine.x1" :y1="activeLine.y1" :x2="activeLine.x2" :y2="activeLine.y2" stroke="#93c5fd" stroke-width="4" stroke-linecap="round"></line>
+                                        </template>
+                                    </svg>
+                        
+                                    <!-- Dots -->
+                                    <div class="grid grid-cols-3 gap-3 h-full w-full relative z-20" x-ref="gridContainer">
+                                        <template x-for="i in 9" :key="i">
+                                            <div class="flex items-center justify-center h-full w-full">
+                                                <div class="w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center cursor-crosshair"
+                                                     :class="pattern.includes(i) ? 'border-blue-500 bg-blue-100 scale-110' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'"
+                                                     :data-dot="i">
+                                                     <div class="w-3 h-3 rounded-full" :class="pattern.includes(i) ? 'bg-blue-600' : 'bg-transparent'"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                        
+                                <div class="flex-1 w-full">
+                                    <p class="text-sm font-bold text-slate-700 mb-2">Draw Pattern Sequence</p>
+                                    <p class="text-xs text-slate-500 mb-4">Click/touch and drag across the dots to record the device's pattern lock.</p>
+                                    
+                                    <div class="flex items-center gap-3">
+                                        <input type="text" name="pattern_lock" x-model="patternString" readonly placeholder="Pattern will appear here" class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-slate-100 text-slate-500 cursor-not-allowed font-mono tracking-widest font-bold">
+                                        <button type="button" @click="resetPattern" class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50 hover:text-red-600 transition-colors">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div>
                             <label class="text-sm font-extrabold text-slate-800">Battery %</label>
                             <input type="number" min="0" max="100" name="battery_percent" value="{{ old('battery_percent') }}" class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
@@ -232,4 +317,203 @@
             </form>
         </div>
     </div>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('checkInForm', () => ({
+                customers: @json($customers),
+                customerId: '{{ old("customer_id") }}',
+                customerSearch: '',
+                customerDropdownOpen: false,
+
+                customerName: '{{ old("customer_name") }}',
+                customerPhone: '{{ old("customer_phone") }}',
+                customerWhatsapp: '{{ old("customer_whatsapp") }}',
+                customerEmail: '{{ old("customer_email") }}',
+                customerNic: '{{ old("customer_nic") }}',
+                customerAddress: '{{ old("customer_address") }}',
+
+                deviceTypeSelect: '{{ old("device_type", "") }}',
+                deviceTypeCustom: '',
+                isCustomDeviceType: false,
+
+                brandSelect: '{{ old("brand", "") }}',
+                brandCustom: '',
+                isCustomBrand: false,
+
+                init() {
+                    this.$watch('customerId', value => {
+                        if (value) {
+                            let c = this.customers.find(c => c.id == value);
+                            if (c) {
+                                this.customerName = c.name || '';
+                                this.customerPhone = c.phone || '';
+                                this.customerWhatsapp = c.phone || '';
+                                this.customerEmail = c.email || '';
+                                this.customerAddress = c.address || '';
+                                this.customerNic = ''; // Extract if we could, but better leave blank for manual entry
+                            }
+                        } else {
+                            this.customerName = '';
+                            this.customerPhone = '';
+                            this.customerWhatsapp = '';
+                            this.customerEmail = '';
+                            this.customerNic = '';
+                            this.customerAddress = '';
+                        }
+                    });
+
+                    // Set initial custom values for Device Type if old input doesn't match standard
+                    let standardDevices = @json($deviceTypes);
+                    if (this.deviceTypeSelect && !standardDevices.includes(this.deviceTypeSelect)) {
+                        this.isCustomDeviceType = true;
+                        this.deviceTypeCustom = this.deviceTypeSelect;
+                    }
+
+                    // Set initial custom values for Brand if old input doesn't match standard
+                    let standardBrands = @json($brands);
+                    if (this.brandSelect && !standardBrands.includes(this.brandSelect)) {
+                        this.isCustomBrand = true;
+                        this.brandCustom = this.brandSelect;
+                    }
+                },
+
+                get filteredCustomers() {
+                    let term = this.customerSearch.toLowerCase();
+                    if (!term) return this.customers;
+                    return this.customers.filter(c => 
+                        c.name.toLowerCase().includes(term) || 
+                        (c.phone && c.phone.toLowerCase().includes(term))
+                    );
+                },
+
+                selectedCustomerName() {
+                    if (!this.customerId) return 'Create a new customer';
+                    let c = this.customers.find(c => c.id == this.customerId);
+                    return c ? c.name + ' / ' + (c.phone || 'No phone') : 'Create a new customer';
+                },
+
+                toggleCustomDeviceType() {
+                    this.isCustomDeviceType = !this.isCustomDeviceType;
+                    if (this.isCustomDeviceType) {
+                        this.deviceTypeCustom = '';
+                    } else {
+                        this.deviceTypeSelect = @json($deviceTypes)[0];
+                    }
+                },
+
+                toggleCustomBrand() {
+                    this.isCustomBrand = !this.isCustomBrand;
+                    if (this.isCustomBrand) {
+                        this.brandCustom = '';
+                    } else {
+                        this.brandSelect = @json($brands)[0];
+                    }
+                }
+            }));
+            
+            Alpine.data('patternLock', () => ({
+                pattern: [],
+                isDrawing: false,
+                activeLine: null,
+                dotPositions: {},
+                
+                init() {
+                    let oldPattern = '{{ old("pattern_lock") }}';
+                    if (oldPattern) {
+                        this.pattern = oldPattern.split('').map(Number);
+                    }
+                    
+                    this.$nextTick(() => {
+                        this.calculateDotPositions();
+                    });
+                    
+                    window.addEventListener('resize', () => this.calculateDotPositions());
+                },
+                
+                get patternString() {
+                    return this.pattern.join('');
+                },
+                
+                get lines() {
+                    let drawnLines = [];
+                    for (let i = 0; i < this.pattern.length - 1; i++) {
+                        let startDot = this.dotPositions[this.pattern[i]];
+                        let endDot = this.dotPositions[this.pattern[i+1]];
+                        if (startDot && endDot) {
+                            drawnLines.push({
+                                x1: startDot.x, y1: startDot.y,
+                                x2: endDot.x, y2: endDot.y
+                            });
+                        }
+                    }
+                    return drawnLines;
+                },
+                
+                calculateDotPositions() {
+                    let container = this.$refs.gridContainer;
+                    if (!container) return;
+                    let rect = container.getBoundingClientRect();
+                    
+                    for (let i = 1; i <= 9; i++) {
+                        let dot = this.$el.querySelector(`[data-dot="${i}"]`);
+                        if (dot) {
+                            let dotRect = dot.getBoundingClientRect();
+                            this.dotPositions[i] = {
+                                x: (dotRect.left - rect.left) + (dotRect.width / 2),
+                                y: (dotRect.top - rect.top) + (dotRect.height / 2)
+                            };
+                        }
+                    }
+                },
+                
+                startDrawing(e) {
+                    this.pattern = [];
+                    this.isDrawing = true;
+                    this.calculateDotPositions(); 
+                    this.checkDotIntersection(e);
+                },
+                
+                draw(e) {
+                    if (!this.isDrawing) return;
+                    
+                    let container = this.$refs.gridContainer;
+                    let rect = container.getBoundingClientRect();
+                    let currentX = e.clientX - rect.left;
+                    let currentY = e.clientY - rect.top;
+                    
+                    if (this.pattern.length > 0) {
+                        let lastDot = this.dotPositions[this.pattern[this.pattern.length - 1]];
+                        this.activeLine = {
+                            x1: lastDot.x, y1: lastDot.y,
+                            x2: currentX, y2: currentY
+                        };
+                    }
+                    
+                    this.checkDotIntersection(e);
+                },
+                
+                stopDrawing() {
+                    this.isDrawing = false;
+                    this.activeLine = null;
+                },
+                
+                checkDotIntersection(e) {
+                    let element = document.elementFromPoint(e.clientX, e.clientY);
+                    if (element) {
+                        let dotEl = element.closest('[data-dot]');
+                        if (dotEl) {
+                            let dot = parseInt(dotEl.getAttribute('data-dot'));
+                            if (!this.pattern.includes(dot)) {
+                                this.pattern.push(dot);
+                            }
+                        }
+                    }
+                },
+                
+                resetPattern() {
+                    this.pattern = [];
+                }
+            }));
+        });
+    </script>
 </x-layouts::app>

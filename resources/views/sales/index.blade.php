@@ -131,7 +131,7 @@
                                     <a href="{{ route('sales-returns.create', ['sale_id' => $sale->id]) }}" class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50" title="Return"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 010 8h-1"/></svg></a>
                                     @endif
                                     @if(auth()->user()->hasPermission('sales.delete'))
-                                    <form method="POST" action="{{ route('sales.destroy', $sale) }}" onsubmit="return confirm('Delete sale {{ $sale->invoice_no }}?')">
+                                    <form method="POST" action="{{ route('sales.destroy', $sale) }}" onsubmit="return confirmAction(event, 'Delete sale {{ $sale->invoice_no }}?')">
                                         @csrf @method('DELETE')
                                         <button class="p-1.5 rounded-lg text-red-600 hover:bg-red-50" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
                                     </form>

@@ -264,7 +264,7 @@
                                         <td class="px-5 py-4 text-right">
                                             <a href="{{ route('distribution.lorries.show', $item->id) }}" class="text-xs font-bold text-blue-600">Open</a>
                                             @if(auth()->user()->hasPermission('lorries.delete'))
-                                            <form method="POST" action="{{ route('distribution.lorries.destroy', $item->id) }}" class="inline ml-3" onsubmit="return confirm('Remove this lorry from active list?')">
+                                            <form method="POST" action="{{ route('distribution.lorries.destroy', $item->id) }}" class="inline ml-3" onsubmit="return confirmAction(event, 'Remove this lorry from active list?')">
                                                 @csrf @method('DELETE')
                                                 <button class="text-xs font-bold text-rose-600">Remove</button>
                                             </form>

@@ -69,7 +69,7 @@
                                     </form>
                                     @endif
                                     @if(auth()->user()->hasPermission('hold_sales.delete'))
-                                    <form method="POST" action="{{ route('hold-sales.destroy', $hold) }}" onsubmit="return confirm('Delete hold {{ $hold->reference_no }}?')">
+                                    <form method="POST" action="{{ route('hold-sales.destroy', $hold) }}" onsubmit="return confirmAction(event, 'Delete hold {{ $hold->reference_no }}?')">
                                         @csrf @method('DELETE')
                                         <button class="p-1.5 rounded-lg text-red-600 hover:bg-red-50" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
                                     </form>

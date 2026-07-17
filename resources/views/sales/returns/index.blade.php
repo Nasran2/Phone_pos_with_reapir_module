@@ -65,7 +65,7 @@
                                 <div class="flex justify-end gap-1.5">
                                     <a href="{{ route('sales-returns.show', $return) }}" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="View"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></a>
                                     @if(auth()->user()->hasPermission('sales_return.delete'))
-                                    <form method="POST" action="{{ route('sales-returns.destroy', $return) }}" onsubmit="return confirm('Delete return {{ $return->return_no }}?')">
+                                    <form method="POST" action="{{ route('sales-returns.destroy', $return) }}" onsubmit="return confirmAction(event, 'Delete return {{ $return->return_no }}?')">
                                         @csrf @method('DELETE')
                                         <button class="p-1.5 rounded-lg text-red-600 hover:bg-red-50" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
                                     </form>

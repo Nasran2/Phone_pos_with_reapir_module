@@ -77,7 +77,7 @@
                                 @method('DELETE')
                                 <button 
                                     type="submit" 
-                                    onclick="return confirm('Are you sure you want to delete role {{ $role->name }}?')"
+                                    onclick="return confirmAction(event, 'Are you sure you want to delete role {{ $role->name }}?')"
                                     class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                     title="Delete Role"
                                 >
