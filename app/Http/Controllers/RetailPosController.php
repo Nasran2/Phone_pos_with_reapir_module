@@ -281,6 +281,15 @@ class RetailPosController extends Controller
             $calculatedPayableTotal = $calculatedGrandTotal;
             $totalProfitAmount = $calculatedTaxableTotal - $totalCostAmount;
             
+            // Backend Total Validation: Ensure client-submitted totals match server calculations
+            if (abs((float)$request->payable_amount - $calculatedPayableTotal) > 0.05) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Total calculation mismatch. The submitted totals do not match the server-calculated totals. Please refresh the page and try again.'
+                ], 422);
+            }
+
             $paymentRows = $mixedPayments->rowsFromRequest($request->all(), (float) $calculatedPayableTotal);
 
             // 1. Insert Sales Record

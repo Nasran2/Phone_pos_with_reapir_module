@@ -73,6 +73,7 @@ class SystemSettings
             'currencySymbol' => self::get('currency_symbol', 'Rs.', 'business_settings'),
             'decimalPlaces' => (int) self::number('decimal_places', 2, 'business_settings'),
             'taxPercentage' => (float) self::number('default_sale_tax', 15, 'tax_settings'),
+            'taxMode' => self::get('default_tax_mode', 'exclusive', 'tax_settings'),
             'enableTax' => self::bool('enable_tax_system', true, 'tax_settings'),
             'enableDiscount' => self::bool('enable_discount', true, 'tax_settings'),
             'maximumDiscountPercentage' => (float) self::number('maximum_discount_percentage', 100, 'tax_settings'),

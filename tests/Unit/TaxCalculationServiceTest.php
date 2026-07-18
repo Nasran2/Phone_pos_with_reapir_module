@@ -107,19 +107,40 @@ class TaxCalculationServiceTest extends TestCase
     {
         $result = $this->taxService->calculate([
             'unit_price' => 100,
-            'quantity' => 2,
+            'quantity' => 1,
             'discount_type' => 'fixed',
             'discount_value' => 0,
             'invoice_discount_amount' => 0,
-            'tax_rate' => 10, // 10%
+            'tax_rate' => 10,
             'tax_mode' => 'exclusive',
-            'tax_status' => 'non_taxable',
+            'tax_status' => 'exempt',
         ]);
 
-        $this->assertEquals(200, $result['taxable_amount']);
         $this->assertEquals(0, $result['tax_amount']);
+        $this->assertEquals(0, $result['tax_rate']);
+        $this->assertEquals(100, $result['taxable_amount']);
+        $this->assertEquals(100, $result['line_total']);
+    }
+
+    public function test_frontend_scenario_inclusive_product()
+    {
+        // 1. "Rs 1600.00 inclusive product"
+        $result = $this->taxService->calculate([
+            'unit_price' => 1600,
+            'quantity' => 1,
+            'discount_type' => 'fixed',
+            'discount_value' => 0,
+            'invoice_discount_amount' => 0,
+            'tax_rate' => 18,
+            'tax_mode' => 'inclusive',
+            'tax_status' => 'taxable',
+        ]);
+        
+        $this->assertEquals(1600, $result['gross_amount']);
+        $this->assertEquals(1355.93, $result['taxable_amount']); // 1600 / 1.18 = 1355.9322
+        $this->assertEquals(244.07, $result['included_tax_amount']); // 1600 - 1355.93 = 244.07
         $this->assertEquals(0, $result['added_tax_amount']);
-        $this->assertEquals(200, $result['line_total']);
+        $this->assertEquals(1600, $result['line_total']);
     }
 
     public function test_resolve_tax_mode()

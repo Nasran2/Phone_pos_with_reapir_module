@@ -47,21 +47,30 @@ class SettingsController extends Controller
         SystemSettings::clearCache();
         cache()->forget('settings');
         cache()->forget('business_settings');
+        cache()->forget('pos_settings');
+        cache()->forget('tax_settings');
 
         $successMessage = $section['label'] . ' saved successfully.';
 
         if ($section['slug'] === 'tax') {
             if ($request->has('apply_to_all_products')) {
                 $onlyUseGlobal = $request->input('only_update_use_global');
-                $query = DB::table('products');
+                $query = DB::table('products')->whereNull('deleted_at')->where('is_active', true);
                 if ($onlyUseGlobal) {
                     $query->where('tax_mode', 'use_global');
                 }
                 
-                $count = $query->update(['tax_mode' => 'use_global']);
+                $count = $query->count();
+                $query->update(['tax_mode' => 'use_global']);
+                
                 $taxMode = $request->input('default_tax_mode', 'exclusive');
                 $modeLabel = $taxMode === 'inclusive' ? 'Tax Inclusive' : 'Tax Exclusive';
-                $successMessage = "{$modeLabel} has been applied as the global default to {$count} products.";
+                
+                if ($count === 0) {
+                    $successMessage = "Global tax mode was saved successfully. No products were available to update.";
+                } else {
+                    $successMessage = "{$modeLabel} has been applied as the global default to {$count} products.";
+                }
                 
                 if (class_exists(\App\Models\ActivityLog::class)) {
                     $logMessage = "Applied {$modeLabel} as the global default to {$count} products" . 

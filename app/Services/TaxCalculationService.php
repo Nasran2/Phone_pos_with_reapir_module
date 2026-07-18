@@ -8,6 +8,9 @@ class TaxCalculationService
      * Resolve the final tax mode.
      * Order of precedence: Item Override > Product Override > Global Default
      */
+    /**
+     * Resolve the final tax mode safely to 'inclusive' or 'exclusive'.
+     */
     public function resolveTaxMode(?string $itemOverride, ?string $productMode, string $globalMode): string
     {
         if ($itemOverride && in_array($itemOverride, ['inclusive', 'exclusive'])) {
@@ -19,6 +22,14 @@ class TaxCalculationService
         }
 
         return $globalMode === 'inclusive' ? 'inclusive' : 'exclusive';
+    }
+
+    /**
+     * Helper to resolve a product's tax mode directly.
+     */
+    public function resolveProductTaxMode(\App\Models\Product $product, string $globalMode): string
+    {
+        return $this->resolveTaxMode(null, $product->tax_mode === 'use_global' ? null : $product->tax_mode, $globalMode);
     }
 
     /**

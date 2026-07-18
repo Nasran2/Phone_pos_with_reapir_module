@@ -15,7 +15,8 @@ class Product extends Model
         'category_id', 'brand_id', 'unit_id', 'name', 'sku', 'barcode', 
         'description', 'image', 'cost_price', 'retail_price', 'wholesale_price', 
         'stock_alert_quantity', 'is_active', 'created_by', 'updated_by',
-        'sales_tax_profile_id', 'purchase_tax_profile_id', 'tax_classification', 'tax_type'
+        'sales_tax_profile_id', 'purchase_tax_profile_id', 'tax_classification', 'tax_type',
+        'tax_mode', 'tax_status'
     ];
 
     protected $casts = [

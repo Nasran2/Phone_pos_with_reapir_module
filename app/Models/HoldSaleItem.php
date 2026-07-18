@@ -36,6 +36,15 @@ class HoldSaleItem extends Model
         'cost_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'gross_amount' => 'decimal:2',
+        'discount_value' => 'decimal:2',
+        'amount_after_discount' => 'decimal:2',
+        'tax_rate' => 'decimal:4',
+        'taxable_amount' => 'decimal:2',
+        'included_tax_amount' => 'decimal:2',
+        'added_tax_amount' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'line_total' => 'decimal:2',
     ];
 
     public function holdSale()

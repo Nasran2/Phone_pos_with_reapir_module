@@ -376,15 +376,25 @@
                             <span class="font-bold text-slate-700">Subtotal</span>
                             <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateSubtotal())"></span></span>
                         </div>
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="font-bold text-slate-700">Tax</span>
-                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateTaxAmount())"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-slate-800 font-bold">
-                            <span>Total</span>
-                            <span class="text-blue-700">Rs <span x-text="formatMoney(calculateSubtotal() + calculateTaxAmount() + Number(shippingCost))"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-slate-800 font-black text-sm">
+                        <template x-if="totals.addedTax > 0 || (totals.addedTax == 0 && totals.includedTax == 0)">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="font-bold text-slate-700">Taxable Amount</span>
+                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.subTotal - totals.discount)"></span></span>
+                            </div>
+                        </template>
+                        <template x-if="totals.addedTax > 0">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="font-bold text-slate-700">Added VAT</span>
+                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.addedTax)"></span></span>
+                            </div>
+                        </template>
+                        <template x-if="totals.includedTax > 0">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="font-bold text-slate-700">Tax Included</span>
+                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.includedTax)"></span></span>
+                            </div>
+                        </template>
+                        <div class="flex items-center justify-between text-slate-800 font-black text-sm pt-1 mt-1 border-t border-slate-200">
                             <span>Payable</span>
                             <span>Rs <span x-text="formatMoney(calculateGrandTotal())"></span></span>
                         </div>
@@ -802,14 +812,31 @@
 
                 // Totals & Cart
                 cart: [],
+                totals: { subTotal: 0, discount: 0, addedTax: 0, includedTax: 0, totalTax: 0, grandTotal: 0 },
                 globalDiscountType: 'fixed',
                 globalDiscountValue: 0,
                 taxPercentage: Number(@json($posSettings['taxPercentage'] ?? 15)),
+                taxMode: @json($posSettings['taxMode'] ?? 'exclusive'),
                 shippingCost: 0,
                 currencySymbol: @json($posSettings['currencySymbol'] ?? 'Rs.'),
                 decimalPlaces: Number(@json($posSettings['decimalPlaces'] ?? 2)),
                 enableTax: Boolean(@json($posSettings['enableTax'] ?? true)),
                 enableDiscount: Boolean(@json($posSettings['enableDiscount'] ?? true)),
+
+                // Helpers
+                toNumber(value) {
+                    if (value === null || value === undefined || value === '') return 0;
+                    if (typeof value === 'number') return value;
+                    if (typeof value === 'string') {
+                        let cleaned = value.replace(/[^\d.-]/g, '');
+                        let parsed = parseFloat(cleaned);
+                        return isNaN(parsed) ? 0 : parsed;
+                    }
+                    return 0;
+                },
+                roundMoney(value) {
+                    return Math.round((this.toNumber(value) + Number.EPSILON) * 100) / 100;
+                },
 
                 // Mixed split payments
                 payments: {
@@ -991,26 +1018,36 @@
                     }
 
                     // Mobile phones require separate cart items to track unique IMEIs
+                    let serialNo = product.serials && product.serials.length > 0 ? product.serials[0] : '';
+                    if (product.category_slug === 'smartphones' && serialNo) {
+                        let isDuplicate = this.cart.some(item => item.product_id === product.id && item.serial_no === serialNo);
+                        if (isDuplicate) {
+                            alert('This specific IMEI is already in the cart!');
+                            return;
+                        }
+                    }
+
                     this.cart.push({
                         product_id: product.id,
                         name: product.name,
                         quantity: 1,
-                        cost_price: product.cost_price,
-                        selling_price: product.retail_price,
+                        cost_price: this.toNumber(product.cost_price),
+                        selling_price: this.toNumber(product.retail_price),
                         discount_amount: 0,
                         discount_type: 'fixed',
-                        tax_rate: product.tax_rate || 0,
+                        tax_mode: product.tax_mode,
+                        tax_status: product.tax_status,
+                        tax_rate: this.toNumber(product.tax_rate) || 0,
                         tax_id: product.tax_id || null,
-                        line_total: product.retail_price,
+                        line_total: this.toNumber(product.retail_price),
                         note: '',
-                        stock: product.stock,
+                        stock: this.toNumber(product.stock),
                         is_smartphone: product.category_slug === 'smartphones',
                         serials: product.serials || [],
-                        serial_no: product.serials && product.serials.length > 0 ? product.serials[0] : ''
+                        serial_no: serialNo
                     });
 
-                    // Automatically recalculate paid Amount
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.recalculateCartTotals();
                 },
 
                 addVariantToCart(product, variant) {
@@ -1049,7 +1086,7 @@
 
                     this.showVariantModal = false;
                     this.selectedVariantProduct = null;
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.recalculateCartTotals();
                 },
 
                 openEditItemModal(item, index) {
@@ -1117,22 +1154,16 @@
                     if (item.quantity < 1 || isNaN(item.quantity)) {
                         item.quantity = 1;
                     }
-                    this.updateLineTotal(item);
+                    this.recalculateCartTotals();
                 },
 
                 updateLineTotal(item) {
-                    let baseTotal = item.selling_price * item.quantity;
-                    if (item.discount_type === 'percentage') {
-                        item.line_total = baseTotal - (baseTotal * (item.discount_amount / 100));
-                    } else {
-                        item.line_total = Math.max(0, baseTotal - item.discount_amount);
-                    }
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.recalculateCartTotals();
                 },
 
                 removeFromCart(index) {
                     this.cart.splice(index, 1);
-                    this.paidAmount = this.calculateGrandTotal();
+                    this.recalculateCartTotals();
                 },
 
                 clearCart() {
@@ -1141,40 +1172,88 @@
                         this.globalDiscountType = 'fixed';
                         this.globalDiscountValue = 0;
                         this.shippingCost = 0;
+                        this.recalculateCartTotals();
                     }
                 },
 
                 // Calculations
-                calculateSubtotal() {
-                    return this.cart.reduce((sum, item) => sum + item.line_total, 0);
-                },
-
-                calculateDiscountAmount() {
-                    return this.globalDiscountType === 'percentage'
-                        ? (this.calculateSubtotal() * (Number(this.globalDiscountValue) || 0)) / 100
-                        : (Number(this.globalDiscountValue) || 0);
-                },
-
-                calculateTaxAmount() {
-                    if (!this.enableTax) return 0;
+                recalculateCartTotals() {
+                    let subTotal = 0;
+                    let includedTax = 0;
+                    let addedTax = 0;
                     let totalTax = 0;
-                    let subTotal = this.calculateSubtotal();
-                    let globalDiscount = this.calculateDiscountAmount();
                     
+                    let globalDiscount = this.globalDiscountType === 'percentage'
+                        ? 0 
+                        : this.toNumber(this.globalDiscountValue);
+
+                    // First pass: Calculate item raw line totals
                     this.cart.forEach(item => {
-                        let itemShare = subTotal > 0 ? (item.line_total / subTotal) : 0;
-                        let itemDiscountShare = globalDiscount * itemShare;
-                        let taxableAmount = item.line_total - itemDiscountShare;
-                        let rate = item.tax_rate !== undefined ? item.tax_rate : this.taxPercentage;
-                        totalTax += taxableAmount * (rate / 100);
+                        let price = this.toNumber(item.selling_price);
+                        let qty = this.toNumber(item.quantity);
+                        let discount = this.toNumber(item.discount_amount);
+                        let baseTotal = price * qty;
+                        
+                        if (item.discount_type === 'percentage') {
+                            item.line_total = this.roundMoney(baseTotal - (baseTotal * (discount / 100)));
+                        } else {
+                            item.line_total = Math.max(0, this.roundMoney(baseTotal - discount));
+                        }
+                        
+                        subTotal += item.line_total;
                     });
                     
-                    return totalTax;
+                    // Global Discount Percentage
+                    if (this.globalDiscountType === 'percentage') {
+                        globalDiscount = (subTotal * this.toNumber(this.globalDiscountValue)) / 100;
+                    }
+                    globalDiscount = this.roundMoney(globalDiscount);
+
+                    // Second pass: Tax calculation
+                    if (this.enableTax) {
+                        this.cart.forEach(item => {
+                            let itemShare = subTotal > 0 ? (item.line_total / subTotal) : 0;
+                            let itemDiscountShare = this.roundMoney(globalDiscount * itemShare);
+                            let discountedAmount = Math.max(0, item.line_total - itemDiscountShare);
+                            
+                            let taxStatus = item.tax_status || 'taxable';
+                            let rate = (['non_taxable', 'zero_rated', 'exempt'].includes(taxStatus)) ? 0 : this.toNumber(item.tax_rate !== undefined ? item.tax_rate : this.taxPercentage);
+                            
+                            let itemTaxMode = item.tax_mode || 'use_global';
+                            if (itemTaxMode === 'use_global') itemTaxMode = this.taxMode || 'exclusive';
+                            
+                            let itemTax = 0;
+                            if (itemTaxMode === 'inclusive') {
+                                let taxable = this.roundMoney(discountedAmount / (1 + (rate / 100)));
+                                itemTax = this.roundMoney(discountedAmount - taxable);
+                                item.taxable_amount = taxable;
+                                item.tax_amount = itemTax;
+                                includedTax += itemTax;
+                            } else {
+                                itemTax = this.roundMoney(discountedAmount * (rate / 100));
+                                item.taxable_amount = discountedAmount;
+                                item.tax_amount = itemTax;
+                                addedTax += itemTax;
+                            }
+                            totalTax += itemTax;
+                        });
+                    }
+                    
+                    this.totals.subTotal = this.roundMoney(subTotal);
+                    this.totals.discount = globalDiscount;
+                    this.totals.addedTax = this.roundMoney(addedTax);
+                    this.totals.includedTax = this.roundMoney(includedTax);
+                    this.totals.totalTax = this.roundMoney(totalTax);
+                    this.totals.grandTotal = Math.max(0, this.roundMoney(subTotal - globalDiscount + addedTax + this.toNumber(this.shippingCost)));
+                    
+                    this.paidAmount = this.totals.grandTotal;
                 },
 
-                calculateGrandTotal() {
-                    return Math.max(0, (this.calculateSubtotal() - this.calculateDiscountAmount() + this.calculateTaxAmount() + this.shippingCost));
-                },
+                calculateSubtotal() { return this.totals.subTotal; },
+                calculateDiscountAmount() { return this.totals.discount; },
+                calculateTaxDetails() { return { totalTax: this.totals.totalTax, addedTax: this.totals.addedTax, includedTax: this.totals.includedTax }; },
+                calculateTaxAmount() { return this.totals.totalTax; },
+                calculateGrandTotal() { return this.totals.grandTotal; },
 
                 // Payment popup methods
                 openPaymentPopup() {
@@ -1359,6 +1438,7 @@
                             this.shippingCost = 0;
                             this.currentHoldId = null;
                             this.showPaymentPopup = false;
+                            this.recalculateCartTotals();
                             
                             // Reload updated products list (with modified stock levels and available serials)
                             this.fetchProductsList();
