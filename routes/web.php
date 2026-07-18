@@ -27,6 +27,7 @@ use App\Http\Controllers\DamagedStockController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DailyClosingController;
 use App\Http\Controllers\ChartOfAccountController;
+use App\Http\Controllers\TaxRateController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\JournalEntryController;
@@ -481,6 +482,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Accounting & Expenses
     Route::prefix('accounting')->name('accounting.')->group(function () {
         Route::resource('accounts', ChartOfAccountController::class)->middleware('permission:accounting.view');
+        Route::resource('tax-rates', TaxRateController::class);
         Route::resource('expense-categories', ExpenseCategoryController::class)->middleware('permission:expenses.view');
         Route::resource('expenses', ExpenseController::class)->middleware('permission:expenses.view');
         Route::resource('journal-entries', JournalEntryController::class)->middleware('permission:accounting.view');
