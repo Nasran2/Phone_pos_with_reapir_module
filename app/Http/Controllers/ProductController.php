@@ -25,7 +25,19 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'unit', 'stock', 'variants', 'serials']);
+        $storeId = $request->input('store_id');
+        $query = Product::with(['category', 'brand', 'unit', 'variants', 'serials'])
+            ->select('products.*');
+
+        $stockSubquery = DB::table('product_store_stock')
+            ->selectRaw('COALESCE(SUM(quantity), 0)')
+            ->whereColumn('product_id', 'products.id');
+
+        if ($storeId) {
+            $stockSubquery->where('store_id', $storeId);
+        }
+
+        $query->selectSub($stockSubquery, 'current_stock');
 
         // Search in Name, SKU, Barcode or Serial
         if ($request->filled('search')) {
@@ -85,7 +97,8 @@ class ProductController extends Controller
             'cost_price' => ['required', 'numeric', 'min:0'],
             'retail_price' => ['required', 'numeric', 'min:0'],
             'wholesale_price' => ['required', 'numeric', 'min:0'],
-            'opening_stock' => ['nullable', 'numeric', 'min:0'],
+            'opening_stock' => ['nullable', 'array'],
+            'opening_stock.*' => ['nullable', 'numeric', 'min:0'],
             'stock_alert_quantity' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'max:2048'], // Product Image
@@ -139,10 +152,12 @@ class ProductController extends Controller
             ]);
 
             // Save Product Stock
-            $qty = floatval($validated['opening_stock'] ?? 0);
             $storeIds = $request->input('store_ids', [Setting::get('default_store_id', 1)]);
+            $openingStockData = $validated['opening_stock'] ?? [];
 
             foreach ($storeIds as $storeId) {
+                $qty = floatval($openingStockData[$storeId] ?? 0);
+
                 ProductStoreStock::create([
                     'product_id' => $product->id,
                     'store_id' => $storeId,

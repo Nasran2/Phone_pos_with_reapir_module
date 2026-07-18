@@ -79,7 +79,7 @@
 
         <!-- Filter Bar Card -->
         <div class="bg-white rounded-xl border border-slate-200/60 p-4 shadow-xs">
-            <form method="GET" action="{{ route('stock.index') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+            <form method="GET" action="{{ route('stock.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 md:grid-cols-4 gap-4">
                 <!-- Search bar -->
                 <div class="relative md:col-span-2">
                     <input 
@@ -94,6 +94,21 @@
                             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
                     </div>
+                </div>
+
+                <!-- Store Filter -->
+                <div>
+                    <select 
+                        name="store_id" 
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
+                    >
+                        <option value="">All Stores</option>
+                        @foreach($stores as $store)
+                            <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
+                                {{ $store->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Category Filter -->
@@ -157,7 +172,7 @@
                     <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
                         @forelse($products as $product)
                         @php
-                            $qty = (float) ($product->stock->quantity ?? 0);
+                            $qty = (float) ($product->current_stock ?? 0);
                             $isOutOfStock = $qty <= 0;
                             $isLowStock = !$isOutOfStock && ($qty <= (float) $product->stock_alert_quantity);
                             $valCost = $qty * (float) $product->cost_price;

@@ -14,7 +14,20 @@ class StoreStockController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['stock', 'category', 'brand']);
+        $storeId = $request->input('store_id');
+        
+        $query = Product::with(['category', 'brand'])
+            ->select('products.*');
+
+        $stockSubquery = DB::table('product_store_stock')
+            ->selectRaw('COALESCE(SUM(quantity), 0)')
+            ->whereColumn('product_id', 'products.id');
+
+        if ($storeId) {
+            $stockSubquery->where('store_id', $storeId);
+        }
+
+        $query->selectSub($stockSubquery, 'current_stock');
 
         // Search by name, SKU, barcode
         if ($request->filled('search')) {
@@ -39,17 +52,14 @@ class StoreStockController extends Controller
         // Filter by low stock / out of stock status
         if ($request->filled('stock_status')) {
             $status = $request->input('stock_status');
+            $subSql = '(' . $stockSubquery->toSql() . ')';
+            $bindings = $stockSubquery->getBindings();
+
             if ($status === 'low') {
-                $query->whereHas('stock', function ($q) {
-                    $q->whereColumn('quantity', '<=', 'products.stock_alert_quantity')
-                      ->where('quantity', '>', 0);
-                });
+                $query->whereRaw($subSql . ' <= products.stock_alert_quantity', $bindings)
+                      ->whereRaw($subSql . ' > 0', $bindings);
             } elseif ($status === 'out') {
-                $query->where(function ($q) {
-                    $q->whereHas('stock', function ($sq) {
-                        $sq->where('quantity', '<=', 0);
-                    })->orWhereDoesntHave('stock');
-                });
+                $query->whereRaw($subSql . ' <= 0', $bindings);
             }
         }
 
@@ -58,24 +68,27 @@ class StoreStockController extends Controller
         // Calculate Summary Card Metrics
         $totalProducts = Product::count();
 
-        // Stock value = sum of quantity * cost_price
-        $stockValue = DB::table('product_store_stock')
+        // Calculate Summary Card Metrics based on the selected store (or all stores)
+        $stockValueQuery = DB::table('product_store_stock')
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
-            ->whereNull('products.deleted_at')
-            ->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
+            ->whereNull('products.deleted_at');
 
-        // Low stock count (quantity <= stock_alert_quantity and quantity > 0)
-        $lowStockItems = Product::whereHas('stock', function ($q) {
-            $q->whereColumn('quantity', '<=', 'products.stock_alert_quantity')
-              ->where('quantity', '>', 0);
-        })->count();
+        if ($storeId) {
+            $stockValueQuery->where('product_store_stock.store_id', $storeId);
+        }
 
-        // Out of stock count (quantity <= 0 or doesn't have stock record)
-        $outOfStockItems = Product::where(function ($q) {
-            $q->whereHas('stock', function ($sq) {
-                $sq->where('quantity', '<=', 0);
-            })->orWhereDoesntHave('stock');
-        })->count();
+        $stockValue = $stockValueQuery->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
+
+        // Low stock count based on selected store
+        $lowStockQuery = DB::table('products')->whereNull('deleted_at');
+        $lowStockQuery->whereRaw('(' . $stockSubquery->toSql() . ') <= products.stock_alert_quantity', $stockSubquery->getBindings());
+        $lowStockQuery->whereRaw('(' . $stockSubquery->toSql() . ') > 0', $stockSubquery->getBindings());
+        $lowStockItems = $lowStockQuery->count();
+
+        // Out of stock count based on selected store
+        $outOfStockQuery = DB::table('products')->whereNull('deleted_at');
+        $outOfStockQuery->whereRaw('(' . $stockSubquery->toSql() . ') <= 0', $stockSubquery->getBindings());
+        $outOfStockItems = $outOfStockQuery->count();
 
         $summary = [
             'total_products' => $totalProducts,
@@ -86,8 +99,9 @@ class StoreStockController extends Controller
 
         $categories = Category::orderBy('name')->get();
         $brands = Brand::orderBy('name')->get();
+        $stores = \App\Models\Store::orderBy('name')->get();
 
-        return view('stock.index', compact('products', 'summary', 'categories', 'brands'));
+        return view('stock.index', compact('products', 'summary', 'categories', 'brands', 'stores'));
     }
 
     public function history(Product $product)
