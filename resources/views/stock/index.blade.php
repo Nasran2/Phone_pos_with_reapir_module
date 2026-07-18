@@ -97,18 +97,32 @@
                 </div>
 
                 <!-- Store Filter -->
-                <div>
-                    <select 
-                        name="store_id" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
-                    >
-                        <option value="">All Stores</option>
-                        @foreach($stores as $store)
-                            <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
-                                {{ $store->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div class="relative" id="filter-stores-container">
+                    @php
+                        $selectedStores = request('store_ids', []);
+                        if (request('store_id')) $selectedStores[] = request('store_id');
+                        $selectedText = count($selectedStores) > 0 ? \App\Models\Store::whereIn('id', $selectedStores)->pluck('name')->join(', ') : 'All Stores';
+                    @endphp
+                    <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer h-[42px]" onclick="document.getElementById('filter-store-dropdown').classList.toggle('hidden')">
+                        <span id="filter-store-select-text" class="text-slate-800 truncate block mr-2 text-xs">
+                            {{ $selectedText }}
+                        </span>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    
+                    <div id="filter-store-dropdown" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl hidden">
+                        <div class="p-2 border-b border-slate-100">
+                            <input type="text" id="filter-store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterFilterStores()">
+                        </div>
+                        <div class="max-h-40 overflow-y-auto p-1" id="filter-store-list">
+                            @foreach($stores as $st)
+                                <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded filter-store-item">
+                                    <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ in_array($st->id, $selectedStores) ? 'checked' : '' }} class="filter-store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateFilterStoreSelection()">
+                                    <span class="text-xs font-semibold text-slate-700 filter-store-name">{{ $st->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Category Filter -->
@@ -191,13 +205,34 @@
                                 {{ $product->brand->name ?? '-' }}
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <span class="px-2 py-0.5 rounded font-extrabold text-[11px]
-                                    @if($isOutOfStock) bg-red-150 text-red-800 bg-red-100
-                                    @elseif($isLowStock) bg-amber-150 text-amber-800 bg-amber-100
-                                    @else bg-blue-50 text-blue-700 @endif
-                                ">
-                                    {{ number_format($qty, 0) }}
-                                </span>
+                                @if($product->storeStocks && count($product->storeStocks) > 1)
+                                    <div class="mb-1.5 space-y-0.5 text-left bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                        @foreach($product->storeStocks as $storeStock)
+                                            <div class="text-[9px] text-slate-500 font-semibold flex justify-between gap-3 border-b border-slate-100 pb-0.5 last:border-0 last:pb-0">
+                                                <span class="truncate">{{ $storeStock->store->name ?? 'Store' }}:</span>
+                                                <span class="{{ $storeStock->quantity <= $product->stock_alert_quantity ? 'text-red-600 font-bold' : 'text-slate-700 font-bold' }}">
+                                                    {{ number_format((float)$storeStock->quantity) }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @elseif($product->storeStocks && count($product->storeStocks) === 1)
+                                    <div class="text-[9px] text-slate-500 font-semibold mb-1">
+                                        {{ $product->storeStocks[0]->store->name ?? 'Store' }}
+                                    </div>
+                                @endif
+                                <div class="flex items-center justify-center gap-1">
+                                    @if($product->storeStocks && count($product->storeStocks) > 1)
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Total:</span>
+                                    @endif
+                                    <span class="px-2 py-0.5 rounded font-extrabold text-[11px]
+                                        @if($isOutOfStock) bg-red-150 text-red-800 bg-red-100
+                                        @elseif($isLowStock) bg-amber-150 text-amber-800 bg-amber-100
+                                        @else bg-blue-50 text-blue-700 @endif
+                                    ">
+                                        {{ number_format($qty, 0) }}
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-right font-medium text-slate-600">
                                 {{ \App\Support\SystemSettings::money((float) $product->cost_price) }}
@@ -384,5 +419,31 @@
                     tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-rose-600 font-semibold">${err.message || 'Failed to retrieve stock logs.'}</td></tr>`;
                 });
         }
+
+        function filterFilterStores() {
+            let input = document.getElementById('filter-store-search').value.toLowerCase();
+            let items = document.querySelectorAll('.filter-store-item');
+            items.forEach(item => {
+                let text = item.querySelector('.filter-store-name').innerText.toLowerCase();
+                item.style.display = text.includes(input) ? 'flex' : 'none';
+            });
+        }
+
+        function updateFilterStoreSelection() {
+            let checked = document.querySelectorAll('.filter-store-checkbox:checked');
+            let text = [];
+            checked.forEach(cb => {
+                text.push(cb.nextElementSibling.innerText);
+            });
+            document.getElementById('filter-store-select-text').innerText = text.length > 0 ? text.join(', ') : 'All Stores';
+        }
+
+        document.addEventListener('click', function(event) {
+            const msFilter = document.getElementById('filter-stores-container');
+            if (msFilter && !msFilter.contains(event.target)) {
+                const dropdown = document.getElementById('filter-store-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
     </script>
 </x-layouts::app>

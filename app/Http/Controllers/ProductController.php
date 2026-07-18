@@ -25,16 +25,30 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $storeId = $request->input('store_id');
-        $query = Product::with(['category', 'brand', 'unit', 'variants', 'serials'])
-            ->select('products.*');
+        $storeIds = $request->input('store_ids', []);
+        if ($request->filled('store_id')) {
+            // Fallback for older links using single store_id
+            $storeIds = [$request->input('store_id')];
+        }
+
+        $query = Product::with(['category', 'brand', 'unit', 'variants', 'serials', 'storeStocks' => function($q) use ($storeIds) {
+            $q->with('store');
+            if (!empty($storeIds)) {
+                $q->whereIn('store_id', $storeIds);
+            }
+        }])->select('products.*');
 
         $stockSubquery = DB::table('product_store_stock')
             ->selectRaw('COALESCE(SUM(quantity), 0)')
             ->whereColumn('product_id', 'products.id');
 
-        if ($storeId) {
-            $stockSubquery->where('store_id', $storeId);
+        if (!empty($storeIds)) {
+            $stockSubquery->whereIn('store_id', $storeIds);
+            
+            // Only show products assigned to at least one of the selected stores
+            $query->whereHas('storeStocks', function($q) use ($storeIds) {
+                $q->whereIn('store_id', $storeIds);
+            });
         }
 
         $query->selectSub($stockSubquery, 'current_stock');
@@ -284,6 +298,10 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
+            'store_ids' => ['nullable', 'array'],
+            'store_ids.*' => ['exists:stores,id'],
+            'opening_stock' => ['nullable', 'array'],
+            'opening_stock.*' => ['nullable', 'numeric', 'min:0'],
             'variants' => ['nullable', 'array'],
             'variants.*.id' => ['nullable', 'exists:product_variants,id'],
             'variants.*.color' => ['nullable', 'string'],
@@ -371,6 +389,55 @@ class ProductController extends Controller
             ProductVariant::where('product_id', $product->id)
                 ->when(!empty($keptVariantIds), fn ($query) => $query->whereNotIn('id', $keptVariantIds))
                 ->delete();
+
+            // Handle Store assignments
+            if ($request->has('store_ids') && is_array($request->input('store_ids'))) {
+                $requestedStores = $request->input('store_ids');
+                $openingStocks = $request->input('opening_stock', []);
+
+                $currentStoreStocks = ProductStoreStock::where('product_id', $product->id)->get();
+                $currentStoreIds = $currentStoreStocks->pluck('store_id')->toArray();
+
+                // Add to new stores
+                $storesToAdd = array_diff($requestedStores, $currentStoreIds);
+                foreach ($storesToAdd as $storeId) {
+                    $qty = floatval($openingStocks[$storeId] ?? 0);
+                    ProductStoreStock::create([
+                        'product_id' => $product->id,
+                        'store_id' => $storeId,
+                        'quantity' => $qty,
+                    ]);
+                    
+                    if ($qty > 0) {
+                        StockHistory::create([
+                            'product_id' => $product->id,
+                            'store_id' => $storeId,
+                            'transaction_type' => 'opening_stock',
+                            'reference_type' => 'product_update',
+                            'reference_id' => $product->id,
+                            'quantity_before' => 0,
+                            'quantity_change' => $qty,
+                            'quantity_after' => $qty,
+                            'unit_cost' => $product->cost_price,
+                            'total_cost' => $qty * $product->cost_price,
+                            'user_id' => auth()->id(),
+                            'notes' => 'Opening stock assigned on update',
+                        ]);
+                    }
+                }
+
+                // Remove from stores
+                $storesToRemove = array_diff($currentStoreIds, $requestedStores);
+                foreach ($storesToRemove as $storeId) {
+                    $stock = $currentStoreStocks->where('store_id', $storeId)->first();
+                    if ($stock && $stock->quantity > 0) {
+                        throw new \RuntimeException("Cannot remove product from store ID {$storeId} because it has stock quantity of {$stock->quantity}.");
+                    }
+                    if ($stock) {
+                        $stock->delete();
+                    }
+                }
+            }
 
             ActivityLog::log('Update', 'Products Module', "Updated product: {$product->name}");
 

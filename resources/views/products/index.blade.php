@@ -86,15 +86,32 @@
                 </div>
 
                 <!-- Store filter -->
-                <div>
-                    <select name="store_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
-                        <option value="">All Stores</option>
-                        @foreach($stores as $store)
-                            <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
-                                {{ $store->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div class="relative" id="filter-stores-container">
+                    @php
+                        $selectedStores = request('store_ids', []);
+                        if (request('store_id')) $selectedStores[] = request('store_id');
+                        $selectedText = count($selectedStores) > 0 ? \App\Models\Store::whereIn('id', $selectedStores)->pluck('name')->join(', ') : 'All Stores';
+                    @endphp
+                    <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer h-[42px]" onclick="document.getElementById('filter-store-dropdown').classList.toggle('hidden')">
+                        <span id="filter-store-select-text" class="text-slate-800 truncate block mr-2 text-xs">
+                            {{ $selectedText }}
+                        </span>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    
+                    <div id="filter-store-dropdown" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl hidden">
+                        <div class="p-2 border-b border-slate-100">
+                            <input type="text" id="filter-store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterFilterStores()">
+                        </div>
+                        <div class="max-h-40 overflow-y-auto p-1" id="filter-store-list">
+                            @foreach($stores as $st)
+                                <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded filter-store-item">
+                                    <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ in_array($st->id, $selectedStores) ? 'checked' : '' }} class="filter-store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateFilterStoreSelection()">
+                                    <span class="text-xs font-semibold text-slate-700 filter-store-name">{{ $st->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Category filter -->
@@ -204,9 +221,31 @@
                                     $isLow = $qty <= $alertQty;
                                 @endphp
                                 <div class="space-y-1">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-700' }}">
-                                        {{ number_format($qty) }} {{ $product->unit->short_name ?? 'pcs' }}
-                                    </span>
+                                    @if($product->storeStocks && count($product->storeStocks) > 1)
+                                        <div class="mb-1 space-y-0.5">
+                                            @foreach($product->storeStocks as $storeStock)
+                                                <div class="text-[9px] text-slate-500 font-semibold flex justify-between gap-2 border-b border-slate-100 pb-0.5">
+                                                    <span>{{ $storeStock->store->name ?? 'Store' }}:</span>
+                                                    <span class="{{ $storeStock->quantity <= $alertQty ? 'text-red-600 font-bold' : 'text-slate-700' }}">
+                                                        {{ number_format((float)$storeStock->quantity) }}
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @elseif($product->storeStocks && count($product->storeStocks) === 1)
+                                        <div class="text-[9px] text-slate-500 font-semibold mb-1">
+                                            {{ $product->storeStocks[0]->store->name ?? 'Store' }}
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="flex items-center gap-1">
+                                        @if($product->storeStocks && count($product->storeStocks) > 1)
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase">Total:</span>
+                                        @endif
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-700' }}">
+                                            {{ number_format($qty) }} {{ $product->unit->short_name ?? 'pcs' }}
+                                        </span>
+                                    </div>
                                     @if($isLow)
                                     <div class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Low Stock</div>
                                     @endif
@@ -820,7 +859,10 @@
         }
 
         function openCreateModal() {
+            window.isEditMode = false;
+            window.currentAssignedStores = [];
             document.getElementById('modalTitle').innerText = 'Add New Product';
+            document.getElementById('productForm').reset();
             document.getElementById('productForm').action = "{{ route('products.store') }}";
             document.getElementById('formMethod').value = 'POST';
 
@@ -879,9 +921,29 @@
             document.getElementById('prod_description').value = product.description || '';
             document.getElementById('prod_is_active').checked = !!product.is_active;
 
-            // Hide opening stock on edit; variants are managed in their own stock rows.
+            // Populate Store Availability checkboxes
+            const storeStocks = product.store_stocks || [];
+            const assignedStoreIds = storeStocks.map(s => String(s.store_id));
+            window.isEditMode = true;
+            window.currentAssignedStores = assignedStoreIds;
+            
+            // Check the appropriate checkboxes
+            const checkboxes = document.querySelectorAll('.store-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = assignedStoreIds.includes(String(cb.value));
+            });
+            updateStoreSelection();
+
+            // Re-hide the opening stock container initially (only shown for newly checked stores)
             document.getElementById('opening-stock-container').classList.add('hidden');
-            document.getElementById('assign-stores-container').classList.add('hidden');
+            const dynamicContainer = document.getElementById('dynamic-opening-stock-inputs');
+            if (dynamicContainer) {
+                dynamicContainer.innerHTML = '';
+            }
+            
+            // Allow managing stores on edit
+            document.getElementById('assign-stores-container').classList.remove('hidden');
+            
             document.getElementById('variants-section').classList.remove('hidden');
             document.getElementById('imei-input-container').classList.add('hidden');
 
@@ -1050,6 +1112,11 @@
                 let storeName = cb.nextElementSibling.innerText;
                 text.push(storeName);
                 
+                // In edit mode, don't show opening stock input for already assigned stores
+                if (window.isEditMode && window.currentAssignedStores && window.currentAssignedStores.includes(cb.value)) {
+                    return;
+                }
+                
                 if (stockContainer) {
                     let storeId = cb.value;
                     let inputName = 'opening_stock[' + storeId + ']';
@@ -1058,7 +1125,7 @@
                     let div = document.createElement('div');
                     div.className = 'flex items-center gap-2';
                     div.innerHTML = `
-                        <span class="text-[10px] font-semibold text-slate-600 w-28 truncate" title="${storeName}">${storeName}</span>
+                        <span class="text-[10px] font-semibold text-slate-600 w-28 truncate" title="${storeName}">New: ${storeName}</span>
                         <input type="number" name="${inputName}" value="${val}" class="flex-1 px-2 py-1.5 border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0">
                     `;
                     stockContainer.appendChild(div);
@@ -1078,5 +1145,31 @@
         
         // Initialize store selection text on load
         document.addEventListener('DOMContentLoaded', updateStoreSelection);
+
+        function filterFilterStores() {
+            let input = document.getElementById('filter-store-search').value.toLowerCase();
+            let items = document.querySelectorAll('.filter-store-item');
+            items.forEach(item => {
+                let text = item.querySelector('.filter-store-name').innerText.toLowerCase();
+                item.style.display = text.includes(input) ? 'flex' : 'none';
+            });
+        }
+
+        function updateFilterStoreSelection() {
+            let checked = document.querySelectorAll('.filter-store-checkbox:checked');
+            let text = [];
+            checked.forEach(cb => {
+                text.push(cb.nextElementSibling.innerText);
+            });
+            document.getElementById('filter-store-select-text').innerText = text.length > 0 ? text.join(', ') : 'All Stores';
+        }
+
+        document.addEventListener('click', function(event) {
+            const msFilter = document.getElementById('filter-stores-container');
+            if (msFilter && !msFilter.contains(event.target)) {
+                const dropdown = document.getElementById('filter-store-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
     </script>
 </x-layouts::app>

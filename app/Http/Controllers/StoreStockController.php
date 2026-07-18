@@ -14,17 +14,30 @@ class StoreStockController extends Controller
 {
     public function index(Request $request)
     {
-        $storeId = $request->input('store_id');
+        $storeIds = $request->input('store_ids', []);
+        if ($request->filled('store_id')) {
+            // Fallback for older links using single store_id
+            $storeIds = [$request->input('store_id')];
+        }
         
-        $query = Product::with(['category', 'brand'])
-            ->select('products.*');
+        $query = Product::with(['category', 'brand', 'storeStocks' => function($q) use ($storeIds) {
+            $q->with('store');
+            if (!empty($storeIds)) {
+                $q->whereIn('store_id', $storeIds);
+            }
+        }])->select('products.*');
 
         $stockSubquery = DB::table('product_store_stock')
             ->selectRaw('COALESCE(SUM(quantity), 0)')
             ->whereColumn('product_id', 'products.id');
 
-        if ($storeId) {
-            $stockSubquery->where('store_id', $storeId);
+        if (!empty($storeIds)) {
+            $stockSubquery->whereIn('store_id', $storeIds);
+            
+            // Only show products assigned to at least one of the selected stores
+            $query->whereHas('storeStocks', function($q) use ($storeIds) {
+                $q->whereIn('store_id', $storeIds);
+            });
         }
 
         $query->selectSub($stockSubquery, 'current_stock');
