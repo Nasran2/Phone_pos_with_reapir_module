@@ -16,7 +16,7 @@ class LorryAccessService
 
     public function isLorryUser(User $user): bool
     {
-        return $user->user_type === 'lorry';
+        return $user->user_type === 'lorry' || $user->hasPermission('my_lorry.dashboard') || $this->assignments($user)->isNotEmpty();
     }
 
     public function assignments(User $user): Collection

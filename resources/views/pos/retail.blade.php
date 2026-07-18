@@ -515,9 +515,9 @@
 
             <div class="space-y-3">
                 <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
-                <div class="grid grid-cols-6 gap-2"><template x-for="method in ['Cash','Card','Bank Transfer','QR Payment','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+                <div class="grid grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
                 <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div class="grid grid-cols-[1fr_130px_28px] gap-2"><select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs"><template x-for="m in ['Cash','Card','Bank Transfer','QR Payment','Other','Cheque','Customer Credit / Due']"><option :value="m" x-text="m"></option></template></select><input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                    <div class="grid grid-cols-[1fr_130px_28px] gap-2"><select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs"><template x-for="m in ['Cash','Bank Transfer','Other','Cheque','Customer Credit / Due']"><option :value="m" x-text="m"></option></template></select><input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
                     <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
                     <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Account holder *"><input x-model="row.cheque.account_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Account number"></div>
                 </div></template></div>
@@ -779,16 +779,12 @@
                 // Mixed split payments
                 payments: {
                     'Cash': 0,
-                    'Card': 0,
-                    'Bank Transfer': 0,
-                    'QR Payment': 0
+                    'Bank Transfer': 0
                     ,'Cheque': 0
                 },
                 paymentReferences: {
                     'Cash': '',
-                    'Card': '',
-                    'Bank Transfer': '',
-                    'QR Payment': ''
+                    'Bank Transfer': ''
                 },
                 chequeDetails: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder_name: '', account_number: '', reference_number: '' },
                 paymentRows: [],

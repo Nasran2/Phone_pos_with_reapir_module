@@ -12,6 +12,16 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        if (! $request->user()->hasPermission('dashboard.view')) {
+            if ($request->user()->hasPermission('my_lorry.dashboard')) {
+                return redirect()->route('distribution.my-lorry.dashboard');
+            }
+            if ($request->user()->hasPermission('retail_pos.view')) {
+                return redirect()->route('pos.retail');
+            }
+            abort(403, 'Unauthorized action. You do not have permission to view the dashboard.');
+        }
+
         $today = date('Y-m-d');
         $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
         $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : collect();

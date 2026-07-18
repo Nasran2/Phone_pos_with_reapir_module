@@ -57,8 +57,7 @@ Route::redirect('/', 'login')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard')
-        ->middleware('permission:dashboard.view');
+        ->name('dashboard');
 
     // POS Routes
     Route::get('pos/wholesale', [WholesalePosController::class, 'index'])
