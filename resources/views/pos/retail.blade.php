@@ -129,6 +129,30 @@
                         </select>
                     </div>
                     @endif
+                    @if($distributionEnabled && $lorries->isNotEmpty())
+                    <div class="flex items-center gap-2 mr-2">
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Retail stock source">
+                            <option value="store" {{ $sourceType === 'store' ? 'selected' : '' }}>Store Stock</option>
+                            <option value="lorry" {{ $sourceType === 'lorry' ? 'selected' : '' }}>Lorry Stock</option>
+                        </select>
+                        @if($sourceType === 'lorry')
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select lorry">
+                            <option value="">Select Lorry</option>
+                            @foreach($lorries as $lorry)
+                                <option value="{{ $lorry->id }}" {{ (string) $activeLorryId === (string) $lorry->id ? 'selected' : '' }}>{{ $lorry->lorry_no }}</option>
+                            @endforeach
+                        </select>
+                        @if($distributionTrips->isNotEmpty())
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id={{ $activeLorryId }}&trip_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select trip">
+                            <option value="">No Trip</option>
+                            @foreach($distributionTrips as $trip)
+                                <option value="{{ $trip->id }}" {{ (string) $activeTripId === (string) $trip->id ? 'selected' : '' }}>{{ $trip->trip_no }}</option>
+                            @endforeach
+                        </select>
+                        @endif
+                        @endif
+                    </div>
+                    @endif
                     <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -759,6 +783,9 @@
                 settings: @json($posSettings),
                 
                 // Selectors
+                sourceType: '{{ $sourceType ?? 'store' }}',
+                lorryId: '{{ $activeLorryId ?? '' }}',
+                tripId: '{{ $activeTripId ?? '' }}',
                 selectedCategory: 'all',
                 searchQuery: '',
                 selectedCustomerId: 1, // Walk-in
@@ -1294,7 +1321,10 @@
                             payment_rows: this.paymentRows,
                             paid_amount: totalPaid,
                             hold_id: this.currentHoldId,
-                            store_id: {{ $activeStoreId ?? 1 }}
+                            store_id: {{ $activeStoreId ?? 1 }},
+                            source_type: this.sourceType,
+                            lorry_id: this.lorryId,
+                            trip_id: this.tripId,
                         })
                     })
                     .then(res => res.json())

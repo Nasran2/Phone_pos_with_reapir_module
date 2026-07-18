@@ -30,7 +30,7 @@ class WholesalePosController extends Controller
         $activeLorryId = request('lorry_id');
         $activeTripId = request('trip_id');
         $lorryAssignment = null;
-        if ($access->isLorryUser(auth()->user())) {
+        if ($access->isLorryUser(auth()->user()) && !$access->isUnrestricted(auth()->user())) {
             $lorryAssignment = $access->currentAssignment(auth()->user(), request()->integer('lorry_id') ?: null);
             abort_unless($lorryAssignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
             $sourceType = 'lorry';
@@ -41,19 +41,22 @@ class WholesalePosController extends Controller
         }
 
         // Fetch Products with current stock levels from the selected source.
-        $productsQuery = DB::table('products')
-            ->leftJoin('product_store_stock', function($join) use ($storeId) {
-                $join->on('product_store_stock.product_id', '=', 'products.id')
-                     ->where('product_store_stock.store_id', '=', $storeId);
-            });
+        $productsQuery = DB::table('products');
 
         if ($sourceType === 'lorry' && $activeLorryId) {
-            $productsQuery->leftJoin('lorry_stocks', function ($join) use ($activeLorryId) {
+            $productsQuery->join('lorry_stocks', function ($join) use ($activeLorryId) {
                 $join->on('lorry_stocks.product_id', '=', 'products.id')
                     ->where('lorry_stocks.lorry_id', '=', $activeLorryId)
                     ->whereNull('lorry_stocks.variant_id');
             });
+        } else {
+            $productsQuery->join('product_store_stock', function($join) use ($storeId) {
+                $join->on('product_store_stock.product_id', '=', 'products.id')
+                     ->where('product_store_stock.store_id', '=', $storeId);
+            });
         }
+
+        // Lorry join handled above
 
         $products = $productsQuery
             ->select('products.*', DB::raw($sourceType === 'lorry' && $activeLorryId ? 'COALESCE(lorry_stocks.quantity, 0) as stock' : 'COALESCE(product_store_stock.quantity, 0) as stock'))
@@ -130,8 +133,9 @@ class WholesalePosController extends Controller
         $paymentMethods = $this->enabledPaymentMethods();
 
         // Fetch Stores if multi store is enabled
-        $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
-        $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : [];
+        // Fetch Stores
+        $enableMultiStore = true; // Force true to always allow store selection if there are multiple
+        $stores = DB::table('stores')->where('status', true)->get();
         $lorries = $distributionEnabled ? DB::table('lorries')->whereNull('deleted_at')->where('status', 'active')->when($lorryAssignment, fn($q) => $q->whereIn('id', $access->allowedIds(auth()->user())))->orderBy('lorry_no')->get() : collect();
         $distributionTrips = $activeLorryId ? DB::table('distribution_trips')->where('lorry_id', $activeLorryId)->whereIn('status', ['planned', 'active'])->orderByDesc('id')->get() : collect();
         $activeStoreId = $storeId;
@@ -145,7 +149,7 @@ class WholesalePosController extends Controller
      */
     public function store(Request $request, LorryAccessService $access, \App\Services\MixedPaymentService $mixedPayments)
     {
-        if ($access->isLorryUser($request->user())) {
+        if ($access->isLorryUser($request->user()) && !$access->isUnrestricted($request->user())) {
             $assignment = $access->currentAssignment($request->user(), $request->integer('lorry_id') ?: null);
             abort_unless($assignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
             $request->merge(['source_type' => 'lorry', 'lorry_id' => $assignment->lorry_id]);

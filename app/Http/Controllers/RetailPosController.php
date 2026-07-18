@@ -11,7 +11,7 @@ class RetailPosController extends Controller
     /**
      * Display the Retail POS interface.
      */
-    public function index()
+    public function index(\App\Services\LorryAccessService $access)
     {
         abort_unless(SystemSettings::bool('enable_retail_pos', true, 'pos_settings'), 403, 'Retail POS is disabled in Settings.');
 
@@ -19,18 +19,42 @@ class RetailPosController extends Controller
         $categories = DB::table('categories')->whereNull('deleted_at')->get();
 
         $storeId = \App\Models\Setting::get('default_store_id', 1);
-        if (request()->has('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+        if (request()->has('store_id')) {
             $storeId = request('store_id');
         }
 
+        $distributionEnabled = SystemSettings::bool('enable_distribution_module', true, 'business_settings');
+        $sourceType = request('source_type') === 'lorry' && $distributionEnabled ? 'lorry' : 'store';
+        $activeLorryId = request('lorry_id');
+        $activeTripId = request('trip_id');
+        $lorryAssignment = null;
+        if ($access->isLorryUser(auth()->user()) && !$access->isUnrestricted(auth()->user())) {
+            $lorryAssignment = $access->currentAssignment(auth()->user(), request()->integer('lorry_id') ?: null);
+            abort_unless($lorryAssignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
+            $sourceType = 'lorry';
+            $activeLorryId = $lorryAssignment->lorry_id;
+            $activeTripId = $lorryAssignment->trip_id;
+        }
+
         // Fetch Products with stock level and available serials/IMEIs from specific store
-        $products = DB::table('products')
-            ->leftJoin('product_store_stock', function($join) use ($storeId) {
+        $productsQuery = DB::table('products');
+
+        if ($sourceType === 'lorry' && $activeLorryId) {
+            $productsQuery->join('lorry_stocks', function ($join) use ($activeLorryId) {
+                $join->on('lorry_stocks.product_id', '=', 'products.id')
+                    ->where('lorry_stocks.lorry_id', '=', $activeLorryId)
+                    ->whereNull('lorry_stocks.variant_id');
+            });
+        } else {
+            $productsQuery->join('product_store_stock', function($join) use ($storeId) {
                 $join->on('product_store_stock.product_id', '=', 'products.id')
                      ->where('product_store_stock.store_id', '=', $storeId);
-            })
+            });
+        }
+
+        $products = $productsQuery
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->select('products.*', 'categories.slug as category_slug', DB::raw('COALESCE(product_store_stock.quantity, 0) as stock'))
+            ->select('products.*', 'categories.slug as category_slug', DB::raw($sourceType === 'lorry' && $activeLorryId ? 'COALESCE(lorry_stocks.quantity, 0) as stock' : 'COALESCE(product_store_stock.quantity, 0) as stock'))
             ->whereNull('products.deleted_at')
             ->where('products.is_active', true)
             ->get();
@@ -90,6 +114,7 @@ class RetailPosController extends Controller
         // Fetch Customers
         $customers = DB::table('customers')
             ->whereNull('deleted_at')
+            ->when($lorryAssignment, fn ($q) => $q->whereIn('id', DB::table('sales')->where('lorry_id', $activeLorryId)->select('customer_id')))
             ->get();
 
         // Fetch Held Sales (Filter by retail POS type)
@@ -104,9 +129,11 @@ class RetailPosController extends Controller
         // Fetch Payment Methods
         $paymentMethods = $this->enabledPaymentMethods();
 
-        // Fetch Stores if multi store is enabled
-        $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
-        $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : [];
+        // Fetch Stores
+        $enableMultiStore = true; // Force true to always allow store selection
+        $stores = DB::table('stores')->where('status', true)->get();
+        $lorries = $distributionEnabled ? DB::table('lorries')->whereNull('deleted_at')->where('status', 'active')->when($lorryAssignment, fn($q) => $q->whereIn('id', $access->allowedIds(auth()->user())))->orderBy('lorry_no')->get() : collect();
+        $distributionTrips = $activeLorryId ? DB::table('distribution_trips')->where('lorry_id', $activeLorryId)->whereIn('status', ['planned', 'active'])->orderByDesc('id')->get() : collect();
         $activeStoreId = $storeId;
         $posSettings = SystemSettings::posPayload();
 
@@ -120,14 +147,28 @@ class RetailPosController extends Controller
             ]);
         }
 
-        return view('pos.retail', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId', 'posSettings'));
+        return view('pos.retail', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId', 'posSettings', 'distributionEnabled', 'lorries', 'distributionTrips', 'sourceType', 'activeLorryId', 'activeTripId'));
     }
 
     /**
      * Store a completed retail sale from the POS.
      */
-    public function store(Request $request, \App\Services\MixedPaymentService $mixedPayments)
+    public function store(Request $request, \App\Services\LorryAccessService $access, \App\Services\MixedPaymentService $mixedPayments)
     {
+        if ($access->isLorryUser($request->user()) && !$access->isUnrestricted($request->user())) {
+            $assignment = $access->currentAssignment($request->user(), $request->integer('lorry_id') ?: null);
+            abort_unless($assignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
+            $request->merge(['source_type' => 'lorry', 'lorry_id' => $assignment->lorry_id]);
+            if ($request->filled('trip_id')) abort_unless(DB::table('distribution_trips')->where('id', $request->trip_id)->where('lorry_id', $assignment->lorry_id)->exists(), 403);
+        } else {
+            $sourceType = $request->input('source_type') === 'lorry' ? 'lorry' : 'store';
+            if ($sourceType === 'lorry' && ! $request->filled('lorry_id')) {
+                throw new \Exception('Please select a lorry before completing a lorry sale.');
+            }
+        }
+
+        $sourceType = $request->input('source_type') === 'lorry' ? 'lorry' : 'store';
+
         $request->validate([
             'customer_id' => 'required',
             'items' => 'required|array|min:1',
@@ -182,6 +223,9 @@ class RetailPosController extends Controller
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
                 'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+                'source_type' => $sourceType,
+                'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,
+                'trip_id' => $sourceType === 'lorry' ? $request->trip_id : null,
                 'status' => 'final',
                 'created_by' => auth()->id(),
                 'created_at' => now(),
@@ -243,7 +287,9 @@ class RetailPosController extends Controller
                     'updated_at' => now()
                 ]);
 
-                if ($variant) {
+                if ($sourceType === 'lorry') {
+                    app(\App\Services\LorryStockService::class)->issueFromLorry((int) $request->lorry_id, (int) $item['product_id'], $item['variant_id'] ?? null, (float) $item['quantity'], $request->trip_id, $invoiceNo);
+                } elseif ($variant) {
                     DB::table('product_variants')
                         ->where('id', $variant->id)
                         ->decrement('stock_quantity', $item['quantity']);
