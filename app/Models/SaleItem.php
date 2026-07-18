@@ -23,6 +23,9 @@ class SaleItem extends Model
         'line_total',
         'profit_amount',
         'subtotal',
+        'tax_rate',
+        'tax_amount',
+        'tax_classification',
     ];
 
     protected $casts = [
@@ -34,6 +37,8 @@ class SaleItem extends Model
         'line_total' => 'decimal:2',
         'profit_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'tax_rate' => 'decimal:4',
+        'tax_amount' => 'decimal:2',
     ];
 
     public function sale()

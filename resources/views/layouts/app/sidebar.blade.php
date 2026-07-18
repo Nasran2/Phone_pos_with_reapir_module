@@ -180,22 +180,23 @@
                 <!-- Products Dropdown -->
                 @if (auth()->user()->hasPermission('products.view'))
                 <div>
-                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') ? 'bg-[#182647]/50 text-white' : '' }}">
+                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
                             <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                             </svg>
                             <span>Products</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
-                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') ? '' : 'hidden' }}">
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? '' : 'hidden' }}">
                         <a href="{{ route('products.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('products.index') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">All Products</a>
                         <a href="{{ route('categories.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('categories.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Categories</a>
                         <a href="{{ route('brands.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('brands.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Brands</a>
                         <a href="{{ route('units.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('units.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Units</a>
+                        <a href="{{ route('hs-codes.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('hs-codes.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">HS Codes</a>
                     </div>
                 </div>
                 @endif
@@ -203,22 +204,23 @@
                 <!-- Purchase Dropdown -->
                 @if ($moduleSettings['purchase'] && auth()->user()->hasPermission('purchase.view'))
                 <div>
-                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') ? 'bg-[#182647]/50 text-white' : '' }}">
+                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') || request()->routeIs('import-shipments.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
                             <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                             </svg>
                             <span>Purchase</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') || request()->routeIs('import-shipments.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
-                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') ? '' : 'hidden' }}">
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') || request()->routeIs('import-shipments.*') ? '' : 'hidden' }}">
                         <a href="{{ route('purchases.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('purchases.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Purchases</a>
                         @if (auth()->user()->hasPermission('purchase.return'))
                         <a href="{{ route('purchase-returns.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('purchase-returns.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Returns</a>
                         @endif
+                        <a href="{{ route('import-shipments.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('import-shipments.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Import Shipments</a>
                     </div>
                 </div>
                 @endif
@@ -416,6 +418,7 @@
                         @endif
                         @if (auth()->user()->hasPermission('t_account.view') || auth()->user()->hasPermission('reports.profit_loss'))
                         <a href="{{ route('accounting.capital-drawings.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('accounting.capital-drawings.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Capital & Drawings</a>
+                        <a href="{{ route('accounting.tax-rates.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('accounting.tax-rates.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Tax Rates</a>
                         @endif
                     </div>
                 </div>

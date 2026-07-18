@@ -2,16 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
-    use \App\Traits\LogsActivity;
+    use HasFactory;
 
-    use SoftDeletes;
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'parent_id',
+        'default_sales_tax_profile_id',
+        'default_purchase_tax_profile_id',
+        'tax_classification',
+    ];
 
-    protected $fillable = ['name', 'slug', 'description', 'parent_id'];
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 
     public function parent()
     {
@@ -23,8 +34,13 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
 
-    public function products()
+    public function defaultSalesTaxProfile()
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsTo(TaxRate::class, 'default_sales_tax_profile_id');
+    }
+
+    public function defaultPurchaseTaxProfile()
+    {
+        return $this->belongsTo(TaxRate::class, 'default_purchase_tax_profile_id');
     }
 }

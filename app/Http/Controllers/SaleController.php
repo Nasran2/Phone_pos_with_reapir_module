@@ -69,7 +69,7 @@ class SaleController extends Controller
 
     public function print(Sale $sale)
     {
-        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque']);
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
 
         return view('sales.print', compact('sale'));
     }
@@ -78,13 +78,20 @@ class SaleController extends Controller
     {
         $sale->load(['customer', 'items.product', 'items.variant']);
         $lines = [
-            'Invoice: ' . $sale->invoice_no,
+            $sale->is_tax_invoice ? 'Tax Invoice: ' . $sale->invoice_no : 'Invoice: ' . $sale->invoice_no,
             'Date: ' . $sale->created_at->format('Y-m-d h:i A'),
+            'TIN: ' . \App\Support\SystemSettings::get('company_tin', 'N/A', 'tax_settings'),
+            'VAT Reg: ' . \App\Support\SystemSettings::get('vat_registration_number', 'N/A', 'tax_settings'),
             'Customer: ' . ($sale->customer->name ?? 'Walk-in Customer'),
             'Sale Type: ' . ucfirst($sale->pos_type),
+            'Subtotal: ' . SystemSettings::money((float) $sale->total_amount),
+            'Discount: ' . SystemSettings::money((float) $sale->discount_amount),
+            'Tax Amount: ' . SystemSettings::money((float) $sale->tax_amount),
             'Grand Total: ' . SystemSettings::money((float) $sale->payable_amount),
             'Paid: ' . SystemSettings::money((float) $sale->paid_amount),
             'Due: ' . SystemSettings::money((float) $sale->due_amount),
+            '',
+            'Items:'
         ];
 
         foreach ($sale->items as $item) {

@@ -475,6 +475,41 @@
                         <textarea name="description" id="prod_description" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Enter product specifics, warranty details..."></textarea>
                     </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Sales Tax Profile</label>
+                            <select name="sales_tax_profile_id" id="prod_sales_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <option value="">Category Default</option>
+                                @foreach($taxProfiles as $tax)
+                                    @if($tax->tax_type == 'VAT')
+                                    <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Purchase Tax Profile</label>
+                            <select name="purchase_tax_profile_id" id="prod_purchase_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <option value="">Category Default</option>
+                                @foreach($taxProfiles as $tax)
+                                    @if($tax->tax_type == 'VAT')
+                                    <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Tax Class Override</label>
+                            <select name="tax_classification" id="prod_tax_classification" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <option value="">Category Default</option>
+                                <option value="Standard">Standard</option>
+                                <option value="Zero Rated">Zero Rated</option>
+                                <option value="Exempt">Exempt</option>
+                                <option value="Out of Scope">Out of Scope</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="flex items-center gap-2 pt-1.5">
                         <input type="checkbox" name="is_active" id="prod_is_active" value="1" checked class="rounded border-slate-350 text-blue-600 focus:ring-blue-500 h-4 w-4">
                         <label for="prod_is_active" class="text-xs font-bold text-slate-700 select-none cursor-pointer">Active and available for checkout billing</label>
@@ -877,6 +912,9 @@
             document.getElementById('prod_retail_price').value = '';
             document.getElementById('prod_wholesale_price').value = '';
             document.getElementById('prod_alert_qty').value = '5';
+            document.getElementById('prod_sales_tax_profile_id').value = '';
+            document.getElementById('prod_purchase_tax_profile_id').value = '';
+            document.getElementById('prod_tax_classification').value = '';
             let dynamicInputs = document.getElementById('dynamic-opening-stock-inputs');
             if (dynamicInputs) dynamicInputs.innerHTML = '';
             updateStoreSelection();
@@ -918,6 +956,9 @@
             document.getElementById('prod_retail_price').value = product.retail_price;
             document.getElementById('prod_wholesale_price').value = product.wholesale_price;
             document.getElementById('prod_alert_qty').value = product.stock_alert_quantity;
+            document.getElementById('prod_sales_tax_profile_id').value = product.sales_tax_profile_id || '';
+            document.getElementById('prod_purchase_tax_profile_id').value = product.purchase_tax_profile_id || '';
+            document.getElementById('prod_tax_classification').value = product.tax_classification || '';
             document.getElementById('prod_description').value = product.description || '';
             document.getElementById('prod_is_active').checked = !!product.is_active;
 

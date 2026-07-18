@@ -92,8 +92,9 @@ class ProductController extends Controller
         $brands = Brand::all();
         $units = Unit::all();
         $stores = \App\Models\Store::all();
+        $taxProfiles = \App\Models\TaxRate::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.index', compact('products', 'categories', 'brands', 'units', 'stores'));
+        return view('products.index', compact('products', 'categories', 'brands', 'units', 'stores', 'taxProfiles'));
     }
 
     /**
@@ -115,6 +116,9 @@ class ProductController extends Controller
             'opening_stock.*' => ['nullable', 'numeric', 'min:0'],
             'stock_alert_quantity' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
+            'sales_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'purchase_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'tax_classification' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:2048'], // Product Image
             'is_active' => ['nullable', 'boolean'],
             'store_ids' => ['nullable', 'array'],
@@ -161,6 +165,9 @@ class ProductController extends Controller
                 'retail_price' => $validated['retail_price'],
                 'wholesale_price' => $validated['wholesale_price'],
                 'stock_alert_quantity' => $validated['stock_alert_quantity'] ?? 5,
+                'sales_tax_profile_id' => $validated['sales_tax_profile_id'] ?? null,
+                'purchase_tax_profile_id' => $validated['purchase_tax_profile_id'] ?? null,
+                'tax_classification' => $validated['tax_classification'] ?? null,
                 'is_active' => $request->has('is_active'),
                 'created_by' => auth()->id(),
             ]);
@@ -296,6 +303,9 @@ class ProductController extends Controller
             'wholesale_price' => ['required', 'numeric', 'min:0'],
             'stock_alert_quantity' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
+            'default_sales_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'default_purchase_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'tax_classification' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
             'store_ids' => ['nullable', 'array'],
@@ -343,6 +353,9 @@ class ProductController extends Controller
                 'retail_price' => $validated['retail_price'],
                 'wholesale_price' => $validated['wholesale_price'],
                 'stock_alert_quantity' => $validated['stock_alert_quantity'] ?? 5,
+                'sales_tax_profile_id' => $validated['sales_tax_profile_id'] ?? null,
+                'purchase_tax_profile_id' => $validated['purchase_tax_profile_id'] ?? null,
+                'tax_classification' => $validated['tax_classification'] ?? null,
                 'is_active' => $request->has('is_active'),
                 'updated_by' => auth()->id(),
             ];

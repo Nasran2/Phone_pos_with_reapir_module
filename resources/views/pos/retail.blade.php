@@ -964,6 +964,8 @@
                         selling_price: product.retail_price,
                         discount_amount: 0,
                         discount_type: 'fixed',
+                        tax_rate: product.tax_rate || 0,
+                        tax_id: product.tax_id || null,
                         line_total: product.retail_price,
                         note: '',
                         stock: product.stock,
@@ -999,6 +1001,8 @@
                             selling_price: variant.retail_price || product.retail_price,
                             discount_amount: 0,
                             discount_type: 'fixed',
+                            tax_rate: product.tax_rate || 0,
+                            tax_id: product.tax_id || null,
                             line_total: variant.retail_price || product.retail_price,
                             note: '',
                             stock: variant.stock_quantity,
@@ -1118,7 +1122,19 @@
 
                 calculateTaxAmount() {
                     if (!this.enableTax) return 0;
-                    return (this.calculateSubtotal() - this.calculateDiscountAmount()) * (this.taxPercentage / 100);
+                    let totalTax = 0;
+                    let subTotal = this.calculateSubtotal();
+                    let globalDiscount = this.calculateDiscountAmount();
+                    
+                    this.cart.forEach(item => {
+                        let itemShare = subTotal > 0 ? (item.line_total / subTotal) : 0;
+                        let itemDiscountShare = globalDiscount * itemShare;
+                        let taxableAmount = item.line_total - itemDiscountShare;
+                        let rate = item.tax_rate !== undefined ? item.tax_rate : this.taxPercentage;
+                        totalTax += taxableAmount * (rate / 100);
+                    });
+                    
+                    return totalTax;
                 },
 
                 calculateGrandTotal() {

@@ -14,10 +14,12 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::with('parent')->withCount('products')->get();
+        $categories = Category::with('parent', 'defaultSalesTaxProfile', 'defaultPurchaseTaxProfile')->withCount('products')->get();
         $parentCategories = Category::whereNull('parent_id')->get();
+        
+        $taxProfiles = \App\Models\TaxRate::where('is_active', true)->orderBy('name')->get();
 
-        return view('categories.index', compact('categories', 'parentCategories'));
+        return view('categories.index', compact('categories', 'parentCategories', 'taxProfiles'));
     }
 
     /**
@@ -29,6 +31,9 @@ class CategoryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'parent_id' => ['nullable', 'exists:categories,id'],
+            'default_sales_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'default_purchase_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'tax_classification' => ['nullable', 'string', 'max:255'],
         ]);
 
         $slug = Str::slug($validated['name']);
@@ -45,6 +50,9 @@ class CategoryController extends Controller
             'slug' => $slug,
             'description' => $validated['description'] ?? null,
             'parent_id' => $validated['parent_id'] ?? null,
+            'default_sales_tax_profile_id' => $validated['default_sales_tax_profile_id'] ?? null,
+            'default_purchase_tax_profile_id' => $validated['default_purchase_tax_profile_id'] ?? null,
+            'tax_classification' => $validated['tax_classification'] ?? null,
         ]);
 
         ActivityLog::log('Create', 'Products Module', "Created category: {$category->name}");
@@ -71,6 +79,9 @@ class CategoryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'parent_id' => ['nullable', 'exists:categories,id', 'different:id'],
+            'default_sales_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'default_purchase_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
+            'tax_classification' => ['nullable', 'string', 'max:255'],
         ]);
 
         $parentId = $validated['parent_id'] ?? null;
@@ -82,6 +93,9 @@ class CategoryController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'parent_id' => $parentId,
+            'default_sales_tax_profile_id' => $validated['default_sales_tax_profile_id'] ?? null,
+            'default_purchase_tax_profile_id' => $validated['default_purchase_tax_profile_id'] ?? null,
+            'tax_classification' => $validated['tax_classification'] ?? null,
         ]);
 
         ActivityLog::log('Update', 'Products Module', "Updated category: {$category->name}");

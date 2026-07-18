@@ -20,11 +20,18 @@
     <button class="no-print" onclick="window.print()">Print</button>
     <div class="top">
         <div>
-            <h1>Phone Shop POS</h1>
+            <h1>{{ \App\Support\SystemSettings::get('business_name', 'Phone Shop POS', 'business_settings') }}</h1>
             <p>Retail & Wholesale</p>
+            @php
+                $tin = \App\Support\SystemSettings::get('company_tin', '', 'tax_settings');
+                $vat = \App\Support\SystemSettings::get('vat_registration_number', '', 'tax_settings');
+            @endphp
+            @if($tin) <p style="font-size: 12px; margin: 4px 0;"><strong>TIN:</strong> {{ $tin }}</p> @endif
+            @if($vat) <p style="font-size: 12px; margin: 4px 0;"><strong>VAT Reg:</strong> {{ $vat }}</p> @endif
         </div>
         <div class="right">
-            <h2>Invoice {{ $sale->invoice_no }}</h2>
+            <h2>@if($sale->is_tax_invoice) Tax Invoice @else Invoice @endif {{ $sale->invoice_no }}</h2>
+            @if($sale->tax_invoice_number) <p><strong>Tax Inv #:</strong> {{ $sale->tax_invoice_number }}</p> @endif
             <p>{{ $sale->created_at->format('Y-m-d h:i A') }}</p>
             <p>{{ ucfirst($sale->pos_type) }} &bull; {{ $sale->displayStatus() }}</p>
         </div>
@@ -47,7 +54,20 @@
     <div class="totals">
         <div class="row"><span>Subtotal</span><strong>Rs. {{ number_format((float) $sale->total_amount, 2) }}</strong></div>
         <div class="row"><span>Discount</span><strong>Rs. {{ number_format((float) $sale->discount_amount, 2) }}</strong></div>
-        <div class="row"><span>Tax</span><strong>Rs. {{ number_format((float) $sale->tax_amount, 2) }}</strong></div>
+        @if($sale->tax_amount > 0)
+            @if($sale->taxTransactions && $sale->taxTransactions->isNotEmpty())
+                @foreach($sale->taxTransactions as $tx)
+                <div class="row" style="color:#475569;">
+                    <span>{{ $tx->tax_code ?? 'VAT' }} ({{ (float)$tx->tax_rate }}%)</span>
+                    <strong>Rs. {{ number_format((float) $tx->tax_amount, 2) }}</strong>
+                </div>
+                @endforeach
+            @endif
+            <div class="row">
+                <span>Total Tax</span>
+                <strong>Rs. {{ number_format((float) $sale->tax_amount, 2) }}</strong>
+            </div>
+        @endif
         <div class="row"><span>Grand Total</span><strong>Rs. {{ number_format((float) $sale->payable_amount, 2) }}</strong></div>
         <div class="row"><span>Paid</span><strong>Rs. {{ number_format((float) $sale->paid_amount, 2) }}</strong></div>
         <div class="row"><span>Cheque Hold</span><strong>Rs. {{ number_format((float) $sale->cheque_hold_amount, 2) }}</strong></div>

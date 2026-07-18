@@ -18,6 +18,9 @@ class Sale extends Model
         'discount_type',
         'discount_amount',
         'tax_amount',
+        'total_tax_amount',
+        'tax_invoice_number',
+        'is_tax_invoice',
         'payable_amount',
         'paid_amount',
         'cheque_hold_amount',
@@ -36,6 +39,8 @@ class Sale extends Model
         'total_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'total_tax_amount' => 'decimal:2',
+        'is_tax_invoice' => 'boolean',
         'payable_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'cheque_hold_amount' => 'decimal:2',
@@ -68,6 +73,11 @@ class Sale extends Model
     public function invoicePayments()
     {
         return $this->morphMany(InvoicePayment::class, 'payable');
+    }
+
+    public function taxTransactions()
+    {
+        return $this->hasMany(TaxTransaction::class, 'reference_id')->where('reference_type', 'App\Models\Sale');
     }
 
     public function returns()

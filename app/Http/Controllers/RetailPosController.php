@@ -46,7 +46,19 @@ class RetailPosController extends Controller
             ->get()
             ->groupBy('product_id');
 
-        $products = $products->map(function ($product) use ($serials, $variants) {
+        $taxRates = DB::table('tax_rates')->where('is_active', true)->get()->keyBy('id');
+        $categoriesList = DB::table('categories')->get()->keyBy('id');
+        $defaultVat = $taxRates->where('is_default', true)->where('tax_type', 'VAT')->first();
+
+        $products = $products->map(function ($product) use ($serials, $variants, $taxRates, $categoriesList, $defaultVat) {
+            $cat = $categoriesList->get($product->category_id);
+            $productTaxId = $product->sales_tax_profile_id ?? null;
+            $taxRateId = $productTaxId ?? ($cat->default_sales_tax_profile_id ?? ($defaultVat->id ?? null));
+            $taxRate = $taxRateId ? $taxRates->get($taxRateId) : null;
+            $product->tax_rate = $taxRate ? (float) $taxRate->rate : 0;
+            $product->tax_id = $taxRateId;
+            $product->tax_classification = $product->tax_classification ?? ($cat->tax_classification ?? ($taxRate->classification ?? null));
+
             $productVariants = ($variants[$product->id] ?? collect())->map(function ($variant) {
                 $labelParts = array_filter([$variant->color, $variant->storage, $variant->ram]);
 
@@ -161,6 +173,7 @@ class RetailPosController extends Controller
                 'discount_type' => $request->discount_type ?? 'fixed',
                 'discount_amount' => $request->discount_amount ?? 0,
                 'tax_amount' => $request->tax_amount ?? 0,
+                'total_tax_amount' => $request->tax_amount ?? 0,
                 'payable_amount' => $request->payable_amount,
                 'paid_amount' => 0,
                 'cheque_hold_amount' => 0,
@@ -176,6 +189,9 @@ class RetailPosController extends Controller
             ]);
 
             // 2. Insert items and update stock/IMEIs
+            $taxTransactionsData = [];
+            $taxRatesData = DB::table('tax_rates')->get()->keyBy('id');
+
             foreach ($request->items as $item) {
                 $product = DB::table('products')->where('id', $item['product_id'])->first();
                 $variant = !empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
@@ -196,6 +212,21 @@ class RetailPosController extends Controller
                 $effectiveSellingPrice = $itemQty > 0 ? $itemSubtotal / $itemQty : 0;
                 $itemProfit = ($effectiveSellingPrice - $itemCost) * $itemQty;
 
+                $itemShare = $request->total_amount > 0 ? ($itemSubtotal / $request->total_amount) : 0;
+                $itemDiscountShare = ($request->discount_amount ?? 0) * $itemShare;
+                $taxableAmount = max(0, $itemSubtotal - $itemDiscountShare);
+                $itemTaxRate = $item['tax_rate'] ?? 0;
+                $itemTaxAmount = $taxableAmount * ($itemTaxRate / 100);
+                $itemTaxId = $item['tax_id'] ?? null;
+
+                if ($itemTaxAmount > 0 && $itemTaxId) {
+                    if (!isset($taxTransactionsData[$itemTaxId])) {
+                        $taxTransactionsData[$itemTaxId] = ['taxable_amount' => 0, 'tax_amount' => 0];
+                    }
+                    $taxTransactionsData[$itemTaxId]['taxable_amount'] += $taxableAmount;
+                    $taxTransactionsData[$itemTaxId]['tax_amount'] += $itemTaxAmount;
+                }
+
                 DB::table('sale_items')->insert([
                     'sale_id' => $saleId,
                     'product_id' => $item['product_id'],
@@ -206,6 +237,8 @@ class RetailPosController extends Controller
                     'price_type' => 'retail',
                     'profit_amount' => $itemProfit,
                     'subtotal' => $itemSubtotal,
+                    'tax_rate' => $itemTaxRate,
+                    'tax_amount' => $itemTaxAmount,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
@@ -265,6 +298,36 @@ class RetailPosController extends Controller
                 }
             }
 
+            // 3. Insert Tax Transactions
+            if (!empty($taxTransactionsData)) {
+                $storeId = $request->store_id ?? \App\Models\Setting::get('default_store_id', 1);
+                foreach ($taxTransactionsData as $taxId => $taxAmtData) {
+                    $rateObj = $taxRatesData->get($taxId);
+                    if ($rateObj) {
+                        DB::table('tax_transactions')->insert([
+                            'transaction_date' => $today,
+                            'transaction_type' => 'sale',
+                            'reference_type' => 'App\Models\Sale',
+                            'reference_id' => $saleId,
+                            'store_id' => $storeId,
+                            'customer_id' => $request->customer_id,
+                            'tax_type' => $rateObj->tax_type,
+                            'tax_rate_id' => $taxId,
+                            'tax_code' => $rateObj->code,
+                            'taxable_amount' => $taxAmtData['taxable_amount'],
+                            'tax_rate' => $rateObj->rate,
+                            'tax_amount' => $taxAmtData['tax_amount'],
+                            'input_or_output' => 'output',
+                            'status' => 'final',
+                            'created_by' => auth()->id(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            // 4. Handle Mixed Payments
             DB::table('customers')->where('id', $request->customer_id)->increment('balance', $request->payable_amount);
             $allocation = $mixedPayments->allocateSale(\App\Models\Sale::findOrFail($saleId), $paymentRows, [
                 'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),

@@ -14,6 +14,8 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseReturnController;
+use App\Http\Controllers\HsCodeController;
+use App\Http\Controllers\ImportShipmentController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\HoldSaleController;
@@ -230,6 +232,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('units/{unit}', [UnitController::class, 'destroy'])
         ->name('units.destroy')
         ->middleware('permission:units.delete');
+
+    // HS Codes
+    Route::resource('hs-codes', HsCodeController::class)->except(['create', 'show', 'edit']);
+
+    // Import Shipments
+    Route::post('import-shipments/{import_shipment}/finalize', [ImportShipmentController::class, 'finalize'])->name('import-shipments.finalize');
+    Route::resource('import-shipments', ImportShipmentController::class);
 
     // Purchases
     Route::get('purchases', [PurchaseController::class, 'index'])

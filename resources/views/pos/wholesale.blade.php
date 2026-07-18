@@ -922,6 +922,8 @@
                             selling_price: this.modalPrice,
                             discount_type: this.modalDiscountType,
                             discount_amount: this.modalDiscountAmount,
+                            tax_rate: this.selectedProduct.tax_rate || 0,
+                            tax_id: this.selectedProduct.tax_id || null,
                             line_total: this.calculateModalLineTotal(),
                             note: this.modalNote,
                             stock: this.selectedProduct.stock
@@ -991,7 +993,19 @@
 
                 calculateTaxAmount() {
                     if (!this.enableTax) return 0;
-                    return (this.calculateSubtotal() - this.calculateDiscountAmount()) * (this.taxPercentage / 100);
+                    let totalTax = 0;
+                    let subTotal = this.calculateSubtotal();
+                    let globalDiscount = this.calculateDiscountAmount();
+                    
+                    this.cart.forEach(item => {
+                        let itemShare = subTotal > 0 ? (item.line_total / subTotal) : 0;
+                        let itemDiscountShare = globalDiscount * itemShare;
+                        let taxableAmount = item.line_total - itemDiscountShare;
+                        let rate = item.tax_rate !== undefined ? item.tax_rate : this.taxPercentage;
+                        totalTax += taxableAmount * (rate / 100);
+                    });
+                    
+                    return totalTax;
                 },
 
                 calculateGrandTotal() {

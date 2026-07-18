@@ -14,7 +14,8 @@ class Product extends Model
     protected $fillable = [
         'category_id', 'brand_id', 'unit_id', 'name', 'sku', 'barcode', 
         'description', 'image', 'cost_price', 'retail_price', 'wholesale_price', 
-        'stock_alert_quantity', 'is_active', 'created_by', 'updated_by'
+        'stock_alert_quantity', 'is_active', 'created_by', 'updated_by',
+        'sales_tax_profile_id', 'purchase_tax_profile_id', 'tax_classification', 'tax_type'
     ];
 
     protected $casts = [
@@ -38,6 +39,16 @@ class Product extends Model
     public function unit()
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function defaultSalesTaxProfile()
+    {
+        return $this->belongsTo(TaxRate::class, 'sales_tax_profile_id');
+    }
+
+    public function defaultPurchaseTaxProfile()
+    {
+        return $this->belongsTo(TaxRate::class, 'purchase_tax_profile_id');
     }
 
     /**

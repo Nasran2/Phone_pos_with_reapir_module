@@ -339,14 +339,16 @@ return [
         'table' => 'tax_settings',
         'icon' => 'M19 5 5 19M7 7h.01M17 17h.01',
         'groups' => [
-            ['title' => 'Complete Tax Management', 'description' => 'Tax calculation, rates, and default tax assignments.', 'fields' => [
-                ['key' => 'enable_tax_system', 'label' => 'Enable Tax Management', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
-                ['key' => 'tax_calculation_method', 'label' => 'Tax Method', 'type' => 'select', 'default' => 'exclusive', 'options' => ['inclusive' => 'Inclusive', 'exclusive' => 'Exclusive'], 'rules' => $shortText],
-                ['key' => 'default_sale_tax', 'label' => 'Default Sale Tax %', 'type' => 'number', 'default' => 15, 'rules' => $percent],
-                ['key' => 'default_purchase_tax', 'label' => 'Default Purchase Tax %', 'type' => 'number', 'default' => 0, 'rules' => $percent],
-                ['key' => 'tax_rates', 'label' => 'Tax Rates', 'type' => 'textarea', 'default' => "VAT,15,Sales,Active\nZero Rated,0,Both,Active", 'rules' => $longText],
-                ['key' => 'enable_category_tax', 'label' => 'Category Tax', 'type' => 'toggle', 'default' => false, 'rules' => $commonToggle],
-                ['key' => 'enable_product_tax', 'label' => 'Product Tax', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
+            ['title' => 'Business Tax Profile', 'description' => 'Tax registration and global tax configuration.', 'fields' => [
+                ['key' => 'enable_tax_system', 'label' => 'VAT Enabled', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
+                ['key' => 'vat_registered', 'label' => 'VAT Registered', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
+                ['key' => 'tax_calculation_method', 'label' => 'Tax Method', 'type' => 'select', 'default' => 'exclusive', 'options' => ['inclusive' => 'Tax Inclusive', 'exclusive' => 'Tax Exclusive'], 'rules' => $shortText],
+                ['key' => 'tin', 'label' => 'TIN', 'type' => 'text', 'default' => '', 'rules' => $shortText],
+                ['key' => 'vat_registration_number', 'label' => 'VAT Registration Number', 'type' => 'text', 'default' => '', 'rules' => $shortText],
+                ['key' => 'vat_effective_date', 'label' => 'VAT Registration Date', 'type' => 'text', 'default' => '', 'rules' => $shortText], // A date input would be better, but text works for settings
+                ['key' => 'tax_invoice_prefix', 'label' => 'Tax Invoice Prefix', 'type' => 'text', 'default' => 'TI-', 'rules' => $shortText],
+                ['key' => 'enable_sscl_tracking', 'label' => 'Enable SSCL Tracking', 'type' => 'toggle', 'default' => false, 'rules' => $commonToggle],
+                ['key' => 'enable_import_tax', 'label' => 'Enable Import Tax Management', 'type' => 'toggle', 'default' => false, 'rules' => $commonToggle],
             ]],
             ['title' => 'Discount Settings', 'description' => 'Invoice and item discount controls.', 'fields' => [
                 ['key' => 'enable_discount', 'label' => 'Enable Discount', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],

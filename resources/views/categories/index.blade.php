@@ -158,6 +158,42 @@
                     <textarea name="description" id="category_description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850" placeholder="Describe this category..."></textarea>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Default Sales Tax</label>
+                        <select name="default_sales_tax_profile_id" id="default_sales_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                            <option value="">None (Use Business Default)</option>
+                            @foreach($taxProfiles as $tax)
+                                @if($tax->tax_type == 'VAT')
+                                <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Default Purchase Tax</label>
+                        <select name="default_purchase_tax_profile_id" id="default_purchase_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                            <option value="">None (Use Business Default)</option>
+                            @foreach($taxProfiles as $tax)
+                                @if($tax->tax_type == 'VAT')
+                                <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Tax Classification Override</label>
+                    <select name="tax_classification" id="category_tax_classification" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                        <option value="">None</option>
+                        <option value="Standard">Standard</option>
+                        <option value="Zero Rated">Zero Rated</option>
+                        <option value="Exempt">Exempt</option>
+                        <option value="Out of Scope">Out of Scope</option>
+                    </select>
+                </div>
+
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save Category</button>
@@ -200,6 +236,9 @@
             document.getElementById('category_name').value = '';
             document.getElementById('category_parent_id').value = '';
             document.getElementById('category_description').value = '';
+            document.getElementById('default_sales_tax_profile_id').value = '';
+            document.getElementById('default_purchase_tax_profile_id').value = '';
+            document.getElementById('category_tax_classification').value = '';
             
             openModal();
         }
@@ -212,6 +251,9 @@
             document.getElementById('category_name').value = category.name;
             document.getElementById('category_parent_id').value = category.parent_id || '';
             document.getElementById('category_description').value = category.description || '';
+            document.getElementById('default_sales_tax_profile_id').value = category.default_sales_tax_profile_id || '';
+            document.getElementById('default_purchase_tax_profile_id').value = category.default_purchase_tax_profile_id || '';
+            document.getElementById('category_tax_classification').value = category.tax_classification || '';
             
             openModal();
         }
