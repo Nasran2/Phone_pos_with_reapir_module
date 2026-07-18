@@ -55,7 +55,7 @@
         </div>
 
         <div class="flex items-center gap-3 shrink-0">
-            <form id="settings-reset-form" method="POST" action="{{ route('settings.' . $section['route'] . '.reset') }}" onsubmit="return confirm('Reset {{ $section['label'] }} to defaults?')">
+            <form id="settings-reset-form" method="POST" action="{{ route('settings.' . $section['route'] . '.reset') }}" onsubmit="return confirmAction(event, 'Reset {{ $section['label'] }} to defaults?')">
                 @csrf
             </form>
             <button type="submit" form="settings-reset-form" @disabled(!$canUpdateSettings) class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
@@ -221,7 +221,7 @@
                             </label>
                             
                             <div class="flex gap-4 pt-2">
-                                <button type="submit" name="apply_to_all_products" value="1" class="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700" onclick="return confirm('Apply Tax Mode to All Products?\n\nThis will remove individual product tax-mode overrides and make all products follow the global setting.\n\nCompleted sales, completed purchases, returns, reports, and historical financial records will not be changed.')">
+                                <button type="submit" name="apply_to_all_products" value="1" class="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700" onclick="return confirmAction(event, 'Apply Tax Mode to All Products? This will remove individual product tax-mode overrides and make all products follow the global setting. Completed sales, reports, and historical records will not be changed.')">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                                     Apply Global Setting to All Products
                                 </button>

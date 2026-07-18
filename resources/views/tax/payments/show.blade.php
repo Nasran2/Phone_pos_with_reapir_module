@@ -103,7 +103,7 @@
             <div class="bg-white rounded-xl border border-red-200 shadow-sm overflow-hidden p-5">
                 <h3 class="font-semibold text-slate-800 mb-2 text-red-600">Reverse Payment</h3>
                 <p class="text-sm text-slate-500 mb-4">Reversing will subtract this amount from the allocated tax periods and reopen their balances.</p>
-                <form action="{{ route('tax.payments.reverse', $payment) }}" method="POST" onsubmit="return confirm('Are you sure you want to reverse this payment?');">
+                <form action="{{ route('tax.payments.reverse', $payment) }}" method="POST" onsubmit="return confirmAction(event, 'Are you sure you want to reverse this payment?');">
                     @csrf
                     <div class="mb-3">
                         <input type="text" name="reversal_reason" placeholder="Reason for reversal..." required class="w-full text-sm border-slate-300 rounded-lg focus:ring-red-500 focus:border-red-500">

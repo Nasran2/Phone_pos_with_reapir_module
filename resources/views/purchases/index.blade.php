@@ -102,7 +102,7 @@
                                     <a href="{{ route('purchases.download', $purchase) }}" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Download PDF"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a>
                                     @endif
                                     @if(auth()->user()->hasPermission('purchase.delete'))
-                                    <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Delete purchase {{ $purchase->displayNo() }}?')">
+                                    <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirmAction(event, 'Delete purchase {{ $purchase->displayNo() }}?')">
                                         @csrf @method('DELETE')
                                         <button class="p-1.5 rounded-lg text-red-600 hover:bg-red-50" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
                                     </form>

@@ -389,7 +389,7 @@ class PurchaseController extends Controller
     private function calculateTotals(array $items, array $validated): array
     {
         $taxService = app(\App\Services\TaxCalculationService::class);
-        $globalTaxMode = \App\Models\Setting::get('default_tax_mode', 'exclusive');
+        $globalTaxMode = \App\Support\SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
         
         $calculatedItems = [];
         $calculatedSubtotal = 0;

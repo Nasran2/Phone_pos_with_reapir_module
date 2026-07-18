@@ -195,7 +195,7 @@ class RetailPosController extends Controller
 
             // --- TAX CALCULATION BEGIN ---
             $taxService = app(\App\Services\TaxCalculationService::class);
-            $globalTaxMode = \App\Models\Setting::get('default_tax_mode', 'exclusive');
+            $globalTaxMode = \App\Support\SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
             $invoiceDiscountType = $request->discount_type ?? 'fixed';
             $invoiceDiscountAmount = (float) ($request->discount_amount ?? 0);
             

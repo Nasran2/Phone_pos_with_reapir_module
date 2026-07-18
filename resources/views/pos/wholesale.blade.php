@@ -932,7 +932,7 @@
                 // Push custom details into cart array
                 addProductToCart() {
                     if (this.modalQuantity > this.selectedProduct.stock) {
-                        alert('Error: Cannot add more than available stock (' + parseInt(this.selectedProduct.stock) + ')!');
+                        Swal.fire({ text: 'Error: Cannot add more than available stock (' + parseInt(this.selectedProduct.stock) + ')!', icon: 'error' });
                         return;
                     }
                     
@@ -951,7 +951,7 @@
                         if (this.selectedProduct.category_slug === 'smartphones' && serialNo) {
                             let isDuplicate = this.cart.some(item => item.product_id === this.selectedProduct.id && item.serial_no === serialNo);
                             if (isDuplicate) {
-                                alert('This specific IMEI is already in the cart!');
+                                Swal.fire({ text: 'This specific IMEI is already in the cart!', icon: 'warning' });
                                 return;
                             }
                         }
@@ -993,7 +993,7 @@
                         item.quantity++;
                         this.recalculateCartTotals();
                     } else {
-                        alert('Cannot add more than available stock quantity (' + parseInt(item.stock) + ')!');
+                        Swal.fire({ text: 'Cannot add more than available stock quantity (' + parseInt(item.stock) + ')!', icon: 'warning' });
                     }
                 },
 
@@ -1010,16 +1010,26 @@
                 },
 
                 clearCart() {
-                    if (confirm('Are you sure you want to clear the current transaction cart?')) {
-                        this.cart = [];
-                        this.globalDiscountType = 'fixed';
-                        this.globalDiscountValue = 0;
-                        this.paidAmount = 0;
-                        this.paymentRows = [];
-                        this.useMultiplePayments = false;
-                        this.shippingCost = 0;
-                        this.recalculateCartTotals();
-                    }
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'Clear the current transaction cart?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#3b82f6',
+                        confirmButtonText: 'Yes, clear it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.cart = [];
+                            this.globalDiscountType = 'fixed';
+                            this.globalDiscountValue = 0;
+                            this.paidAmount = 0;
+                            this.paymentRows = [];
+                            this.useMultiplePayments = false;
+                            this.shippingCost = 0;
+                            this.recalculateCartTotals();
+                        }
+                    });
                 },
 
                 // Calcs totals
@@ -1148,7 +1158,7 @@
                 // Creates customer via AJAX
                 quickCreateCustomer() {
                     if (!this.customerForm.name) {
-                        alert('Please enter a name for the customer.');
+                        Swal.fire({ text: 'Please enter a name for the customer.', icon: 'warning' });
                         return;
                     }
                     
@@ -1168,7 +1178,7 @@
                             this.showAddCustomerModal = false;
                             this.customerForm = { name: '', phone: '', email: '' };
                         } else {
-                            alert('Failed to create customer: ' + data.message);
+                            Swal.fire({ text: 'Failed to create customer: ' + data.message, icon: 'error' });
                         }
                     });
                 },
@@ -1176,7 +1186,7 @@
                 // Submits checkout details to Laravel backend controller
                 submitPOSCheckout() {
                     if (this.cart.length === 0) {
-                        alert('Please add products to the cart before checking out.');
+                        Swal.fire({ text: 'Please add products to the cart before checking out.', icon: 'warning' });
                         return;
                     }
 
@@ -1220,7 +1230,7 @@
                             this.showSuccessModal = true;
                             this.currentHoldId = null;
                         } else {
-                            alert('Checkout error: ' + data.message);
+                            Swal.fire({ text: 'Checkout error: ' + data.message, icon: 'error' });
                         }
                     });
                 },
@@ -1228,14 +1238,14 @@
                 // Puts a transaction on hold (Local storage/cookies mapping is standard)
                 holdCurrentSale() {
                     if (this.cart.length === 0) {
-                        alert('No products in cart to hold.');
+                        Swal.fire({ text: 'No products in cart to hold.', icon: 'warning' });
                         return;
                     }
 
                     const holdRef = 'HOLD-' + Math.floor(1000 + Math.random() * 9000);
                     
                     // Simple AJAX or prompt save (we can insert directly or use local state, let's insert standard hold)
-                    alert('Sale placed on hold with Reference: ' + holdRef);
+                    Swal.fire({ text: 'Sale placed on hold with Reference: ' + holdRef, icon: 'success' });
                     this.cart = [];
                     this.paidAmount = 0;
                 },
@@ -1255,11 +1265,11 @@
                 },
 
                 printReceipt(format) {
-                    alert('Sending print signal for ' + format + ' size thermal receipt.');
+                    Swal.fire({ text: 'Sending print signal for ' + format + ' size thermal receipt.', icon: 'info' });
                 },
 
                 shareWhatsApp() {
-                    alert('Opening WhatsApp sharing link for invoice details.');
+                    Swal.fire({ text: 'Opening WhatsApp sharing link for invoice details.', icon: 'info' });
                 },
 
                 resetPOSForNewSale() {

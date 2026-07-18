@@ -187,7 +187,7 @@ class SaleReturnController extends Controller
                     
                     // Fallback tax calculation for old return (no sale item)
                     $taxService = app(\App\Services\TaxCalculationService::class);
-                    $globalTaxMode = \App\Models\Setting::get('default_tax_mode', 'exclusive');
+                    $globalTaxMode = \App\Support\SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
                     $productTaxMode = $product->tax_mode ?? 'use_global';
                     $resolvedTaxMode = $taxService->resolveTaxMode(null, $productTaxMode === 'use_global' ? null : $productTaxMode, $globalTaxMode);
                     

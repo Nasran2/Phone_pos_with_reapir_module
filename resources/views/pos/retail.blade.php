@@ -1011,7 +1011,7 @@
                                 existing.quantity++;
                                 this.updateLineTotal(existing);
                             } else {
-                                alert('Cannot add more than available stock quantity!');
+                                Swal.fire({ text: 'Cannot add more than available stock quantity!', icon: 'warning' });
                             }
                             return;
                         }
@@ -1022,7 +1022,7 @@
                     if (product.category_slug === 'smartphones' && serialNo) {
                         let isDuplicate = this.cart.some(item => item.product_id === product.id && item.serial_no === serialNo);
                         if (isDuplicate) {
-                            alert('This specific IMEI is already in the cart!');
+                            Swal.fire({ text: 'This specific IMEI is already in the cart!', icon: 'warning' });
                             return;
                         }
                     }
@@ -1060,7 +1060,7 @@
                             existing.quantity++;
                             this.updateLineTotal(existing);
                         } else {
-                            alert('Cannot add more than available stock quantity!');
+                            Swal.fire({ text: 'Cannot add more than available stock quantity!', icon: 'warning' });
                         }
                     } else {
                         this.cart.push({
@@ -1110,11 +1110,11 @@
 
                 saveEditItem() {
                     if (this.editModalQty > this.activeEditItem.stock) {
-                        alert('Cannot add more than available stock quantity (' + parseInt(this.activeEditItem.stock) + ')!');
+                        Swal.fire({ text: 'Cannot add more than available stock quantity (' + parseInt(this.activeEditItem.stock) + ')!', icon: 'warning' });
                         return;
                     }
                     if (this.editModalQty < 1 || isNaN(this.editModalQty)) {
-                        alert('Quantity must be at least 1!');
+                        Swal.fire({ text: 'Quantity must be at least 1!', icon: 'warning' });
                         return;
                     }
                     
@@ -1134,7 +1134,7 @@
                         item.quantity++;
                         this.updateLineTotal(item);
                     } else {
-                        alert('Cannot add more than available stock quantity (' + parseInt(item.stock) + ')!');
+                        Swal.fire({ text: 'Cannot add more than available stock quantity (' + parseInt(item.stock) + ')!', icon: 'warning' });
                     }
                 },
 
@@ -1148,7 +1148,7 @@
                 // Manual input constraint clamp
                 clampCartQuantity(item) {
                     if (item.quantity > item.stock) {
-                        alert('Clamped quantity to maximum available stock (' + parseInt(item.stock) + ')!');
+                        Swal.fire({ text: 'Clamped quantity to maximum available stock (' + parseInt(item.stock) + ')!', icon: 'info' });
                         item.quantity = item.stock;
                     }
                     if (item.quantity < 1 || isNaN(item.quantity)) {
@@ -1167,13 +1167,23 @@
                 },
 
                 clearCart() {
-                    if (confirm('Clear the current transaction cart?')) {
-                        this.cart = [];
-                        this.globalDiscountType = 'fixed';
-                        this.globalDiscountValue = 0;
-                        this.shippingCost = 0;
-                        this.recalculateCartTotals();
-                    }
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'Clear the current transaction cart?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#3b82f6',
+                        confirmButtonText: 'Yes, clear it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.cart = [];
+                            this.globalDiscountType = 'fixed';
+                            this.globalDiscountValue = 0;
+                            this.shippingCost = 0;
+                            this.recalculateCartTotals();
+                        }
+                    });
                 },
 
                 // Calculations
@@ -1324,7 +1334,7 @@
                 // Hold Cart System (Persisted in localStorage)
                 holdCurrentSale() {
                     if (this.cart.length === 0) {
-                        alert('No products in cart to hold.');
+                        Swal.fire({ text: 'No products in cart to hold.', icon: 'warning' });
                         return;
                     }
 
@@ -1349,7 +1359,7 @@
                     this.holdSales.push(newHold);
                     localStorage.setItem('retail_held_sales', JSON.stringify(this.holdSales));
                     
-                    alert('Sale placed on hold with Reference: ' + holdRef);
+                    Swal.fire({ text: 'Sale placed on hold with Reference: ' + holdRef, icon: 'success' });
                     this.cart = [];
                     this.globalDiscountType = 'fixed';
                     this.globalDiscountValue = 0;
@@ -1446,7 +1456,7 @@
                             // Open success screen
                             this.showSuccessModal = true;
                         } else {
-                            alert('Checkout failed: ' + data.message);
+                            Swal.fire({ text: 'Checkout failed: ' + data.message, icon: 'error' });
                         }
                     });
                 },
