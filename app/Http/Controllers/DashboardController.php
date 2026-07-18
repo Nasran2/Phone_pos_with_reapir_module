@@ -135,6 +135,18 @@ class DashboardController extends Controller
             }
         }
 
+        // 9. Upcoming Cheques Alert
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        $upcomingChequesQuery = DB::table('cheques')
+            ->where('status', 'pending')
+            ->where('cheque_date', '<=', $tomorrow)
+            ->orderBy('cheque_date', 'asc');
+            
+        if ($enableMultiStore && $storeId) {
+            $upcomingChequesQuery->where('store_id', $storeId);
+        }
+        $upcomingCheques = $upcomingChequesQuery->get();
+
         return view('dashboard', compact(
             'totalSalesToday',
             'retailSalesToday',
@@ -162,7 +174,8 @@ class DashboardController extends Controller
             'paymentsSummary',
             'enableMultiStore',
             'stores',
-            'storeId'
+            'storeId',
+            'upcomingCheques'
         ));
     }
 }

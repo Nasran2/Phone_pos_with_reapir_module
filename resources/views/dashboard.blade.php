@@ -68,6 +68,43 @@
 
     <!-- Main Dashboard Body (Scrollable Content) -->
     <div class="p-6 md:p-8 space-y-6 flex-1 w-full overflow-y-auto">
+        
+        <!-- Upcoming Cheques Alert Banner -->
+        @if(isset($upcomingCheques) && $upcomingCheques->count() > 0)
+            <div class="bg-amber-50 border border-amber-200 border-l-4 border-l-amber-500 p-4 rounded-xl shadow-xs">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 mt-0.5">
+                        <svg class="h-5 w-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3 w-full">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-extrabold text-amber-800 uppercase tracking-wide">Action Required: {{ $upcomingCheques->count() }} Upcoming Cheque(s)</h3>
+                            <a href="{{ route('cheques.dashboard') }}" class="text-xs font-bold text-amber-700 bg-amber-100/50 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition">View Dashboard &rarr;</a>
+                        </div>
+                        <div class="mt-2 text-xs text-amber-700 font-medium">
+                            <ul class="list-disc pl-5 space-y-1.5">
+                                @foreach($upcomingCheques->take(3) as $cheque)
+                                    <li>
+                                        <strong class="font-bold text-amber-900">{{ ucfirst($cheque->cheque_type) }} ({{ $cheque->cheque_type === 'incoming' ? ($cheque->received_from ?: 'Customer') : ($cheque->issued_to ?: 'Supplier') }})</strong> - 
+                                        <span class="font-extrabold">{{ \App\Support\SystemSettings::money((float)$cheque->amount) }}</span> 
+                                        <span class="text-amber-600 ml-1">
+                                            (No: {{ $cheque->cheque_number }} | Bank: {{ $cheque->bank_name ?? 'N/A' }} | 
+                                            Date: <span class="{{ $cheque->cheque_date < date('Y-m-d') ? 'text-red-600 font-bold' : ($cheque->cheque_date == date('Y-m-d') ? 'text-amber-800 font-bold' : '') }}">{{ $cheque->cheque_date }}</span>)
+                                        </span>
+                                    </li>
+                                @endforeach
+                                @if($upcomingCheques->count() > 3)
+                                    <li class="pt-1"><em class="text-amber-600">And {{ $upcomingCheques->count() - 3 }} more cheque(s)...</em></li>
+                                @endif
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- 5 Stats Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             <!-- 1. Total Sales Today -->

@@ -742,10 +742,37 @@
                         <span>Total Payable:</span>
                         <span x-text="'Rs. ' + formatMoney(successData ? successData.payable : 0)"></span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>Paid Split:</span>
-                        <span x-text="'Rs. ' + formatMoney(successData ? successData.paid : 0)"></span>
-                    </div>
+                    
+                    <template x-if="successData && successData.payment_rows && successData.payment_rows.length > 0">
+                        <div class="border-t border-dashed border-slate-300 mt-1.5 pt-1.5 space-y-1">
+                            <template x-for="(row, index) in successData.payment_rows" :key="index">
+                                <div>
+                                    <div class="flex justify-between font-semibold">
+                                        <span x-text="'Paid (' + row.method + '):'"></span>
+                                        <span x-text="'Rs. ' + formatMoney(row.amount)"></span>
+                                    </div>
+                                    <template x-if="row.method === 'Cheque'">
+                                        <div class="text-[9px] text-slate-500 text-left mt-0.5 leading-tight">
+                                            <span x-text="'Chq No: ' + (row.cheque_number || 'N/A')"></span><br>
+                                            <span x-text="'Date: ' + (row.cheque_date || 'N/A')"></span><br>
+                                            <span x-text="'Bank: ' + (row.bank_name || 'N/A')"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="row.method === 'Bank Transfer' && row.reference_number">
+                                        <div class="text-[9px] text-slate-500 text-left mt-0.5">
+                                            <span x-text="'Ref: ' + row.reference_number"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="!(successData && successData.payment_rows && successData.payment_rows.length > 0)">
+                        <div class="flex justify-between font-semibold mt-1.5 pt-1.5 border-t border-dashed border-slate-300">
+                            <span>Paid Total:</span>
+                            <span x-text="'Rs. ' + formatMoney(successData ? successData.paid : 0)"></span>
+                        </div>
+                    </template>
                     <div class="flex justify-between text-emerald-600 font-bold">
                         <span>Change Cash:</span>
                         <span x-text="'Rs. ' + formatMoney(successData ? successData.change : 0)"></span>
@@ -1437,6 +1464,7 @@
                                 discount: this.calculateDiscountAmount(),
                                 payable: payable,
                                 paid: totalPaid,
+                                payment_rows: JSON.parse(JSON.stringify(this.paymentRows)),
                                 change: data.change,
                                 points_earned: data.points_earned
                             };

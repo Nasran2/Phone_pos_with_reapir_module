@@ -662,61 +662,132 @@
 
     <!-- SCREEN 10: Payment Success Screen Modal -->
     <div x-show="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center flex flex-col items-center justify-between">
-            <!-- Icon -->
-            <div class="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12"/>
-                </svg>
-            </div>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 flex flex-col justify-between"
+             @click.away="showSuccessModal = false">
             
-            <h3 class="text-lg font-black text-slate-850">Checkout Successful</h3>
-            <p class="text-xs text-slate-400 mt-1 font-semibold">Invoice has been successfully created and recorded.</p>
+            <div class="text-center pb-4 border-b border-slate-100">
+                <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h3 class="text-base font-black text-slate-800 leading-none">Checkout Successful</h3>
+                <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">Invoice registered successfully</p>
+            </div>
 
-            <div class="w-full my-5 p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2.5 text-xs text-slate-500 text-left font-medium">
-                <div class="flex justify-between">
-                    <span>Invoice No:</span>
-                    <span class="font-bold text-slate-800" x-text="checkoutSuccessData.invoice_no"></span>
+            <!-- Receipt layout inside modal -->
+            <div class="my-4 bg-slate-50 border border-slate-200/50 rounded-2xl p-4 font-mono text-[10px] text-slate-700 space-y-3 max-h-[300px] overflow-y-auto leading-relaxed" id="receipt-print-area">
+                <div class="text-center">
+                    <h4 class="font-extrabold text-xs text-slate-900 uppercase">Phone Shop POS</h4>
+                    <p class="text-[9px] text-slate-500 leading-tight">Wholesale & Distribution POS</p>
+                    <p class="text-[8px] text-slate-500">Colombo, Sri Lanka &bull; +94 76 247 2822</p>
                 </div>
-                <div class="flex justify-between">
-                    <span>Total Amount Paid:</span>
-                    <span class="font-extrabold text-emerald-650" x-text="'Rs. ' + formatMoney(checkoutSuccessData.paid_amount || 0)"></span>
+                
+                <div class="border-t border-dashed border-slate-300 pt-2 space-y-0.5">
+                    <p><strong>Invoice:</strong> <span x-text="checkoutSuccessData ? checkoutSuccessData.invoice_no : ''"></span></p>
+                    <p><strong>Date:</strong> <span x-text="checkoutSuccessData ? checkoutSuccessData.date : ''"></span></p>
+                    <p><strong>Cashier:</strong> {{ auth()->user()->name }}</p>
+                    <p><strong>Customer:</strong> <span x-text="checkoutSuccessData ? checkoutSuccessData.customer : ''"></span></p>
                 </div>
-                <div class="flex justify-between">
-                    <span>Change Return:</span>
-                    <span class="font-extrabold text-blue-600" x-text="'Rs. ' + formatMoney(checkoutSuccessData.change || 0)"></span>
+
+                <table class="w-full border-t border-dashed border-slate-300 pt-2 text-left">
+                    <thead>
+                        <tr class="font-bold border-b border-slate-200 pb-1">
+                            <th>Item</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in (checkoutSuccessData ? checkoutSuccessData.items : [])">
+                            <tr class="border-b border-slate-100/50">
+                                <td class="py-1">
+                                    <span x-text="item.name"></span>
+                                    <template x-if="item.serial_no">
+                                        <span class="block text-[8px] text-slate-500 font-bold" x-text="'IMEI: ' + item.serial_no"></span>
+                                    </template>
+                                </td>
+                                <td class="text-center py-1" x-text="item.quantity"></td>
+                                <td class="text-right py-1" x-text="'Rs. ' + formatMoney(item.line_total)"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+
+                <div class="border-t border-dashed border-slate-300 pt-2 space-y-1 text-right">
+                    <div class="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.subtotal : 0)"></span>
+                    </div>
+                    <div class="flex justify-between text-red-650 font-semibold" x-show="checkoutSuccessData && checkoutSuccessData.discount > 0">
+                        <span>Discount:</span>
+                        <span x-text="'-Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.discount : 0)"></span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1">
+                        <span>Total Payable:</span>
+                        <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.payable : 0)"></span>
+                    </div>
+                    
+                    <template x-if="checkoutSuccessData && checkoutSuccessData.payment_rows && checkoutSuccessData.payment_rows.length > 0">
+                        <div class="border-t border-dashed border-slate-300 mt-1.5 pt-1.5 space-y-1">
+                            <template x-for="(row, index) in checkoutSuccessData.payment_rows" :key="index">
+                                <div>
+                                    <div class="flex justify-between font-semibold">
+                                        <span x-text="'Paid (' + row.method + '):'"></span>
+                                        <span x-text="'Rs. ' + formatMoney(row.amount)"></span>
+                                    </div>
+                                    <template x-if="row.method === 'Cheque'">
+                                        <div class="text-[9px] text-slate-500 text-left mt-0.5 leading-tight">
+                                            <span x-text="'Chq No: ' + (row.cheque_number || 'N/A')"></span><br>
+                                            <span x-text="'Date: ' + (row.cheque_date || 'N/A')"></span><br>
+                                            <span x-text="'Bank: ' + (row.bank_name || 'N/A')"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="row.method === 'Bank Transfer' && row.reference_number">
+                                        <div class="text-[9px] text-slate-500 text-left mt-0.5">
+                                            <span x-text="'Ref: ' + row.reference_number"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="!(checkoutSuccessData && checkoutSuccessData.payment_rows && checkoutSuccessData.payment_rows.length > 0)">
+                        <div class="flex justify-between font-semibold mt-1.5 pt-1.5 border-t border-dashed border-slate-300">
+                            <span>Paid Total:</span>
+                            <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.paid_amount : 0)"></span>
+                        </div>
+                    </template>
+                    <div class="flex justify-between text-emerald-600 font-bold">
+                        <span>Change Cash:</span>
+                        <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.change : 0)"></span>
+                    </div>
+                </div>
+
+                <div class="text-center border-t border-dashed border-slate-300 pt-2 mt-2 text-[8px] text-slate-400">
+                    <p>Thank you for shopping with us!</p>
+                    <p class="font-extrabold uppercase mt-1 text-[7px] tracking-wider">Powered by {{ config('app.developer.name', 'twinsofte.com') }}</p>
                 </div>
             </div>
 
-            <!-- Receipts / Actions -->
-            <div class="space-y-3 w-full">
-                <!-- Thermal receipt printing format selections -->
-                <div class="grid grid-cols-3 gap-2 text-[10px] font-bold">
-                    <button @click="printReceipt('58mm')" class="py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/50 rounded-xl text-slate-700 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
-                        <span>58mm Roll</span>
+            <!-- Print Actions -->
+            <div class="space-y-2.5">
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                    <button onclick="window.print()" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2m-2-9v10H8V9"/></svg>
+                        <span>58mm / 80mm</span>
                     </button>
-                    <button @click="printReceipt('80mm')" class="py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/50 rounded-xl text-slate-700 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
-                        <span>80mm Roll</span>
-                    </button>
-                    <button @click="printReceipt('A4')" class="py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200/50 rounded-xl text-slate-700 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        <span>A4 Invoice</span>
+                    <button @click="showSuccessModal = false" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer">
+                        Close Preview
                     </button>
                 </div>
-
-                <!-- Share to WhatsApp -->
-                <button @click="shareWhatsApp()" class="w-full py-3 bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/10 flex items-center justify-center gap-1.5 cursor-pointer">
-                    <!-- WhatsApp SVG Icon -->
-                    <svg class="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 24 24">
+                <button @click="shareWhatsApp()" class="w-full py-2.5 bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M17.472 14.382c-.022-.014-.508-.25-1.5-.742-.16-.076-.27-.114-.38-.114-.11 0-.22.038-.32.19l-.43.56c-.1.15-.22.18-.33.12-.12-.06-.5-.18-.95-.58-.35-.31-.59-.7-.66-.82-.07-.12-.01-.18.05-.24.05-.05.12-.14.18-.2.06-.06.08-.12.12-.2.04-.07.02-.13-.01-.2-.03-.08-.38-.92-.52-1.27-.14-.35-.29-.3-.38-.3h-.33c-.1 0-.27.04-.42.2-.15.17-.58.57-.58 1.39 0 .82.6 1.62.68 1.73.08.12 1.18 1.8 2.87 2.53.4.17.72.28.96.35.4.12.76.1 1.05.06.32-.05 1-.4 1.14-.78.14-.38.14-.7.1-.78-.04-.08-.13-.12-.24-.18zM12 2A10 10 0 0 0 2 12a9.9 9.9 0 0 0 1.52 5.23L2 22l4.9-1.28A9.9 9.9 0 0 0 12 22a10 10 0 0 0 10-10A10 10 0 0 0 12 2z"/>
                     </svg>
-                    <span>Share invoice via WhatsApp</span>
+                    <span>Share via WhatsApp</span>
                 </button>
-
-                <!-- New Sale button -->
-                <button @click="resetPOSForNewSale()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 cursor-pointer">New Sale (ESC)</button>
+                <button @click="resetPOSForNewSale()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl transition cursor-pointer">
+                    New Sale (ESC)
+                </button>
             </div>
         </div>
     </div>
@@ -1224,7 +1295,14 @@
                         if (data.success) {
                             this.checkoutSuccessData = {
                                 invoice_no: data.invoice_no,
-                                paid_amount: checkoutRows.filter(row => !['Cheque','Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+                                date: new Date().toLocaleString(),
+                                customer: this.customers.find(c => c.id == this.selectedCustomerId)?.name || 'Walk-in Customer',
+                                items: JSON.parse(JSON.stringify(this.cart)),
+                                subtotal: this.calculateSubtotal(),
+                                discount: this.calculateDiscountAmount(),
+                                payable: this.calculateGrandTotal(),
+                                paid_amount: checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+                                payment_rows: JSON.parse(JSON.stringify(checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)))),
                                 change: data.change
                             };
                             this.showSuccessModal = true;
