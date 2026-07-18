@@ -98,19 +98,48 @@ class PurchaseReturnController extends Controller
                 }
 
                 $cost = (float) ($purchaseItem->unit_cost ?: $purchaseItem->cost_price);
-                $lineTotal = round($quantity * $cost, 2);
-                $totalAmount += $lineTotal;
+                $ratio = $purchaseItem->quantity > 0 ? ($quantity / $purchaseItem->quantity) : 0;
+                
+                $calc = [
+                    'gross_amount' => round($purchaseItem->gross_amount * $ratio, 2),
+                    'discount_type' => $purchaseItem->discount_type,
+                    'discount_value' => $purchaseItem->discount_value,
+                    'amount_after_discount' => round($purchaseItem->amount_after_discount * $ratio, 2),
+                    'tax_mode' => $purchaseItem->tax_mode,
+                    'tax_status' => $purchaseItem->tax_status,
+                    'tax_rate' => $purchaseItem->tax_rate,
+                    'taxable_amount' => round($purchaseItem->taxable_amount * $ratio, 2),
+                    'included_tax_amount' => round($purchaseItem->included_tax_amount * $ratio, 2),
+                    'added_tax_amount' => round($purchaseItem->added_tax_amount * $ratio, 2),
+                    'tax_amount' => round($purchaseItem->tax_amount * $ratio, 2),
+                    'line_total' => round($purchaseItem->line_total * $ratio, 2),
+                ];
+
+                $totalAmount += $calc['line_total'];
                 $returnItems[] = [
                     'purchase_item_id' => $purchaseItem->id,
                     'product_id' => $purchaseItem->product_id,
                     'quantity' => $quantity,
                     'cost_price' => $cost,
-                    'subtotal' => $lineTotal,
+                    'subtotal' => $calc['line_total'],
+                    'calc' => $calc,
                 ];
             }
 
             if (empty($returnItems)) {
                 throw new \RuntimeException('Enter at least one return quantity.');
+            }
+
+            // Aggregate header tax totals
+            $taxableTotal = 0;
+            $includedTaxTotal = 0;
+            $addedTaxTotal = 0;
+            $taxTotal = 0;
+            foreach ($returnItems as $item) {
+                $taxableTotal += $item['calc']['taxable_amount'] ?? 0;
+                $includedTaxTotal += $item['calc']['included_tax_amount'] ?? 0;
+                $addedTaxTotal += $item['calc']['added_tax_amount'] ?? 0;
+                $taxTotal += $item['calc']['tax_amount'] ?? 0;
             }
 
             $returnNo = $this->generateReturnNo();
@@ -120,6 +149,11 @@ class PurchaseReturnController extends Controller
                 'return_no' => $returnNo,
                 'return_date' => $validated['return_date'],
                 'total_amount' => round($totalAmount, 2),
+                'taxable_total' => $taxableTotal,
+                'included_tax_total' => $includedTaxTotal,
+                'added_tax_total' => $addedTaxTotal,
+                'tax_total' => $taxTotal,
+                'payable_total' => round($totalAmount, 2),
                 'refund_method' => $validated['refund_method'],
                 'refund_amount' => min((float) ($validated['refund_amount'] ?? $totalAmount), $totalAmount),
                 'refund_status' => $validated['refund_status'],
@@ -129,7 +163,26 @@ class PurchaseReturnController extends Controller
             ]);
 
             foreach ($returnItems as $item) {
-                $purchaseReturn->items()->create($item);
+                $calc = $item['calc'];
+                $purchaseReturn->items()->create([
+                    'purchase_item_id' => $item['purchase_item_id'],
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'cost_price' => $item['cost_price'],
+                    'subtotal' => $item['subtotal'],
+                    'gross_amount' => $calc['gross_amount'],
+                    'discount_type' => $calc['discount_type'],
+                    'discount_value' => $calc['discount_value'],
+                    'amount_after_discount' => $calc['amount_after_discount'],
+                    'tax_mode' => $calc['tax_mode'],
+                    'tax_status' => $calc['tax_status'],
+                    'tax_rate' => $calc['tax_rate'],
+                    'taxable_amount' => $calc['taxable_amount'],
+                    'included_tax_amount' => $calc['included_tax_amount'],
+                    'added_tax_amount' => $calc['added_tax_amount'],
+                    'tax_amount' => $calc['tax_amount'],
+                    'line_total' => $calc['line_total'],
+                ]);
                 $stock = ProductStoreStock::firstOrCreate([
                     'product_id' => $item['product_id'],
                     'store_id' => $purchaseReturn->purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)

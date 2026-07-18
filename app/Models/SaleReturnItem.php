@@ -20,6 +20,18 @@ class SaleReturnItem extends Model
         'cost_price',
         'profit_amount',
         'subtotal',
+        'return_type',
+        'stock_action',
+        'gross_amount',
+        'discount_type',
+        'discount_value',
+        'amount_after_discount',
+        'tax_mode',
+        'tax_status',
+        'tax_rate',
+        'taxable_amount',
+        'included_tax_amount',
+        'added_tax_amount',
     ];
 
     protected $casts = [

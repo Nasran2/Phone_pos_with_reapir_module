@@ -342,7 +342,7 @@ return [
             ['title' => 'Business Tax Profile', 'description' => 'Tax registration and global tax configuration.', 'fields' => [
                 ['key' => 'enable_tax_system', 'label' => 'VAT Enabled', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
                 ['key' => 'vat_registered', 'label' => 'VAT Registered', 'type' => 'toggle', 'default' => true, 'rules' => $commonToggle],
-                ['key' => 'tax_calculation_method', 'label' => 'Tax Method', 'type' => 'select', 'default' => 'exclusive', 'options' => ['inclusive' => 'Tax Inclusive', 'exclusive' => 'Tax Exclusive'], 'rules' => $shortText],
+                ['key' => 'default_tax_mode', 'label' => 'Default Tax Calculation Mode', 'type' => 'select', 'default' => 'exclusive', 'options' => ['inclusive' => 'Tax Inclusive', 'exclusive' => 'Tax Exclusive'], 'rules' => $shortText],
                 ['key' => 'tin', 'label' => 'TIN', 'type' => 'text', 'default' => '', 'rules' => $shortText],
                 ['key' => 'vat_registration_number', 'label' => 'VAT Registration Number', 'type' => 'text', 'default' => '', 'rules' => $shortText],
                 ['key' => 'vat_effective_date', 'label' => 'VAT Registration Date', 'type' => 'text', 'default' => '', 'rules' => $shortText], // A date input would be better, but text works for settings

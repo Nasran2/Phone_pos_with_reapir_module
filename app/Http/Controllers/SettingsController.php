@@ -48,7 +48,42 @@ class SettingsController extends Controller
         cache()->forget('settings');
         cache()->forget('business_settings');
 
-        return back()->with('success', $section['label'] . ' saved successfully.');
+        $successMessage = $section['label'] . ' saved successfully.';
+
+        if ($section['slug'] === 'tax') {
+            if ($request->has('apply_to_all_products')) {
+                $onlyUseGlobal = $request->input('only_update_use_global');
+                $query = DB::table('products');
+                if ($onlyUseGlobal) {
+                    $query->where('tax_mode', 'use_global');
+                }
+                
+                $count = $query->update(['tax_mode' => 'use_global']);
+                $taxMode = $request->input('default_tax_mode', 'exclusive');
+                $modeLabel = $taxMode === 'inclusive' ? 'Tax Inclusive' : 'Tax Exclusive';
+                $successMessage = "{$modeLabel} has been applied as the global default to {$count} products.";
+                
+                if (class_exists(\App\Models\ActivityLog::class)) {
+                    $logMessage = "Applied {$modeLabel} as the global default to {$count} products" . 
+                                  ($onlyUseGlobal ? ' (only for products already using global default).' : ' and removed individual product tax-mode overrides.');
+                    
+                    \App\Models\ActivityLog::create([
+                        'user_id' => auth()->id(),
+                        'action' => 'apply_global_tax_mode',
+                        'module' => 'Settings',
+                        'description' => $logMessage,
+                        'ip_address' => request()->ip(),
+                        'user_agent' => request()->userAgent(),
+                    ]);
+                }
+            } elseif ($request->has('save_global_only')) {
+                $taxMode = $request->input('default_tax_mode', 'exclusive');
+                $modeLabel = $taxMode === 'inclusive' ? 'Tax Inclusive' : 'Tax Exclusive';
+                $successMessage = "Global Tax Mode ({$modeLabel}) saved successfully.";
+            }
+        }
+
+        return back()->with('success', $successMessage);
     }
 
     public function reset(string $path): RedirectResponse

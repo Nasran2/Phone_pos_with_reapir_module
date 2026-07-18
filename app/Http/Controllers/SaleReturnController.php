@@ -136,9 +136,26 @@ class SaleReturnController extends Controller
 
                     $unitPrice = (float) ($saleItem->unit_price ?: $saleItem->selling_price);
                     $costPrice = (float) $saleItem->cost_price;
-                    $lineTotal = round($unitPrice * $qty, 2);
+                    $lineTotal = round($unitPrice * $qty, 2); // this is unit price * qty
                     $costTotal = round($costPrice * $qty, 2);
                     $profitTotal = round(($unitPrice - $costPrice) * $qty, 2);
+                    
+                    // Tax calculation proportional to returned qty
+                    $ratio = $saleItem->quantity > 0 ? ($qty / $saleItem->quantity) : 0;
+                    $calc = [
+                        'gross_amount' => round($saleItem->gross_amount * $ratio, 2),
+                        'discount_type' => $saleItem->discount_type,
+                        'discount_value' => $saleItem->discount_value,
+                        'amount_after_discount' => round($saleItem->amount_after_discount * $ratio, 2),
+                        'tax_mode' => $saleItem->tax_mode,
+                        'tax_status' => $saleItem->tax_status,
+                        'tax_rate' => $saleItem->tax_rate,
+                        'taxable_amount' => round($saleItem->taxable_amount * $ratio, 2),
+                        'included_tax_amount' => round($saleItem->included_tax_amount * $ratio, 2),
+                        'added_tax_amount' => round($saleItem->added_tax_amount * $ratio, 2),
+                        'tax_amount' => round($saleItem->tax_amount * $ratio, 2),
+                        'line_total' => round($saleItem->line_total * $ratio, 2),
+                    ];
 
                     $returnItemsData[] = [
                         'sale_item_id' => $saleItem->id,
@@ -147,12 +164,14 @@ class SaleReturnController extends Controller
                         'quantity' => $qty,
                         'unit_price' => $unitPrice,
                         'cost_price' => $costPrice,
-                        'line_total' => $lineTotal,
+                        'line_total' => $calc['line_total'], // Use tax inclusive line total
                         'cost_total' => $costTotal,
                         'profit_total' => $profitTotal,
                         'stock_action' => $inputItem['stock_action'] ?? 'return_to_stock',
                         'sale_item' => $saleItem,
+                        'calc' => $calc,
                     ];
+                    $totalReturnAmount += $calc['line_total'];
                     $totalReturnAmount += $lineTotal;
                     $totalReturnCost += $costTotal;
                     $totalReturnProfit += $profitTotal;
@@ -165,7 +184,25 @@ class SaleReturnController extends Controller
 
                     $product = \App\Models\Product::findOrFail($inputItem['product_id']);
                     $unitPrice = (float) ($inputItem['unit_price'] ?? $product->cost_price);
-                    $lineTotal = round($unitPrice * $qty, 2);
+                    
+                    // Fallback tax calculation for old return (no sale item)
+                    $taxService = app(\App\Services\TaxCalculationService::class);
+                    $globalTaxMode = \App\Models\Setting::get('default_tax_mode', 'exclusive');
+                    $productTaxMode = $product->tax_mode ?? 'use_global';
+                    $resolvedTaxMode = $taxService->resolveTaxMode(null, $productTaxMode === 'use_global' ? null : $productTaxMode, $globalTaxMode);
+                    
+                    $calc = $taxService->calculate([
+                        'unit_price' => $unitPrice,
+                        'quantity' => $qty,
+                        'discount_type' => 'fixed',
+                        'discount_value' => 0,
+                        'invoice_discount_amount' => 0,
+                        'tax_rate' => (float) ($product->tax_rate ?? 0),
+                        'tax_mode' => $resolvedTaxMode,
+                        'tax_status' => $product->tax_status ?? 'taxable',
+                    ]);
+                    
+                    $lineTotal = $calc['line_total'];
                     
                     $returnItemsData[] = [
                         'sale_item_id' => null,
@@ -179,6 +216,7 @@ class SaleReturnController extends Controller
                         'profit_total' => 0,
                         'stock_action' => $inputItem['stock_action'] ?? 'return_to_stock',
                         'sale_item' => null,
+                        'calc' => $calc,
                     ];
                     $totalReturnAmount += $lineTotal;
                     $totalReturnCost += round((float)$product->cost_price * $qty, 2);
@@ -258,6 +296,19 @@ class SaleReturnController extends Controller
                 }
             }
 
+            // Aggregate Tax Totals
+            $taxableTotal = 0;
+            $includedTaxTotal = 0;
+            $addedTaxTotal = 0;
+            $taxTotal = 0;
+            foreach ($returnItemsData as $retData) {
+                $calc = $retData['calc'];
+                $taxableTotal += $calc['taxable_amount'] ?? 0;
+                $includedTaxTotal += $calc['included_tax_amount'] ?? 0;
+                $addedTaxTotal += $calc['added_tax_amount'] ?? 0;
+                $taxTotal += $calc['tax_amount'] ?? 0;
+            }
+
             // Create Return Record
             $saleReturn = SaleReturn::create([
                 'sale_id' => $sale ? $sale->id : null,
@@ -266,6 +317,11 @@ class SaleReturnController extends Controller
                 'return_date' => $validated['return_date'],
                 'return_type' => $validated['return_type'],
                 'total_amount' => $totalReturnAmount,
+                'taxable_total' => $taxableTotal,
+                'included_tax_total' => $includedTaxTotal,
+                'added_tax_total' => $addedTaxTotal,
+                'tax_total' => $taxTotal,
+                'payable_total' => $totalReturnAmount,
                 'refund_method' => $netDifference <= 0 ? $refundMethod : 'No Refund',
                 'refund_amount' => $refundAmount,
                 'refund_status' => $netDifference < 0 ? $this->refundStatus($refundMethod, $refundAmount, abs($netDifference)) : 'Completed',
@@ -276,11 +332,13 @@ class SaleReturnController extends Controller
 
             // Create Return Items
             foreach ($returnItemsData as $retData) {
+                $calc = $retData['calc'];
                 $saleReturn->items()->create([
                     'sale_item_id' => $retData['sale_item_id'],
                     'product_id' => $retData['product_id'],
                     'variant_id' => $retData['variant_id'],
                     'return_type' => $validated['return_type'],
+                    'stock_action' => $retData['stock_action'],
                     'quantity' => $retData['quantity'],
                     'unit_price' => $retData['unit_price'],
                     'refund_amount' => $retData['line_total'],
@@ -288,7 +346,16 @@ class SaleReturnController extends Controller
                     'cost_price' => $retData['cost_price'],
                     'profit_amount' => $retData['profit_total'],
                     'subtotal' => $retData['line_total'],
-                    'stock_action' => $retData['stock_action'],
+                    'gross_amount' => $calc['gross_amount'] ?? 0,
+                    'discount_type' => $calc['discount_type'] ?? null,
+                    'discount_value' => $calc['discount_value'] ?? 0,
+                    'amount_after_discount' => $calc['amount_after_discount'] ?? ($calc['amount_after_item_discount'] ?? 0),
+                    'tax_mode' => $calc['tax_mode'] ?? 'exclusive',
+                    'tax_status' => $calc['tax_status'] ?? 'taxable',
+                    'tax_rate' => $calc['tax_rate'] ?? 0,
+                    'taxable_amount' => $calc['taxable_amount'] ?? 0,
+                    'included_tax_amount' => $calc['included_tax_amount'] ?? 0,
+                    'added_tax_amount' => $calc['added_tax_amount'] ?? 0,
                 ]);
 
                 // Restore Stock or Scrap

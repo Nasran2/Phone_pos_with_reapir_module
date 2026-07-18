@@ -18,6 +18,11 @@ class HoldSale extends Model
         'estimated_total',
         'note',
         'created_by',
+        'taxable_amount',
+        'included_tax_amount',
+        'added_tax_amount',
+        'tax_amount',
+        'payable_amount',
     ];
 
     protected $casts = [

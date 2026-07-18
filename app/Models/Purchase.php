@@ -31,6 +31,13 @@ class Purchase extends Model
         'notes',
         'stock_updated',
         'created_by',
+        'taxable_total',
+        'included_tax_total',
+        'added_tax_total',
+        'tax_total',
+        'rounding_amount',
+        'payable_total',
+        'discount_total',
     ];
 
     protected $casts = [

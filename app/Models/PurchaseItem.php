@@ -23,6 +23,16 @@ class PurchaseItem extends Model
         'retail_price',
         'wholesale_price',
         'subtotal',
+        'gross_amount',
+        'discount_type',
+        'discount_value',
+        'amount_after_discount',
+        'tax_mode',
+        'tax_status',
+        'tax_rate',
+        'taxable_amount',
+        'included_tax_amount',
+        'added_tax_amount',
     ];
 
     protected $casts = [

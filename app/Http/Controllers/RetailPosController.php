@@ -193,16 +193,95 @@ class RetailPosController extends Controller
             $today = date('Y-m-d');
             $invoiceNo = SystemSettings::get('retail_invoice_prefix', 'RETAIL', 'invoice_settings') . '-' . strtoupper(uniqid());
 
-            // Compute total cost price & total profit price
-            $totalCostAmount = 0;
-            foreach ($request->items as $item) {
-                $variant = !empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
-                $cost = $variant ? $variant->cost_price : (DB::table('products')->where('id', $item['product_id'])->value('cost_price') ?: 0);
-                $totalCostAmount += $cost * $item['quantity'];
-            }
-            $totalProfitAmount = $request->payable_amount - $totalCostAmount;
+            // --- TAX CALCULATION BEGIN ---
+            $taxService = app(\App\Services\TaxCalculationService::class);
+            $globalTaxMode = \App\Models\Setting::get('default_tax_mode', 'exclusive');
+            $invoiceDiscountType = $request->discount_type ?? 'fixed';
+            $invoiceDiscountAmount = (float) ($request->discount_amount ?? 0);
+            
+            $preDiscountGrossTotal = collect($request->items)->sum(function($item) {
+                return ((float) $item['quantity']) * ((float) $item['selling_price']);
+            });
 
-            $paymentRows = $mixedPayments->rowsFromRequest($request->all(), (float) $request->payable_amount);
+            $calculatedTotalAmount = 0;
+            $calculatedTaxableTotal = 0;
+            $calculatedIncludedTaxTotal = 0;
+            $calculatedAddedTaxTotal = 0;
+            $calculatedTaxTotal = 0;
+            $calculatedGrandTotal = 0;
+            $totalCostAmount = 0;
+            
+            $processedItems = [];
+            $taxTransactionsData = [];
+
+            foreach ($request->items as $idx => $item) {
+                $product = DB::table('products')->where('id', $item['product_id'])->first();
+                $variant = !empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
+                $itemCost = $variant ? $variant->cost_price : ($product ? $product->cost_price : 0);
+                
+                $qty = (float) $item['quantity'];
+                $price = (float) $item['selling_price'];
+                $totalCostAmount += $itemCost * $qty;
+                
+                $itemGross = $qty * $price;
+                $itemShare = $preDiscountGrossTotal > 0 ? ($itemGross / $preDiscountGrossTotal) : 0;
+                
+                $proRatedInvoiceDiscount = 0;
+                if ($invoiceDiscountType === 'percentage' && $invoiceDiscountAmount > 0) {
+                    $proRatedInvoiceDiscount = $itemGross * ($invoiceDiscountAmount / 100);
+                } elseif ($invoiceDiscountType === 'fixed' && $invoiceDiscountAmount > 0) {
+                    $proRatedInvoiceDiscount = $invoiceDiscountAmount * $itemShare;
+                }
+
+                $itemTaxOverride = $item['tax_mode'] ?? null;
+                $productTaxMode = $product->tax_mode ?? 'use_global';
+                
+                $resolvedTaxMode = $taxService->resolveTaxMode(
+                    $itemTaxOverride,
+                    $productTaxMode === 'use_global' ? null : $productTaxMode,
+                    $globalTaxMode
+                );
+
+                $taxStatus = $item['tax_status'] ?? ($product->tax_status ?? 'taxable');
+                $taxRate = (float) ($item['tax_rate'] ?? 0);
+
+                $calc = $taxService->calculate([
+                    'unit_price' => $price,
+                    'quantity' => $qty,
+                    'discount_type' => $item['discount_type'] ?? 'fixed',
+                    'discount_value' => (float) ($item['discount_amount'] ?? 0),
+                    'invoice_discount_amount' => $proRatedInvoiceDiscount,
+                    'tax_rate' => $taxRate,
+                    'tax_mode' => $resolvedTaxMode,
+                    'tax_status' => $taxStatus,
+                ]);
+                
+                $item['calc'] = $calc;
+                $item['cost_price'] = $itemCost;
+                $item['profit_amount'] = $calc['taxable_amount'] - ($itemCost * $qty);
+                $processedItems[$idx] = $item;
+                
+                $calculatedTotalAmount += $calc['gross_amount'];
+                $calculatedTaxableTotal += $calc['taxable_amount'];
+                $calculatedIncludedTaxTotal += $calc['included_tax_amount'];
+                $calculatedAddedTaxTotal += $calc['added_tax_amount'];
+                $calculatedTaxTotal += $calc['tax_amount'];
+                $calculatedGrandTotal += $calc['line_total'];
+
+                $itemTaxId = $item['tax_id'] ?? null;
+                if ($calc['tax_amount'] > 0 && $itemTaxId) {
+                    if (!isset($taxTransactionsData[$itemTaxId])) {
+                        $taxTransactionsData[$itemTaxId] = ['taxable_amount' => 0, 'tax_amount' => 0];
+                    }
+                    $taxTransactionsData[$itemTaxId]['taxable_amount'] += $calc['taxable_amount'];
+                    $taxTransactionsData[$itemTaxId]['tax_amount'] += $calc['tax_amount'];
+                }
+            }
+            
+            $calculatedPayableTotal = $calculatedGrandTotal;
+            $totalProfitAmount = $calculatedTaxableTotal - $totalCostAmount;
+            
+            $paymentRows = $mixedPayments->rowsFromRequest($request->all(), (float) $calculatedPayableTotal);
 
             // 1. Insert Sales Record
             $saleId = DB::table('sales')->insertGetId([
@@ -210,15 +289,15 @@ class RetailPosController extends Controller
                 'invoice_no' => $invoiceNo,
                 'sale_date' => $today,
                 'pos_type' => 'retail',
-                'total_amount' => $request->total_amount,
-                'discount_type' => $request->discount_type ?? 'fixed',
-                'discount_amount' => $request->discount_amount ?? 0,
-                'tax_amount' => $request->tax_amount ?? 0,
-                'total_tax_amount' => $request->tax_amount ?? 0,
-                'payable_amount' => $request->payable_amount,
+                'total_amount' => $calculatedTotalAmount,
+                'discount_type' => $invoiceDiscountType,
+                'discount_amount' => $invoiceDiscountAmount,
+                'tax_amount' => $calculatedAddedTaxTotal,
+                'total_tax_amount' => $calculatedTaxTotal,
+                'payable_amount' => $calculatedPayableTotal,
                 'paid_amount' => 0,
                 'cheque_hold_amount' => 0,
-                'due_amount' => $request->payable_amount,
+                'due_amount' => $calculatedPayableTotal,
                 'payment_status' => 'Due',
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
@@ -233,56 +312,28 @@ class RetailPosController extends Controller
             ]);
 
             // 2. Insert items and update stock/IMEIs
-            $taxTransactionsData = [];
             $taxRatesData = DB::table('tax_rates')->get()->keyBy('id');
 
-            foreach ($request->items as $item) {
-                $product = DB::table('products')->where('id', $item['product_id'])->first();
+            foreach ($processedItems as $item) {
+                $calc = $item['calc'];
                 $variant = !empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
-                $itemCost = $variant ? $variant->cost_price : ($product ? $product->cost_price : 0);
-                
-                $itemBasePrice = $item['selling_price'];
-                $itemQty = $item['quantity'];
-                $itemDiscount = $item['discount_amount'] ?? 0;
-                $itemDiscountType = $item['discount_type'] ?? 'fixed';
-
-                $itemSubtotal = $itemBasePrice * $itemQty;
-                if ($itemDiscountType === 'percentage') {
-                    $itemSubtotal -= ($itemSubtotal * ($itemDiscount / 100));
-                } else {
-                    $itemSubtotal = max(0, $itemSubtotal - $itemDiscount);
-                }
-
-                $effectiveSellingPrice = $itemQty > 0 ? $itemSubtotal / $itemQty : 0;
-                $itemProfit = ($effectiveSellingPrice - $itemCost) * $itemQty;
-
-                $itemShare = $request->total_amount > 0 ? ($itemSubtotal / $request->total_amount) : 0;
-                $itemDiscountShare = ($request->discount_amount ?? 0) * $itemShare;
-                $taxableAmount = max(0, $itemSubtotal - $itemDiscountShare);
-                $itemTaxRate = $item['tax_rate'] ?? 0;
-                $itemTaxAmount = $taxableAmount * ($itemTaxRate / 100);
-                $itemTaxId = $item['tax_id'] ?? null;
-
-                if ($itemTaxAmount > 0 && $itemTaxId) {
-                    if (!isset($taxTransactionsData[$itemTaxId])) {
-                        $taxTransactionsData[$itemTaxId] = ['taxable_amount' => 0, 'tax_amount' => 0];
-                    }
-                    $taxTransactionsData[$itemTaxId]['taxable_amount'] += $taxableAmount;
-                    $taxTransactionsData[$itemTaxId]['tax_amount'] += $itemTaxAmount;
-                }
 
                 DB::table('sale_items')->insert([
                     'sale_id' => $saleId,
                     'product_id' => $item['product_id'],
                     'variant_id' => $item['variant_id'] ?? null,
-                    'quantity' => $itemQty,
-                    'cost_price' => $itemCost,
-                    'selling_price' => $effectiveSellingPrice,
+                    'quantity' => $calc['quantity'],
+                    'cost_price' => $item['cost_price'],
+                    'selling_price' => $calc['unit_price'],
                     'price_type' => 'retail',
-                    'profit_amount' => $itemProfit,
-                    'subtotal' => $itemSubtotal,
-                    'tax_rate' => $itemTaxRate,
-                    'tax_amount' => $itemTaxAmount,
+                    'profit_amount' => $item['profit_amount'],
+                    'subtotal' => $calc['amount_after_item_discount'],
+                    'tax_rate' => $calc['tax_rate'],
+                    'tax_amount' => $calc['added_tax_amount'],
+                    'tax_mode' => $calc['tax_mode'],
+                    'tax_status' => $calc['tax_status'],
+                    'taxable_amount' => $calc['taxable_amount'],
+                    'included_tax_amount' => $calc['included_tax_amount'],
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
@@ -491,9 +542,12 @@ class RetailPosController extends Controller
                     'quantity' => (float) $item->quantity,
                     'cost_price' => (float) ($item->cost_price ?: $item->product_cost_price),
                     'selling_price' => (float) $item->selling_price,
-                    'discount_amount' => 0,
-                    'discount_type' => 'fixed',
+                    'discount_amount' => (float) ($item->discount_value ?? 0),
+                    'discount_type' => $item->discount_type ?? 'fixed',
                     'line_total' => (float) $item->subtotal,
+                    'tax_mode' => $item->tax_mode,
+                    'tax_status' => $item->tax_status,
+                    'tax_rate' => (float) ($item->tax_rate ?? 0),
                     'note' => '',
                     'stock' => (float) ($item->variant_id ? $item->stock_quantity : $item->stock),
                     'is_smartphone' => $item->category_slug === 'smartphones',

@@ -312,7 +312,7 @@ class ReportController extends Controller
                 ucfirst((string) $this->value($sale, ['pos_type'], 'retail')),
                 $this->value($sale, ['total_amount'], 0),
                 $this->value($sale, ['discount_amount'], 0),
-                $this->value($sale, ['tax_amount'], 0),
+                $this->value($sale, ['total_tax_amount', 'tax_amount'], 0),
                 $this->value($sale, ['payable_amount', 'grand_total', 'total_amount'], 0),
                 $this->value($sale, ['paid_amount'], 0),
                 $this->value($sale, ['due_amount'], 0),
@@ -842,8 +842,8 @@ class ReportController extends Controller
         $salesQuery = $this->applyDate($request, Sale::query(), 'sales', ['sale_date', 'created_at']);
         $purchaseQuery = $this->applyDate($request, Purchase::query(), 'purchases', ['purchase_date', 'created_at']);
 
-        $salesTax = $this->sumColumn($salesQuery, 'sales', ['tax_amount']);
-        $purchaseTax = $this->sumColumn($purchaseQuery, 'purchases', ['tax_amount']);
+        $salesTax = $this->sumColumn($salesQuery, 'sales', ['total_tax_amount', 'tax_amount']);
+        $purchaseTax = $this->sumColumn($purchaseQuery, 'purchases', ['tax_total', 'tax_amount']);
 
         $data = collect([(object) [
             'period' => ucfirst(str_replace('_', ' ', $request->date_filter ?? 'today')),

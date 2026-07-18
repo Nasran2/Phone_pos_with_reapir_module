@@ -198,6 +198,47 @@
                         </div>
                     </section>
                 @endforeach
+                
+                @if($section['slug'] === 'tax')
+                    <section class="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-visible">
+                        <div class="flex items-start gap-4 border-b border-slate-100 px-6 py-5">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-base font-extrabold text-slate-900">Apply Global Tax Mode</h2>
+                                </div>
+                                <p class="mt-1 text-sm text-slate-500">Update existing products with the selected global tax mode.</p>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <label class="flex items-center gap-3 text-sm text-slate-700 font-medium cursor-pointer w-fit">
+                                <input type="checkbox" name="only_update_use_global" value="1" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                Only update products currently using the global default
+                            </label>
+                            
+                            <div class="flex gap-4 pt-2">
+                                <button type="submit" name="apply_to_all_products" value="1" class="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700" onclick="return confirm('Apply Tax Mode to All Products?\n\nThis will remove individual product tax-mode overrides and make all products follow the global setting.\n\nCompleted sales, completed purchases, returns, reports, and historical financial records will not be changed.')">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                    Apply Global Setting to All Products
+                                </button>
+                                <button type="submit" name="save_global_only" value="1" class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+                                    Save Global Setting Only
+                                </button>
+                            </div>
+                            <div class="text-xs text-slate-500 max-w-3xl mt-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li><strong>Save Global Setting Only:</strong> Saves the new global mode and affects new transactions and products using "Use Global Default". Existing individual product overrides are preserved.</li>
+                                    <li><strong>Apply Global Setting to All Products:</strong> Saves the selected global mode and changes every product tax mode to "use_global", removing individual overrides (unless the checkbox above is checked).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                @endif
             </form>
         </div>
     </div>

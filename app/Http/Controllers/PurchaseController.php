@@ -97,10 +97,14 @@ class PurchaseController extends Controller
                 'discount_type' => $validated['discount_type'],
                 'discount_amount' => $totals['overall_discount'],
                 'tax_amount' => $totals['purchase_tax'],
+                'added_tax_total' => $totals['added_tax_total'],
+                'included_tax_total' => $totals['included_tax_total'],
+                'tax_total' => $totals['added_tax_total'] + $totals['included_tax_total'],
                 'shipping_cost' => $totals['shipping_cost'],
                 'shipping_handling' => $validated['shipping_handling'],
                 'grand_total' => $totals['grand_total'],
                 'total_amount' => $totals['grand_total'],
+                'payable_total' => $totals['grand_total'],
                 'paid_amount' => $totals['paid_amount'],
                 'due_amount' => $totals['due_amount'],
                 'status' => $validated['status'],
@@ -185,10 +189,14 @@ class PurchaseController extends Controller
                 'discount_type' => $validated['discount_type'],
                 'discount_amount' => $totals['overall_discount'],
                 'tax_amount' => $totals['purchase_tax'],
+                'added_tax_total' => $totals['added_tax_total'],
+                'included_tax_total' => $totals['included_tax_total'],
+                'tax_total' => $totals['added_tax_total'] + $totals['included_tax_total'],
                 'shipping_cost' => $totals['shipping_cost'],
                 'shipping_handling' => $validated['shipping_handling'],
                 'grand_total' => $totals['grand_total'],
                 'total_amount' => $totals['grand_total'],
+                'payable_total' => $totals['grand_total'],
                 'paid_amount' => $totals['paid_amount'],
                 'due_amount' => $totals['due_amount'],
                 'status' => $validated['status'],
@@ -380,26 +388,69 @@ class PurchaseController extends Controller
 
     private function calculateTotals(array $items, array $validated): array
     {
+        $taxService = app(\App\Services\TaxCalculationService::class);
+        $globalTaxMode = \App\Models\Setting::get('default_tax_mode', 'exclusive');
+        
         $calculatedItems = [];
-        $subtotal = 0;
+        $calculatedSubtotal = 0;
+        $calculatedAddedTaxTotal = 0;
+        $calculatedIncludedTaxTotal = 0;
+        
         $shippingCost = (float) ($validated['shipping_cost'] ?? 0);
         $divideShipping = ($validated['shipping_handling'] ?? 'purchase_total') === 'divide_product_cost';
         $totalQty = max(collect($items)->sum(fn ($item) => (float) ($item['quantity'] ?? 0)), 1);
         $shippingPerUnit = $divideShipping ? ($shippingCost / $totalQty) : 0;
+        
+        $invoiceDiscountType = $validated['discount_type'] ?? 'none';
+        $invoiceDiscountAmount = (float) ($validated['discount_amount'] ?? 0);
+        
+        $preDiscountGrossTotal = collect($items)->sum(function($item) use ($shippingPerUnit) {
+            $qty = (float) ($item['quantity'] ?? 0);
+            $unitCost = (float) ($item['unit_cost'] ?? 0);
+            return $qty * ($unitCost + $shippingPerUnit);
+        });
 
         foreach ($items as $item) {
+            $product = \App\Models\Product::find($item['product_id']);
             $qty = (float) $item['quantity'];
             $unitCost = (float) $item['unit_cost'];
             $effectiveUnitCost = round($unitCost + $shippingPerUnit, 6);
-            $gross = $qty * $effectiveUnitCost;
+            
+            $itemGross = $qty * $effectiveUnitCost;
+            $itemShare = $preDiscountGrossTotal > 0 ? ($itemGross / $preDiscountGrossTotal) : 0;
+            
+            $proRatedInvoiceDiscount = 0;
+            if ($invoiceDiscountType === 'percentage' && $invoiceDiscountAmount > 0) {
+                $proRatedInvoiceDiscount = $itemGross * ($invoiceDiscountAmount / 100);
+            } elseif ($invoiceDiscountType === 'fixed' && $invoiceDiscountAmount > 0) {
+                $proRatedInvoiceDiscount = $invoiceDiscountAmount * $itemShare;
+            }
+            
             $discountPercent = (float) ($item['discount_percent'] ?? 0);
-            $discountAmount = $discountPercent > 0
-                ? round($gross * ($discountPercent / 100), 2)
-                : min((float) ($item['discount_amount'] ?? 0), $gross);
-            $taxPercent = (float) ($item['tax_percent'] ?? 0);
-            $taxAmount = round(max($gross - $discountAmount, 0) * ($taxPercent / 100), 2);
-            $lineTotal = round(max($gross - $discountAmount, 0) + $taxAmount, 2);
-            $subtotal += $lineTotal;
+            $itemDiscountType = $discountPercent > 0 ? 'percentage' : 'fixed';
+            $itemDiscountValue = $discountPercent > 0 ? $discountPercent : (float) ($item['discount_amount'] ?? 0);
+            
+            $itemTaxOverride = $item['tax_mode'] ?? null;
+            $productTaxMode = $product->tax_mode ?? 'use_global';
+            $resolvedTaxMode = $taxService->resolveTaxMode(
+                $itemTaxOverride,
+                $productTaxMode === 'use_global' ? null : $productTaxMode,
+                $globalTaxMode
+            );
+            
+            $taxStatus = $item['tax_status'] ?? ($product->tax_status ?? 'taxable');
+            $taxRate = (float) ($item['tax_percent'] ?? 0);
+
+            $calc = $taxService->calculate([
+                'unit_price' => $effectiveUnitCost,
+                'quantity' => $qty,
+                'discount_type' => $itemDiscountType,
+                'discount_value' => $itemDiscountValue,
+                'invoice_discount_amount' => $proRatedInvoiceDiscount,
+                'tax_rate' => $taxRate,
+                'tax_mode' => $resolvedTaxMode,
+                'tax_status' => $taxStatus,
+            ]);
 
             $calculatedItems[] = [
                 'product_id' => (int) $item['product_id'],
@@ -407,36 +458,52 @@ class PurchaseController extends Controller
                 'unit_cost' => $unitCost,
                 'cost_price' => round($effectiveUnitCost, 2),
                 'discount_percent' => $discountPercent,
-                'discount_amount' => $discountAmount,
-                'tax_percent' => $taxPercent,
-                'tax_amount' => $taxAmount,
-                'line_total' => $lineTotal,
+                'discount_amount' => $calc['item_discount_amount'],
+                'tax_percent' => $taxRate,
+                'tax_amount' => $calc['added_tax_amount'],
+                'line_total' => $calc['line_total'],
                 'profit_margin' => (float) ($item['profit_margin'] ?? 0),
                 'retail_price' => (float) ($item['retail_price'] ?? 0),
                 'wholesale_price' => (float) ($item['wholesale_price'] ?? 0),
-                'subtotal' => $lineTotal,
+                'subtotal' => $calc['line_total'],
+                'gross_amount' => $calc['gross_amount'],
+                'discount_type' => $calc['discount_type'],
+                'discount_value' => $calc['discount_value'],
+                'amount_after_discount' => $calc['amount_after_item_discount'],
+                'tax_mode' => $calc['tax_mode'],
+                'tax_status' => $calc['tax_status'],
+                'taxable_amount' => $calc['taxable_amount'],
+                'included_tax_amount' => $calc['included_tax_amount'],
+                'added_tax_amount' => $calc['added_tax_amount'],
             ];
+            
+            $calculatedSubtotal += $calc['line_total'];
+            $calculatedAddedTaxTotal += $calc['added_tax_amount'];
+            $calculatedIncludedTaxTotal += $calc['included_tax_amount'];
         }
 
-        $requestedDiscount = (float) ($validated['discount_amount'] ?? 0);
-        $overallDiscount = match ($validated['discount_type']) {
-            'percentage' => round($subtotal * ($requestedDiscount / 100), 2),
-            'fixed' => min($requestedDiscount, $subtotal),
+        $overallDiscount = match ($invoiceDiscountType) {
+            'percentage' => round($preDiscountGrossTotal * ($invoiceDiscountAmount / 100), 2),
+            'fixed' => min($invoiceDiscountAmount, $preDiscountGrossTotal),
             default => 0,
         };
+        
         $purchaseTax = (float) ($validated['purchase_tax'] ?? 0);
-        $grandTotal = round(max($subtotal - $overallDiscount, 0) + $purchaseTax + ($divideShipping ? 0 : $shippingCost), 2);
+        // calculatedSubtotal already subtracted item discounts + prorated invoice discounts and added item taxes
+        $grandTotal = round($calculatedSubtotal + $purchaseTax + ($divideShipping ? 0 : $shippingCost), 2);
         $paidAmount = min((float) ($validated['payment_amount'] ?? 0), $grandTotal);
 
         return [
             'items' => $calculatedItems,
-            'subtotal' => round($subtotal, 2),
+            'subtotal' => round($calculatedSubtotal, 2),
             'overall_discount' => round($overallDiscount, 2),
-            'purchase_tax' => round($purchaseTax, 2),
+            'purchase_tax' => round($purchaseTax, 2), // separate header-level tax
             'shipping_cost' => round($shippingCost, 2),
             'grand_total' => $grandTotal,
             'paid_amount' => round($paidAmount, 2),
             'due_amount' => round(max($grandTotal - $paidAmount, 0), 2),
+            'added_tax_total' => round($calculatedAddedTaxTotal, 2),
+            'included_tax_total' => round($calculatedIncludedTaxTotal, 2),
         ];
     }
 
