@@ -340,7 +340,7 @@
                                     <input type="number" 
                                            x-model.number="item.quantity" 
                                            @input="clampCartQuantity(item)"
-                                           class="w-8 text-center border border-slate-200 rounded text-[10px] font-bold focus:outline-none" />
+                                           class="w-10 h-8 p-0 text-center border border-slate-200 rounded text-xs font-bold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                     <button @click="incrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     </button>
@@ -541,9 +541,17 @@
                 <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
                 <div class="grid grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
                 <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div class="grid grid-cols-[1fr_130px_28px] gap-2"><select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs"><template x-for="m in ['Cash','Bank Transfer','Other','Cheque','Customer Credit / Due']"><option :value="m" x-text="m"></option></template></select><input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                    <div class="grid grid-cols-[1fr_130px_28px] gap-2">
+                        <select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs">
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Other">Other</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Customer Credit / Due">Customer Credit / Due</option>
+                        </select>
+                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
                     <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
-                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Account holder *"><input x-model="row.cheque.account_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Account number"></div>
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs flex-col col-span-2" placeholder="Account holder *"></div>
                 </div></template></div>
             </div>
 
