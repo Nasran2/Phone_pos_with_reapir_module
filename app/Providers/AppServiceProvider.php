@@ -11,6 +11,7 @@ use Illuminate\Auth\Events\Logout;
 use App\Models\ActivityLog;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +38,12 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Logout::class, function (Logout $event) {
             if ($event->user) {
                 ActivityLog::log('Logout', 'Auth', 'User logged out.', $event->user->id);
+            }
+        });
+
+        Gate::before(function ($user, $ability) {
+            if (method_exists($user, 'hasPermission') && $user->hasPermission($ability)) {
+                return true;
             }
         });
     }

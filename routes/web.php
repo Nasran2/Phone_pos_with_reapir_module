@@ -241,6 +241,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('import-shipments/{import_shipment}/finalize', [ImportShipmentController::class, 'finalize'])->name('import-shipments.finalize');
     Route::resource('import-shipments', ImportShipmentController::class);
 
+    // Tax Management
+    Route::prefix('tax')->name('tax.')->group(function () {
+        Route::get('dashboard', [\App\Http\Controllers\TaxDashboardController::class, 'index'])->name('dashboard');
+        Route::resource('periods', \App\Http\Controllers\TaxPeriodController::class);
+        Route::post('payments/{payment}/approve', [\App\Http\Controllers\TaxPaymentController::class, 'approve'])->name('payments.approve');
+        Route::post('payments/{payment}/reverse', [\App\Http\Controllers\TaxPaymentController::class, 'reverse'])->name('payments.reverse');
+        Route::resource('payments', \App\Http\Controllers\TaxPaymentController::class);
+        
+        Route::post('adjustments/{adjustment}/approve', [\App\Http\Controllers\TaxAdjustmentController::class, 'approve'])->name('adjustments.approve');
+        Route::resource('adjustments', \App\Http\Controllers\TaxAdjustmentController::class);
+        
+        Route::get('transactions', [\App\Http\Controllers\TaxTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('reports', [\App\Http\Controllers\TaxReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/vat', [\App\Http\Controllers\TaxReportController::class, 'vatReturn'])->name('reports.vat');
+        Route::get('reports/payments', [\App\Http\Controllers\TaxReportController::class, 'paymentRegister'])->name('reports.payments');
+    });
+
     // Purchases
     Route::get('purchases', [PurchaseController::class, 'index'])
         ->name('purchases.index')

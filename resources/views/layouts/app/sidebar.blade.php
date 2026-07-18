@@ -440,6 +440,29 @@
                 </div>
                 @endif
 
+                <!-- Tax Management -->
+                @if (auth()->user()->hasPermission('tax_management.view'))
+                <div>
+                    <button onclick="toggleSubmenu(this)" class="group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition hover:bg-[#182647] hover:text-white {{ request()->routeIs('tax.*') ? 'bg-[#182647]/50 text-white' : '' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/>
+                            </svg>
+                            <span>Tax Management</span>
+                        </div>
+                        <svg class="chevron-icon h-4 w-4 text-slate-500 {{ request()->routeIs('tax.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="mt-0.5 space-y-1 rounded-lg bg-[#091024]/40 py-1 pl-10 pr-2 {{ request()->routeIs('tax.*') ? '' : 'hidden' }}">
+                        <a href="{{ route('tax.dashboard') }}" class="block py-2 text-xs {{ request()->routeIs('tax.dashboard')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Tax Dashboard</a>
+                        <a href="{{ route('tax.periods.index') }}" class="block py-2 text-xs {{ request()->routeIs('tax.periods.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Monthly Balances</a>
+                        <a href="{{ route('tax.payments.index') }}" class="block py-2 text-xs {{ request()->routeIs('tax.payments.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Tax Payments</a>
+                        <a href="{{ route('tax.adjustments.index') }}" class="block py-2 text-xs {{ request()->routeIs('tax.adjustments.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Tax Adjustments</a>
+                        <a href="{{ route('tax.transactions.index') }}" class="block py-2 text-xs {{ request()->routeIs('tax.transactions.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">VAT Transactions</a>
+                        <a href="{{ route('tax.reports.index') }}" class="block py-2 text-xs {{ request()->routeIs('tax.reports.*')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Tax Reports</a>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Reports Link -->
                 @if ($canAccessReports)
                 <div>

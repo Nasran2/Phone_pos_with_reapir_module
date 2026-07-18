@@ -282,7 +282,6 @@ class RetailPosController extends Controller
                     'note' => 'Retail Sale',
                     'created_by' => auth()->id(),
                     'created_at' => now(),
-                    'updated_at' => now()
                 ]);
 
                 // Update Serial/IMEI status to sold

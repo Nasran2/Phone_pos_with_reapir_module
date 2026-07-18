@@ -370,10 +370,10 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
                             <div class="flex gap-2">
-                                <select name="category_id" id="prod_category_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
-                                    <option value="">Select Category</option>
+                                <select name="category_id" id="prod_category_id" onchange="handleCategoryChange(this)" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                    <option value="" data-sales-tax="" data-purchase-tax="">Select Category</option>
                                     @foreach($categories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        <option value="{{ $category->id }}" data-sales-tax="{{ $category->default_sales_tax_profile_id }}" data-purchase-tax="{{ $category->default_purchase_tax_profile_id }}">{{ $category->name }}</option>
                                     @endforeach
                                 </select>
                                 @if(auth()->user()->hasPermission('categories.create'))
@@ -1212,5 +1212,25 @@
                 if (dropdown) dropdown.classList.add('hidden');
             }
         });
+
+        function handleCategoryChange(selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (selectedOption) {
+                const salesTaxId = selectedOption.getAttribute('data-sales-tax');
+                const purchaseTaxId = selectedOption.getAttribute('data-purchase-tax');
+                
+                if (salesTaxId) {
+                    document.getElementById('prod_sales_tax_profile_id').value = salesTaxId;
+                } else {
+                    document.getElementById('prod_sales_tax_profile_id').value = '';
+                }
+                
+                if (purchaseTaxId) {
+                    document.getElementById('prod_purchase_tax_profile_id').value = purchaseTaxId;
+                } else {
+                    document.getElementById('prod_purchase_tax_profile_id').value = '';
+                }
+            }
+        }
     </script>
 </x-layouts::app>
