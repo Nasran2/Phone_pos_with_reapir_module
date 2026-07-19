@@ -48,40 +48,27 @@ class DashboardController extends Controller
         if ($enableMultiStore && $storeId) $expensesQuery->where('store_id', $storeId);
         $totalExpensesToday = $expensesQuery->sum('amount');
         
-        // Static bank/cash accounts matching mockup seeder logic or fallbacks
-        $cashInHand = 68350.00;
-        $bankBalance = 235600.00;
+        // 3. Bank/Cash accounts
+        $cashInHand = DB::table('accounts')->where('account_type', 'Asset')->where('account_name', 'like', '%cash%')->sum('current_balance') ?? 0.00;
+        $bankBalance = DB::table('accounts')->where('account_type', 'Asset')->where('account_name', 'like', '%bank%')->sum('current_balance') ?? 0.00;
 
         // 3. Bottom Quick Widgets
-        // To make it feel like a populated store matching the mockup totals (2,358 products & Rs. 3,456,780.00 value)
-        // we display the seeded products but allow them to represent a wider database.
-        // Let's query real database but provide fallback values to visually wow the user!
-        $dbProductsCount = DB::table('products')->count();
-        $totalProducts = $dbProductsCount > 5 ? $dbProductsCount : 2358;
+        $totalProducts = DB::table('products')->count();
         
         $stockQuery = DB::table('product_store_stock');
         if ($enableMultiStore && $storeId) $stockQuery->where('store_id', $storeId);
-        $dbStockVal = $stockQuery
+        $totalStockValue = (float) $stockQuery
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
-        $totalStockValue = $dbStockVal > 0 ? $dbStockVal : 3456780.00;
         
         $ordersQuery = DB::table('sales')->where('sale_date', $today);
         if ($enableMultiStore && $storeId) $ordersQuery->where('store_id', $storeId);
         $todayOrders = $ordersQuery->count();
         
-        // Fallback matching mockup if demo data is fresh
-        if ($todayOrders === 0) {
-            $todayOrders = 86;
-        }
-        
         $dueQuery = DB::table('sales')->where('due_amount', '>', 0);
         if ($enableMultiStore && $storeId) $dueQuery->where('store_id', $storeId);
         $dueInvoices = $dueQuery->count();
-        if ($dueInvoices === 0) {
-            $dueInvoices = 42;
-        }
-        $unreadNotifications = 3;
+        $unreadNotifications = 0;
 
         // 4. Recent Sales
         $rsQuery = DB::table('sales')
@@ -108,23 +95,50 @@ class DashboardController extends Controller
         if ($enableMultiStore && $storeId) $lsQuery->where('product_store_stock.store_id', $storeId);
         $lowStockAlerts = $lsQuery->take(5)->get();
 
-        // 7. Sales Overview Line Chart (Mockup representation of Hourly Sales arrays)
+        // 7. Sales Overview Line Chart (Dynamic Hourly Sales)
         $chartHours = ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'];
-        $retailSalesHourly = [15000, 22000, 45000, 78000, 88000, 65000, 42000, 20000];
-        $wholesaleSalesHourly = [10000, 18000, 32000, 52000, 48000, 50000, 35000, 15000];
+        $retailSalesHourly = array_fill(0, 8, 0);
+        $wholesaleSalesHourly = array_fill(0, 8, 0);
+
+        $hourlySalesQuery = DB::table('sales')
+            ->select('pos_type', DB::raw('FLOOR(HOUR(created_at) / 3) as hour_group'), DB::raw('SUM(payable_amount) as total'))
+            ->where('sale_date', $today)
+            ->groupBy('pos_type', 'hour_group');
+            
+        if ($enableMultiStore && $storeId) $hourlySalesQuery->where('store_id', $storeId);
+        
+        $hourlySales = $hourlySalesQuery->get();
+            
+        foreach ($hourlySales as $sale) {
+            $index = (int) $sale->hour_group;
+            if ($index >= 0 && $index <= 7) {
+                if ($sale->pos_type === 'retail') {
+                    $retailSalesHourly[$index] += (float) $sale->total;
+                } else {
+                    $wholesaleSalesHourly[$index] += (float) $sale->total;
+                }
+            }
+        }
 
         // 8. Sales by Payment Method Chart Data
+        $paymentMethodsData = clone $salesQuery;
         $paymentMethodsData = DB::table('sale_payments')
-            ->select('payment_method', DB::raw('SUM(amount) as total'))
-            ->groupBy('payment_method')
+            ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
+            ->where('sales.sale_date', $today);
+            
+        if ($enableMultiStore && $storeId) $paymentMethodsData->where('sales.store_id', $storeId);
+        
+        $paymentMethodsData = $paymentMethodsData
+            ->select('sale_payments.payment_method', DB::raw('SUM(sale_payments.amount) as total'))
+            ->groupBy('sale_payments.payment_method')
             ->get();
 
         $paymentsSummary = [
-            'Cash' => 96500.00,
-            'Card' => 78230.00,
-            'Bank Transfer' => 54120.00,
-            'QR / Mobile Pay' => 18000.00,
-            'Other' => 10000.00
+            'Cash' => 0.00,
+            'Card' => 0.00,
+            'Bank Transfer' => 0.00,
+            'QR / Mobile Pay' => 0.00,
+            'Other' => 0.00
         ];
 
         // Reconcile real payments from DB into summary
@@ -132,6 +146,8 @@ class DashboardController extends Controller
             $method = $payment->payment_method;
             if (array_key_exists($method, $paymentsSummary)) {
                 $paymentsSummary[$method] = (float) $payment->total;
+            } else {
+                $paymentsSummary['Other'] += (float) $payment->total;
             }
         }
 

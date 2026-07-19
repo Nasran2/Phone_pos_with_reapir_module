@@ -7,7 +7,15 @@ class LoginResponse implements LoginResponseContract
     public function toResponse($request)
     {
         $user = $request->user();
-        $target = $user && app(LorryAccessService::class)->isLorryUser($user) ? route('distribution.my-lorry.dashboard') : url(config('fortify.home'));
+        $target = url(config('fortify.home'));
+
+        if ($user) {
+            $lorryService = app(LorryAccessService::class);
+            if (!$lorryService->isUnrestricted($user) && $lorryService->isLorryUser($user)) {
+                $target = route('distribution.my-lorry.dashboard');
+            }
+        }
+
         return redirect()->intended($target);
     }
 }

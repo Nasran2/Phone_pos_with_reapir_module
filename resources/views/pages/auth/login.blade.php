@@ -323,26 +323,7 @@
                     </div>
                 </form>
 
-                <!-- Interactive Quick-Login Credentials Fill Card -->
-                <div 
-                    onclick="fillDemoCredentials()" 
-                    class="mt-6 p-4 rounded-xl border border-blue-100 dark:border-blue-950 bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-100/50 dark:hover:bg-blue-950/40 text-blue-800 dark:text-blue-300 transition duration-150 cursor-pointer group flex items-start gap-3 shadow-xs"
-                    title="Click to automatically fill admin credentials"
-                >
-                    <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition mt-0.5">
-                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"/>
-                            <line x1="8" y1="12" x2="16" y2="12"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-400">Quick-Fill Admin Login</div>
-                        <div class="text-xs mt-1 text-blue-700/90 dark:text-blue-300/80 font-medium">
-                            Username: <code class="bg-blue-100/60 dark:bg-blue-900/60 px-1.5 py-0.5 rounded font-mono font-bold">admin</code> &nbsp;&bull;&nbsp; Password: <code class="bg-blue-100/60 dark:bg-blue-900/60 px-1.5 py-0.5 rounded font-mono font-bold">password</code>
-                        </div>
-                        <div class="text-[10px] text-blue-500/80 dark:text-blue-400/70 mt-1.5 italic group-hover:underline">Click anywhere on this card to automatically fill credentials</div>
-                    </div>
-                </div>
+
             </div>
 
             <!-- Footer: Powered By with Env Info -->
@@ -398,20 +379,7 @@
             }
         }
 
-        // Fill credentials for demo
-        function fillDemoCredentials() {
-            document.getElementById('email-input').value = 'admin';
-            document.getElementById('password-input').value = 'password';
-            
-            // Set password input field back to password type and eye open visible (for default behavior)
-            const passwordInput = document.getElementById('password-input');
-            passwordInput.type = 'password';
-            document.getElementById('eye-open-icon').classList.remove('hidden');
-            document.getElementById('eye-closed-icon').classList.add('hidden');
-            
-            // Focus on the login submit button
-            document.getElementById('login-btn').focus();
-        }
+
     </script>
     @fluxScripts
 </body>
