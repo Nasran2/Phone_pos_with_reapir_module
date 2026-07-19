@@ -149,9 +149,12 @@ class MyLorryController extends Controller
         
         $customers = DB::table('customers')
             ->where('status', 1)
+            ->where('created_by', $request->user()->id)
             ->when($request->filled('q'), function($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->q.'%')
-                  ->orWhere('phone', 'like', '%'.$request->q.'%');
+                $q->where(function($query) use ($request) {
+                    $query->where('name', 'like', '%'.$request->q.'%')
+                          ->orWhere('phone', 'like', '%'.$request->q.'%');
+                });
             })
             ->select('id', 'name', 'phone', 'address', 'balance')
             ->orderBy('name')

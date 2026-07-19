@@ -31,7 +31,7 @@
                         <td class="p-4 text-right text-xs font-bold {{ $customer->balance > 0 ? 'text-rose-600' : 'text-slate-600' }}">{{ \App\Support\SystemSettings::money($customer->balance) }}</td>
                         <td class="p-4 text-right">
                             @if($customer->balance > 0)
-                                <a href="{{ route('customer.collection', $customer->id) }}" class="inline-block rounded bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 ring-1 ring-inset ring-emerald-600/20">Add Collection</a>
+                                <a href="{{ route('customers.show', $customer->id) }}" class="inline-block rounded bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 ring-1 ring-inset ring-emerald-600/20">Add Collection</a>
                             @endif
                         </td>
                     </tr>
