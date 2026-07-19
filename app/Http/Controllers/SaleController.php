@@ -62,6 +62,10 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
+        if (!auth()->user()->hasPermission('sales.invoice_view') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments.creator', 'invoicePayments.cheque', 'returns.items.product']);
 
         return view('sales.show', compact('sale'));
@@ -69,6 +73,10 @@ class SaleController extends Controller
 
     public function print(Sale $sale)
     {
+        if (!auth()->user()->hasPermission('sales.print') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
 
         return view('sales.print', compact('sale'));
@@ -76,6 +84,10 @@ class SaleController extends Controller
 
     public function download(Sale $sale)
     {
+        if (!auth()->user()->hasPermission('sales.print') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $sale->load(['customer', 'items.product', 'items.variant']);
         $lines = [
             $sale->is_tax_invoice ? 'Tax Invoice: ' . $sale->invoice_no : 'Invoice: ' . $sale->invoice_no,

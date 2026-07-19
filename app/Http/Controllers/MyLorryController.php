@@ -147,9 +147,13 @@ class MyLorryController extends Controller
     {
         $assignment = $this->access->currentAssignment($request->user());
         
+        $canViewAll = \App\Support\SystemSettings::bool('lorry_agent_can_view_all_customers', false, 'business_settings');
+        
         $customers = DB::table('customers')
             ->where('status', 1)
-            ->where('created_by', $request->user()->id)
+            ->when(!$canViewAll, function($q) use ($request) {
+                $q->where('created_by', $request->user()->id);
+            })
             ->when($request->filled('q'), function($q) use ($request) {
                 $q->where(function($query) use ($request) {
                     $query->where('name', 'like', '%'.$request->q.'%')

@@ -132,6 +132,7 @@
         'allow_lorry_sales_without_trip' => 'Allow Lorry Sales Without Trip',
         'require_lorry_reconciliation' => 'Require Daily Reconciliation',
         'prevent_negative_lorry_stock' => 'Prevent Negative Lorry Stock',
+        'lorry_agent_can_view_all_customers' => 'Lorry Agents Can View ALL Global Customers',
     ] as $key => $label)
         <label class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
             <span class="font-bold text-slate-800">{{ $label }}</span>

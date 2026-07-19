@@ -312,14 +312,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('sales.index')
         ->middleware('permission:sales.view');
     Route::get('sales/{sale}', [SaleController::class, 'show'])
-        ->name('sales.show')
-        ->middleware('permission:sales.invoice_view');
+        ->name('sales.show');
     Route::get('sales/{sale}/print', [SaleController::class, 'print'])
-        ->name('sales.print')
-        ->middleware('permission:sales.print');
+        ->name('sales.print');
     Route::get('sales/{sale}/download', [SaleController::class, 'download'])
-        ->name('sales.download')
-        ->middleware('permission:sales.pdf');
+        ->name('sales.download');
     Route::post('sales/{sale}/payments', [SaleController::class, 'storePayment'])
         ->name('sales.payments.store')
         ->middleware('permission:sales.edit_payment');
@@ -366,11 +363,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('customers.store')
         ->middleware('permission:customers.create');
     Route::post('customers/{customer}/payments', [CustomerController::class, 'storePayment'])
-        ->name('customers.payments.store')
-        ->middleware('permission:customers.payment');
+        ->name('customers.payments.store');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])
-        ->name('customers.show')
-        ->middleware('permission:customers.view');
+        ->name('customers.show');
     Route::put('customers/{customer}', [CustomerController::class, 'update'])
         ->name('customers.update')
         ->middleware('permission:customers.edit');

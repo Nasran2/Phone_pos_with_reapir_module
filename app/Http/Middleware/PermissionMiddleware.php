@@ -27,8 +27,18 @@ class PermissionMiddleware
         }
 
         // 3. Permission check
-        if (!auth()->user()->hasPermission($permission)) {
-            abort(403, 'Unauthorized action. You do not have permission: ' . $permission);
+        $permissions = explode('|', $permission);
+        $hasPermission = false;
+        
+        foreach ($permissions as $p) {
+            if (auth()->user()->hasPermission($p)) {
+                $hasPermission = true;
+                break;
+            }
+        }
+        
+        if (!$hasPermission) {
+            abort(403, 'Unauthorized action. You do not have permission: ' . str_replace('|', ' or ', $permission));
         }
 
         return $next($request);

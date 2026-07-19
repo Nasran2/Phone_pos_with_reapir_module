@@ -62,6 +62,10 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        if (!auth()->user()->hasPermission('customers.view') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $customer->load(['sales.cashier']);
 
         // Fetch transaction history
@@ -181,6 +185,10 @@ class CustomerController extends Controller
 
     public function storePayment(Request $request, Customer $customer)
     {
+        if (!auth()->user()->hasPermission('customers.payment') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_date' => ['required', 'date'],

@@ -25,7 +25,7 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($customers as $customer)
                     <tr>
-                        <td class="p-4 text-xs font-extrabold text-blue-600">{{ $customer->name }}</td>
+                        <td class="p-4 text-xs font-extrabold text-blue-600"><a href="{{ route('customers.show', $customer->id) }}" class="hover:underline">{{ $customer->name }}</a></td>
                         <td class="p-4 text-xs text-slate-600">{{ $customer->phone ?? '-' }}</td>
                         <td class="p-4 text-xs text-slate-600">{{ $customer->address ?? '-' }}</td>
                         <td class="p-4 text-right text-xs font-bold {{ $customer->balance > 0 ? 'text-rose-600' : 'text-slate-600' }}">{{ \App\Support\SystemSettings::money($customer->balance) }}</td>

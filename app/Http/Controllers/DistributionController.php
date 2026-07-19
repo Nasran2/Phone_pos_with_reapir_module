@@ -546,10 +546,11 @@ class DistributionController extends Controller
                 'allow_lorry_sales_without_trip' => ['nullable', 'boolean'],
                 'require_lorry_reconciliation' => ['nullable', 'boolean'],
                 'prevent_negative_lorry_stock' => ['nullable', 'boolean'],
+                'lorry_agent_can_view_all_customers' => ['nullable', 'boolean'],
                 'default_lorry_sale_payment_method' => ['nullable', 'string', 'max:80'],
             ]);
 
-            foreach (['enable_distribution_module', 'allow_lorry_sales_without_trip', 'require_lorry_reconciliation', 'prevent_negative_lorry_stock'] as $key) {
+            foreach (['enable_distribution_module', 'allow_lorry_sales_without_trip', 'require_lorry_reconciliation', 'prevent_negative_lorry_stock', 'lorry_agent_can_view_all_customers'] as $key) {
                 $settings[$key] = $request->boolean($key) ? '1' : '0';
             }
 
@@ -568,6 +569,7 @@ class DistributionController extends Controller
             'allow_lorry_sales_without_trip' => SystemSettings::bool('allow_lorry_sales_without_trip', true, 'business_settings'),
             'require_lorry_reconciliation' => SystemSettings::bool('require_lorry_reconciliation', false, 'business_settings'),
             'prevent_negative_lorry_stock' => SystemSettings::bool('prevent_negative_lorry_stock', true, 'business_settings'),
+            'lorry_agent_can_view_all_customers' => SystemSettings::bool('lorry_agent_can_view_all_customers', false, 'business_settings'),
             'default_lorry_sale_payment_method' => SystemSettings::get('default_lorry_sale_payment_method', 'Cash', 'business_settings'),
         ];
 
