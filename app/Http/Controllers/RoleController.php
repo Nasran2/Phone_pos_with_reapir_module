@@ -18,7 +18,7 @@ class RoleController extends Controller
         
         // Group permissions by their prefix/module to present a nice visual grid in UI
         $moduleLabels = [
-            'repair' => 'Repair Management',
+            'reports' => 'Reports',
             'retail_pos' => 'Retail POS',
             'wholesale_pos' => 'Wholesale POS',
             'sales_return' => 'Sales Returns',
@@ -115,7 +115,7 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         // Prevent deleting default roles
-        if (! $role->is_deletable || in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant', 'Repair Technician'])) {
+        if (! $role->is_deletable || in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant'])) {
             return redirect()->route('roles.index')->with('error', "System default role '{$role->name}' cannot be deleted.");
         }
 

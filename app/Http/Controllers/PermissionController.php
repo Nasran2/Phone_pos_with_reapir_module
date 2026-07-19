@@ -14,7 +14,7 @@ class PermissionController extends Controller
     {
         // Group permissions by their prefix/module to present a nice visual grid in UI
         $moduleLabels = [
-            'repair' => 'Repair Management',
+            'reports' => 'Reports',
             'retail_pos' => 'Retail POS',
             'wholesale_pos' => 'Wholesale POS',
             'sales_return' => 'Sales Returns',

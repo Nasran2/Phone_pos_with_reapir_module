@@ -38,9 +38,6 @@ class UserManagementSeeder extends Seeder
             'stock.view', 'stock.adjust', 'stock.transfer', 'stock.history',
             'stock.adjustment.view', 'stock.adjustment.create', 'stock.adjustment.edit', 'stock.adjustment.delete',
             'damaged_stock.view', 'damaged_stock.create', 'damaged_stock.edit', 'damaged_stock.delete', 'damaged_stock.return',
-            // Repair Management
-            'repair.view', 'repair.create', 'repair.edit', 'repair.delete', 'repair.assign', 'repair.complete',
-            'repair.deliver', 'repair.invoice', 'repair.parts', 'repair.report', 'repair.settings',
             // Expenses
             'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
             // Accounting
@@ -159,14 +156,6 @@ class UserManagementSeeder extends Seeder
                     'sales_return.view', 'hold_sales.view', 'hold_sales.resume'
                 ]
             ],
-            'Repair Technician' => [
-                'desc' => 'Access to repair job cards, check-ins, assignments, parts, and status updates.',
-                'perms' => [
-                    'dashboard.view', 'repair.view', 'repair.create', 'repair.edit', 'repair.assign',
-                    'repair.complete', 'repair.deliver', 'repair.parts', 'customers.view', 'customers.create',
-                    'products.view', 'stock.view'
-                ]
-            ],
         ];
 
         // Insert roles and map permissions
@@ -247,15 +236,6 @@ class UserManagementSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'is_active' => true,
                 'role' => 'Sales Staff',
-            ],
-            [
-                'name' => 'Repair Technician',
-                'username' => 'repairtech',
-                'email' => 'repairtech@twinsofte.com',
-                'phone' => '0772223333',
-                'password' => Hash::make('password'),
-                'is_active' => true,
-                'role' => 'Repair Technician',
             ],
         ];
 

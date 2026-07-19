@@ -71,7 +71,7 @@
                             </button>
                             @endif
 
-                            @if(auth()->user()->hasPermission('roles.delete') && !in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant', 'Repair Technician']))
+                            @if(auth()->user()->hasPermission('roles.delete') && !in_array($role->name, ['Super Admin', 'Admin', 'Cashier', 'Sales Staff', 'Stock Manager', 'Accountant']))
                             <form method="POST" action="{{ route('roles.destroy', $role->id) }}" class="inline">
                                 @csrf
                                 @method('DELETE')

@@ -36,7 +36,6 @@ use App\Http\Controllers\CapitalDrawingController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\BarcodeController;
-use App\Http\Controllers\RepairController;
 use App\Http\Controllers\DistributionController;
 use App\Http\Controllers\MyLorryController;
 use App\Http\Controllers\ChequeDashboardController;
@@ -52,8 +51,6 @@ Route::get('/link-storage', function () {
     \Illuminate\Support\Facades\Artisan::call('storage:link');
     return 'Storage linked successfully!';
 });
-
-Route::get('repair-track', [RepairController::class, 'publicTrack'])->name('repairs.public.track');
 
 Route::redirect('/', 'login')->name('home');
 
@@ -463,33 +460,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::match(['get', 'post'], 'settings', [DistributionController::class, 'settings'])->name('settings')->middleware('permission:distribution.settings');
         Route::get('product-search', [DistributionController::class, 'productSearch'])->name('product-search')->middleware('permission:lorry_stock.view');
         });
-    });
-
-    // Repair Management
-    Route::prefix('repairs')->name('repairs.')->group(function () {
-        Route::get('/', [RepairController::class, 'dashboard'])->name('dashboard')->middleware('permission:repair.view');
-        Route::get('jobs', [RepairController::class, 'jobs'])->name('jobs.index')->middleware('permission:repair.view');
-        Route::get('check-in', [RepairController::class, 'create'])->name('jobs.create')->middleware('permission:repair.create');
-        Route::post('jobs', [RepairController::class, 'store'])->name('jobs.store')->middleware('permission:repair.create');
-        Route::get('queue', [RepairController::class, 'queue'])->name('queue')->middleware('permission:repair.view');
-        Route::get('status-board', [RepairController::class, 'statusBoard'])->name('status-board')->middleware('permission:repair.view');
-        Route::get('parts', [RepairController::class, 'parts'])->name('parts')->middleware('permission:repair.parts');
-        Route::get('quotations', [RepairController::class, 'quotations'])->name('quotations')->middleware('permission:repair.view');
-        Route::get('invoices', [RepairController::class, 'invoices'])->name('invoices')->middleware('permission:repair.invoice');
-        Route::get('warranty', [RepairController::class, 'warranty'])->name('warranty')->middleware('permission:repair.view');
-        Route::get('reports', [RepairController::class, 'reports'])->name('reports')->middleware('permission:repair.report');
-        Route::match(['get', 'post'], 'settings', [RepairController::class, 'settings'])->name('settings')->middleware('permission:repair.settings');
-        Route::get('technicians', [RepairController::class, 'technicians'])->name('technicians')->middleware('permission:repair.assign');
-        Route::post('technicians', [RepairController::class, 'storeTechnician'])->name('technicians.store')->middleware('permission:repair.assign');
-        Route::put('technicians/{technician}', [RepairController::class, 'updateTechnician'])->name('technicians.update')->middleware('permission:repair.assign');
-        Route::get('jobs/{job}', [RepairController::class, 'show'])->name('jobs.show')->middleware('permission:repair.view');
-        Route::get('jobs/{job}/print', [RepairController::class, 'print'])->name('jobs.print')->middleware('permission:repair.view');
-        Route::get('jobs/{job}/invoice', [RepairController::class, 'printInvoice'])->name('jobs.invoice')->middleware('permission:repair.view');
-        Route::post('jobs/{job}/workspace', [RepairController::class, 'saveWorkspace'])->name('jobs.workspace')->middleware('permission:repair.edit');
-        Route::post('jobs/{job}/status', [RepairController::class, 'updateStatus'])->name('jobs.status')->middleware('permission:repair.edit');
-        Route::post('jobs/{job}/assign', [RepairController::class, 'assign'])->name('jobs.assign')->middleware('permission:repair.assign');
-        Route::post('jobs/{job}/parts', [RepairController::class, 'issuePart'])->name('jobs.parts')->middleware('permission:repair.parts');
-        Route::post('jobs/{job}/payments', [RepairController::class, 'payment'])->name('jobs.payments')->middleware('permission:repair.invoice');
     });
 
     // Accounting & Expenses

@@ -86,8 +86,8 @@ class StoreStockController extends Controller
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->whereNull('products.deleted_at');
 
-        if ($storeId) {
-            $stockValueQuery->where('product_store_stock.store_id', $storeId);
+        if (!empty($storeIds)) {
+            $stockValueQuery->whereIn('product_store_stock.store_id', $storeIds);
         }
 
         $stockValue = $stockValueQuery->sum(DB::raw('product_store_stock.quantity * products.cost_price'));

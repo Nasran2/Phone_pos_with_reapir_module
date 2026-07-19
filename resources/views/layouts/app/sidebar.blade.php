@@ -41,8 +41,7 @@
             ->values();
         $canAccessSettings = $settingsSections->isNotEmpty();
         $isSettingsActive = request()->is('settings*');
-        $canAccessRepairs = auth()->check() && auth()->user()->hasPermission('repair.view');
-        $isRepairsActive = request()->routeIs('repairs.*');
+        $isMyLorryActive = request()->routeIs('my-lorry.*');
         $canAccessDistribution = auth()->check() && auth()->user()->hasPermission('distribution.view') && \App\Support\SystemSettings::bool('enable_distribution_module', true, 'business_settings');
         $isDistributionActive = request()->routeIs('distribution.*');
         $canAccessCheques = auth()->check() && auth()->user()->hasPermission('cheques.view') && \App\Models\Setting::get('cheque_enabled', '1') === '1';
@@ -269,49 +268,6 @@
                     </svg>
                     <span>Suppliers</span>
                 </a>
-                @endif
-
-                <!-- Repair Management Dropdown -->
-                @if ($canAccessRepairs)
-                <div>
-                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ $isRepairsActive ? 'bg-[#182647]/50 text-white' : '' }}">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 {{ $isRepairsActive ? 'text-white' : 'text-slate-400' }} group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-2.4 2.4-3-3 2.4-2.4z"/>
-                            </svg>
-                            <span>Repair Management</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ $isRepairsActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </button>
-                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 max-h-[42vh] overflow-y-auto custom-scrollbar {{ $isRepairsActive ? '' : 'hidden' }}">
-                        <a href="{{ route('repairs.dashboard') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.dashboard') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Dashboard</a>
-                        <a href="{{ route('repairs.jobs.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.jobs.index') || request()->routeIs('repairs.jobs.show') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Job Cards</a>
-                        @if (auth()->user()->hasPermission('repair.create'))
-                        <a href="{{ route('repairs.jobs.create') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.jobs.create') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Device Check-In</a>
-                        @endif
-                        <a href="{{ route('repairs.queue') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.queue') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Queue</a>
-                        @if (auth()->user()->hasPermission('repair.assign'))
-                        <a href="{{ route('repairs.technicians') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.technicians') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Technicians</a>
-                        @endif
-                        <a href="{{ route('repairs.status-board') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.status-board') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Status Board</a>
-                        @if (auth()->user()->hasPermission('repair.parts'))
-                        <a href="{{ route('repairs.parts') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.parts') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Parts Usage</a>
-                        @endif
-                        <a href="{{ route('repairs.quotations') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.quotations') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Quotations</a>
-                        @if (auth()->user()->hasPermission('repair.invoice'))
-                        <a href="{{ route('repairs.invoices') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.invoices') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Invoices</a>
-                        @endif
-                        <a href="{{ route('repairs.warranty') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.warranty') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Warranty Repairs</a>
-                        @if (auth()->user()->hasPermission('repair.report'))
-                        <a href="{{ route('repairs.reports') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.reports') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Reports</a>
-                        @endif
-                        @if (auth()->user()->hasPermission('repair.settings'))
-                        <a href="{{ route('repairs.settings') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('repairs.settings') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Repair Settings</a>
-                        @endif
-                    </div>
-                </div>
                 @endif
 
                 <!-- Distribution Dropdown -->
@@ -705,38 +661,6 @@
                     @endif
                     @if (auth()->user()->hasPermission('suppliers.view'))
                     <a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('suppliers.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Suppliers</a>
-                    @endif
-
-                    @if ($canAccessRepairs)
-                    <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Repair Management</span>
-                        <div class="mt-1 space-y-1 pl-3 max-h-[44vh] overflow-y-auto custom-scrollbar">
-                            <a href="{{ route('repairs.dashboard') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.dashboard') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Dashboard</a>
-                            <a href="{{ route('repairs.jobs.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.jobs.index') || request()->routeIs('repairs.jobs.show') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Job Cards</a>
-                            @if (auth()->user()->hasPermission('repair.create'))
-                            <a href="{{ route('repairs.jobs.create') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.jobs.create') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Device Check-In</a>
-                            @endif
-                            <a href="{{ route('repairs.queue') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.queue') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Queue</a>
-                            @if (auth()->user()->hasPermission('repair.assign'))
-                            <a href="{{ route('repairs.technicians') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.technicians') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Technicians</a>
-                            @endif
-                            <a href="{{ route('repairs.status-board') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.status-board') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Status Board</a>
-                            @if (auth()->user()->hasPermission('repair.parts'))
-                            <a href="{{ route('repairs.parts') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.parts') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Parts Usage</a>
-                            @endif
-                            <a href="{{ route('repairs.quotations') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.quotations') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Quotations</a>
-                            @if (auth()->user()->hasPermission('repair.invoice'))
-                            <a href="{{ route('repairs.invoices') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.invoices') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Invoices</a>
-                            @endif
-                            <a href="{{ route('repairs.warranty') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.warranty') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Warranty Repairs</a>
-                            @if (auth()->user()->hasPermission('repair.report'))
-                            <a href="{{ route('repairs.reports') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.reports') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Reports</a>
-                            @endif
-                            @if (auth()->user()->hasPermission('repair.settings'))
-                            <a href="{{ route('repairs.settings') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('repairs.settings') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Repair Settings</a>
-                            @endif
-                        </div>
-                    </div>
                     @endif
 
                     @if ($canAccessDistribution)
