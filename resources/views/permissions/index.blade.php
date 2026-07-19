@@ -36,7 +36,7 @@
                     <div class="p-5 space-y-3.5">
                         @foreach($modulePerms as $perm)
                         @php
-                            $permissionAction = Str::of($perm->name)->after('.')->replace('_', ' ')->title();
+                            $permissionAction = Str::of($perm->name)->after('.')->replace(['_', '.'], ' ')->title();
                         @endphp
                         <div class="flex items-start justify-between gap-4">
                             <div>

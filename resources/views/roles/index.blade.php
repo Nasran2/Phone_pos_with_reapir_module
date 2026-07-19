@@ -182,7 +182,7 @@
                                 <div class="space-y-2">
                                     @foreach($modulePerms as $perm)
                                     @php
-                                        $permissionAction = Str::of($perm->name)->after('.')->replace('_', ' ')->title();
+                                        $permissionAction = Str::of($perm->name)->after('.')->replace(['_', '.'], ' ')->title();
                                     @endphp
                                     <div class="flex items-start gap-2.5">
                                         <input 
