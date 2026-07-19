@@ -42,8 +42,7 @@ class CleanDatabaseForProduction extends Command
             'products', 'product_variants', 'product_prices', 'product_store_stock', 'product_location_stock', 'product_images', 'product_serials', 'product_warranties', 'product_daily_summaries',
             'stock_adjustments', 'stock_adjustment_items', 'stock_transfers', 'stock_transfer_items', 'damaged_stocks', 'stock_histories', 'stock_movements', 'low_stock_alerts',
 
-            // Repairs
-            'repair_jobs', 'repair_items', 'repair_payments', 'repair_parts', 'repair_devices', 'repair_status_logs', 'repair_activity_logs', 'repair_assignments', 'repair_notes', 'repair_warranties', 'repair_checklists', 'repair_charge_items', 'repair_technicians', 'repair_images',
+            // Repairs (Removed)
 
             // Distribution (Lorries)
             'lorries', 'lorry_user_assignments', 'lorry_stocks', 'distribution_orders', 'distribution_order_items', 'distribution_trips', 'lorry_collections', 'lorry_reconciliations', 'lorry_sale_returns', 'lorry_stock_transfers', 'lorry_stock_transfer_items',

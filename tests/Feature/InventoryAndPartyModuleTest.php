@@ -6,7 +6,7 @@ use App\Models\Supplier;
 use App\Models\CustomerTransaction;
 use App\Models\SupplierTransaction;
 use App\Models\Product;
-use App\Models\ProductStock;
+use App\Models\ProductStoreStock;
 use App\Models\StockAdjustment;
 use App\Models\DamagedStock;
 use App\Models\StockHistory;
@@ -26,7 +26,7 @@ beforeEach(function () {
     DB::table('purchases')->delete();
     DB::table('suppliers')->delete();
     DB::table('stock_histories')->delete();
-    DB::table('product_stock')->delete();
+    DB::table('product_store_stock')->delete();
     DB::table('products')->delete();
     DB::table('stock_adjustment_items')->delete();
     DB::table('stock_adjustments')->delete();
@@ -205,8 +205,9 @@ test('admin can log stock adjustments', function () {
         'is_active' => true,
     ]);
     
-    ProductStock::create([
+    ProductStoreStock::create([
         'product_id' => $product->id,
+        'store_id' => 1,
         'quantity' => 10,
     ]);
 
@@ -264,8 +265,9 @@ test('admin can manage damaged stock logs and returns', function () {
         'is_active' => true,
     ]);
     
-    ProductStock::create([
+    ProductStoreStock::create([
         'product_id' => $product->id,
+        'store_id' => 1,
         'quantity' => 20,
     ]);
 

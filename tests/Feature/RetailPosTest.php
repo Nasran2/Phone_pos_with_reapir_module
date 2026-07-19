@@ -52,8 +52,9 @@ test('retail pos can process a successful checkout with split payments and imei 
         'updated_at' => now()
     ]);
 
-    DB::table('product_stock')->insert([
+    DB::table('product_store_stock')->insert([
         'product_id' => $productId,
+        'store_id' => 1,
         'quantity' => 5.00,
         'created_at' => now(),
         'updated_at' => now()
@@ -120,15 +121,16 @@ test('retail pos can process a successful checkout with split payments and imei 
     ]);
 
     // Check stock decremented
-    $this->assertDatabaseHas('product_stock', [
+    $this->assertDatabaseHas('product_store_stock', [
         'product_id' => $productId,
+        'store_id' => 1,
         'quantity' => 4.00
     ]);
 
     // Check stock movement logged
-    $this->assertDatabaseHas('stock_movements', [
+    $this->assertDatabaseHas('stock_histories', [
         'product_id' => $productId,
-        'quantity' => -1.00,
+        'quantity_change' => -1.00,
         'type' => 'sale'
     ]);
 

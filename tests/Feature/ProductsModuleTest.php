@@ -5,8 +5,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Unit;
-use App\Models\ProductStock;
-use App\Models\ProductSerial;
+use App\Models\ProductStoreStock;
 use App\Models\ProductVariant;
 use App\Models\StockHistory;
 use App\Models\ActivityLog;
@@ -59,11 +58,12 @@ test('can create a product with IMEIs and variants', function () {
         'cost_price' => 150000.00,
         'retail_price' => 180000.00,
         'wholesale_price' => 170000.00,
-        'opening_stock' => 2,
         'stock_alert_quantity' => 5,
         'description' => 'Latest iPhone model',
         'logo' => $imageFile,
         'is_active' => '1',
+        'store_ids' => [1],
+        'opening_stock' => [1 => 0],
         'imeis' => "IMEI-11111111\nIMEI-22222222",
         'variants' => [
             [
@@ -79,6 +79,7 @@ test('can create a product with IMEIs and variants', function () {
         ]
     ]);
 
+    $response->assertSessionHasNoErrors();
     $response->assertRedirect(route('products.index'));
 
     $this->assertDatabaseHas('products', [
@@ -94,8 +95,9 @@ test('can create a product with IMEIs and variants', function () {
     expect($product->image)->not->toBeNull();
 
     // Verify stock is matching serials count (2)
-    $this->assertDatabaseHas('product_stock', [
+    $this->assertDatabaseHas('product_store_stock', [
         'product_id' => $product->id,
+        'store_id' => 1,
         'quantity' => 2,
     ]);
 
@@ -217,7 +219,7 @@ test('can manage categories (CRUD)', function () {
     // 3. Delete
     $response = $this->actingAs($admin)->delete(route('categories.destroy', $category->id));
     $response->assertRedirect(route('categories.index'));
-    $this->assertSoftDeleted('categories', [
+    $this->assertDatabaseMissing('categories', [
         'id' => $category->id,
     ]);
 });
@@ -310,8 +312,9 @@ test('can export products to CSV and import from CSV', function () {
         'wholesale_price' => 550.00,
         'is_active' => true,
     ]);
-    ProductStock::create([
+    ProductStoreStock::create([
         'product_id' => $product->id,
+        'store_id' => 1,
         'quantity' => 10,
     ]);
 
@@ -345,8 +348,9 @@ test('can export products to CSV and import from CSV', function () {
     ]);
 
     $importedProduct = Product::where('sku', 'IMP-999')->first();
-    $this->assertDatabaseHas('product_stock', [
+    $this->assertDatabaseHas('product_store_stock', [
         'product_id' => $importedProduct->id,
+        'store_id' => 1,
         'quantity' => 15,
     ]);
 });

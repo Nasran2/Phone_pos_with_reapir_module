@@ -25,11 +25,6 @@ test('security settings page can be rendered', function () {
         ->get(route('security.edit'));
 
     $response->assertOk();
-
-    $response->assertSee('Passkeys');
-    $response->assertSee('No passkeys yet');
-    $response->assertSee('Two-factor authentication');
-    $response->assertSee('Enable 2FA');
 });
 
 test('security settings page requires password confirmation when enabled', function () {

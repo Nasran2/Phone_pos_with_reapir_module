@@ -52,8 +52,9 @@ test('pos can process a successful sales checkout', function () {
         'updated_at' => now()
     ]);
 
-    DB::table('product_stock')->insert([
+    DB::table('product_store_stock')->insert([
         'product_id' => $productId,
+        'store_id' => 1,
         'quantity' => 10.00,
         'created_at' => now(),
         'updated_at' => now()
@@ -100,16 +101,17 @@ test('pos can process a successful sales checkout', function () {
         'due_amount' => 0.00
     ]);
 
-    // Check if stock quantity decreased by 2
-    $this->assertDatabaseHas('product_stock', [
+    // Check if stock is deducted
+    $this->assertDatabaseHas('product_store_stock', [
         'product_id' => $productId,
-        'quantity' => 8.00
+        'store_id' => 1,
+        'quantity' => 8.00 // 10 - 2
     ]);
 
     // Check stock movements logged
-    $this->assertDatabaseHas('stock_movements', [
+    $this->assertDatabaseHas('stock_histories', [
         'product_id' => $productId,
-        'quantity' => -2.00,
+        'quantity_change' => -2.00,
         'type' => 'sale'
     ]);
 });

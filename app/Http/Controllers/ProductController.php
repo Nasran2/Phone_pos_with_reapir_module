@@ -215,10 +215,17 @@ class ProductController extends Controller
                 $imeiCount = count($imeis);
                 if ($imeiCount > 0) {
                     $primaryStoreId = $storeIds[0] ?? Setting::get('default_store_id', 1);
-                    $stock = ProductStoreStock::firstOrCreate([
-                        'product_id' => $product->id,
-                        'store_id' => $primaryStoreId,
-                    ], ['quantity' => 0]);
+                    $stock = ProductStoreStock::where('product_id', $product->id)
+                        ->where('store_id', $primaryStoreId)
+                        ->first();
+                        
+                    if (!$stock) {
+                        $stock = ProductStoreStock::create([
+                            'product_id' => $product->id,
+                            'store_id' => $primaryStoreId,
+                            'quantity' => 0
+                        ]);
+                    }
                     $stock->quantity = $imeiCount;
                     $stock->save();
 
@@ -252,25 +259,17 @@ class ProductController extends Controller
                     ]);
 
                     $vQty = floatval($v['stock_quantity'] ?? 0);
-                    foreach ($storeIds as $storeId) {
-                        ProductStoreStock::firstOrCreate([
+                    if ($vQty > 0) {
+                        StockHistory::create([
                             'product_id' => $product->id,
                             'variant_id' => $variant->id,
-                            'store_id' => $storeId,
-                        ], ['quantity' => $vQty]);
-
-                        if ($vQty > 0) {
-                            StockHistory::create([
-                                'product_id' => $product->id,
-                                'variant_id' => $variant->id,
-                                'store_id' => $storeId,
-                                'quantity_change' => $vQty,
-                                'new_quantity' => $vQty,
-                                'type' => 'opening_stock',
-                                'note' => 'Variant opening stock',
-                                'created_by' => auth()->id(),
-                            ]);
-                        }
+                            'store_id' => $storeIds[0] ?? Setting::get('default_store_id', 1),
+                            'quantity_change' => $vQty,
+                            'new_quantity' => $vQty,
+                            'type' => 'opening_stock',
+                            'note' => 'Variant opening stock',
+                            'created_by' => auth()->id(),
+                        ]);
                     }
                 }
             }
