@@ -90,7 +90,26 @@ class MixedPaymentService
                     $cleared+=$amount;
                     DB::table('sale_payments')->insert(['sale_id'=>$sale->id,'payment_date'=>today(),'amount'=>$amount,'status'=>'cleared','invoice_payment_id'=>$payment->id,'payment_method'=>$method,'reference_no'=>$row['reference_no']??null,'note'=>$row['notes']??'Mixed payment','created_by'=>auth()->id(),'created_at'=>now(),'updated_at'=>now()]);
                     $sale->paid_amount=(float)$sale->paid_amount+$amount; $sale->due_amount=max(0,(float)$sale->due_amount-$amount); $sale->save();
-                    if($sale->customer_id) Customer::whereKey($sale->customer_id)->decrement('balance',min($amount,(float)Customer::whereKey($sale->customer_id)->value('balance')));
+                    if($sale->customer_id) {
+                        $deduct = min($amount,(float)\App\Models\Customer::whereKey($sale->customer_id)->value('balance'));
+                        \App\Models\Customer::whereKey($sale->customer_id)->decrement('balance', $deduct);
+                        $cBalance = \App\Models\Customer::whereKey($sale->customer_id)->value('balance');
+                        if ($deduct > 0) {
+                            \App\Models\CustomerTransaction::create([
+                                'customer_id' => $sale->customer_id,
+                                'transactionable_type' => \App\Models\InvoicePayment::class,
+                                'transactionable_id' => $payment->id,
+                                'transaction_date' => today(),
+                                'type' => 'sale_payment',
+                                'debit' => 0,
+                                'credit' => $deduct,
+                                'balance_after' => $cBalance,
+                                'reference_no' => $sale->invoice_no,
+                                'note' => 'Payment received: ' . $method,
+                                'created_by' => auth()->id(),
+                            ]);
+                        }
+                    }
                 } elseif($status==='hold'){
                     $details=$row['cheque'];
                     $cheque=$this->cheques->create(['invoice_payment_id'=>$payment->id,'cheque_type'=>'received','customer_id'=>$sale->customer_id,'sale_id'=>$sale->id,'store_id'=>$context['store_id']??$sale->store_id,'lorry_id'=>$context['lorry_id']??null,'trip_id'=>$context['trip_id']??null,'cheque_number'=>$details['cheque_number'],'cheque_date'=>$details['cheque_date'],'bank_name'=>$details['bank_name'],'branch_name'=>$details['branch_name']??null,'account_holder'=>$details['account_holder'],'account_number'=>$details['account_number']??null,'amount'=>$amount,'reference_number'=>$row['reference_no']??null,'received_from'=>$sale->customer?->name,'notes'=>$details['notes']??$row['notes']??null]);

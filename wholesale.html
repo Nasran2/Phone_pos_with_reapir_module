@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="csrf-token" content="VC3cmQ3ETuCtW2at3pjeG9bNFI7ypXFUIxMkl1D7">
+
+<title>
+    Lorry POS - Laravel
+</title>
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<link rel="preload" as="font" href="http://localhost:8000/build/assets/instrument-sans-400-normal-DRC__1Mx.woff2" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" as="font" href="http://localhost:8000/build/assets/instrument-sans-400-normal-Q_nF8v4l.woff2" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" as="font" href="http://localhost:8000/build/assets/instrument-sans-500-normal-Dk9ku72i.woff2" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" as="font" href="http://localhost:8000/build/assets/instrument-sans-500-normal-CTEe1bJa.woff2" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" as="font" href="http://localhost:8000/build/assets/instrument-sans-600-normal-B7fBEWYG.woff2" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" as="font" href="http://localhost:8000/build/assets/instrument-sans-600-normal-BsaQcF38.woff2" type="font/woff2" crossorigin="anonymous" />
+<style>
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-400-normal-DRC__1Mx.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-400-normal-D1W7dsQl.woff") format("woff");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-400-normal-Q_nF8v4l.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-400-normal-r32jotim.woff") format("woff");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-500-normal-Dk9ku72i.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-500-normal-Z6ESRlEs.woff") format("woff");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-500-normal-CTEe1bJa.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-500-normal-CAxz3nsc.woff") format("woff");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-600-normal-B7fBEWYG.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-600-normal-B9e8oLYv.woff") format("woff");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-600-normal-BsaQcF38.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/build/assets/instrument-sans-600-normal-DMks36a2.woff") format("woff");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+:root {
+  --font-instrument-sans: "Instrument Sans", "Instrument Sans fallback";
+}
+
+.font-instrument-sans {
+  font-family: var(--font-instrument-sans);
+}
+</style>
+<link rel="preload" as="style" href="http://localhost:8000/build/assets/app-zBZBis6p.css" /><link rel="modulepreload" as="script" href="http://localhost:8000/build/assets/app-BvRk9kiK.js" /><link rel="stylesheet" href="http://localhost:8000/build/assets/app-zBZBis6p.css" data-navigate-track="reload" /><script type="module" src="http://localhost:8000/build/assets/app-BvRk9kiK.js" data-navigate-track="reload"></script><style>
+    :root.dark {
+        color-scheme: dark;
+    }
+</style>
+<script>
+    window.Flux = {
+        applyAppearance (appearance) {
+            let applyDark = () => document.documentElement.classList.add('dark')
+            let applyLight = () => document.documentElement.classList.remove('dark')
+
+            if (appearance === 'system') {
+                let media = window.matchMedia('(prefers-color-scheme: dark)')
+
+                window.localStorage.removeItem('flux.appearance')
+
+                media.matches ? applyDark() : applyLight()
+            } else if (appearance === 'dark') {
+                window.localStorage.setItem('flux.appearance', 'dark')
+
+                applyDark()
+            } else if (appearance === 'light') {
+                window.localStorage.setItem('flux.appearance', 'light')
+
+                applyLight()
+            }
+        }
+    }
+
+    window.Flux.applyAppearance(window.localStorage.getItem('flux.appearance') || 'system')
+</script>
+
+<!-- Global SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmAction(event, message) {
+        event.preventDefault();
+        let form = event.target.closest('form');
+        let el = event.currentTarget; // The element that triggered the click
+        if (el.tagName.toLowerCase() !== 'form' && !form) {
+            // If it's a link or button without a form, handle redirect if href exists
+            let href = el.getAttribute('href');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#3b82f6',
+                confirmButtonText: 'Yes, proceed!'
+            }).then((result) => {
+                if (result.isConfirmed && href) {
+                    window.location.href = href;
+                }
+            });
+            return false;
+        }
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: message,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3b82f6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        return false;
+    }
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="h-screen max-h-screen overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
+
+    <!-- SCREEN 7: Hamburger Menu Drawer (Overlay) -->
+    <div x-show="showMenuDrawer" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="-translate-x-full"
+         class="fixed inset-y-0 left-0 w-80 bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl" 
+         x-cloak>
+        
+        <div>
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-[#182647] bg-[#091024]">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <rect x="2" y="3" width="20" height="12" rx="2" />
+                            <path d="M12 15v4" />
+                            <path d="M9 19h6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <h2 class="text-sm font-bold text-white leading-tight">Lorry POS</h2>
+                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Assigned Stock</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">Navigation Menu</p>
+                    </div>
+                </div>
+                <button @click="showMenuDrawer = false" class="text-slate-400 hover:text-white cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Links -->
+            <nav class="p-6 space-y-4">
+                <a href="http://localhost:8000/distribution/my-lorry" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
+                    <svg class="w-5 h-5 text-slate-450" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>Back to Dashboard</span>
+                </a>
+                                <a href="#" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
+                    <svg class="w-5 h-5 text-slate-450" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>Report Logs</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
+                    <svg class="w-5 h-5 text-slate-450" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>System Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- User profile details -->
+        <div class="p-6 border-t border-[#182647] bg-[#091024] flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
+                    SA
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white leading-none">Super Admin</h4>
+                    <p class="text-xs text-slate-400 font-semibold mt-1">Lorry User</p>
+                </div>
+            </div>
+            <form method="POST" action="http://localhost:8000/logout">
+                <input type="hidden" name="_token" value="VC3cmQ3ETuCtW2at3pjeG9bNFI7ypXFUIxMkl1D7" autocomplete="off">                <button type="submit" class="text-slate-450 hover:text-red-500 cursor-pointer" title="Log Out">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Drawer Backdrop Overlay -->
+    <div x-show="showMenuDrawer" 
+         @click="showMenuDrawer = false" 
+         class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden" 
+         x-cloak></div>
+
+    <!-- SCREEN 1: Desktop Full Screen POS -->
+    <div class="flex-1 flex flex-col w-full h-screen overflow-hidden">
+        
+        <!-- Top Header Bar -->
+        <header class="bg-[#0c1630] border-b border-[#182647] text-white h-16 px-4 flex items-center justify-between shrink-0 z-30">
+            <!-- Left Header brand details -->
+            <div class="flex items-center gap-4">
+                <button @click="showMenuDrawer = true" class="text-slate-350 hover:text-white cursor-pointer" title="Toggle Navigation">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 shadow-md shadow-emerald-500/10">
+                        <svg class="w-5.5 h-5.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <rect x="2" y="3" width="20" height="12" rx="2" />
+                            <path d="M12 15v4" />
+                        </svg>
+                    </div>
+                    <div class="hidden sm:block">
+                        <div class="flex items-center gap-1.5">
+                            <h1 class="text-sm font-black tracking-wide leading-none">Lorry POS</h1>
+                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Assigned Lorry</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Central Global Product Search Bar -->
+            <div class="flex-1 max-w-lg mx-6 relative hidden md:block">
+                <input 
+                    type="text" 
+                    placeholder="Search by Product, SKU, Barcode... (F1)" 
+                    x-model="searchQuery"
+                    id="search-input"
+                    class="w-full pl-10 pr-10 py-1.5 bg-slate-900 border border-[#182647] rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-500"
+                />
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </div>
+                <!-- Barcode Scan Action Button -->
+                <button class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-blue-400 cursor-pointer" title="Scan Barcode">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M3 5h2v14H3zm4 0h1v14H7zm3 0h3v14h-3zm5 0h1v14h-1zm3 0h3v14h-3z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Right header action items -->
+            <div class="flex items-center gap-3">
+                <!-- Notifications button -->
+                <div class="relative">
+                    <button class="p-1.5 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800 cursor-pointer">
+                        <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                    </button>
+                    <span class="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-[#0c1630]"></span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                                                            <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>Hold Invoices (F6)</span>
+                    </button>
+                    <div class="text-right hidden md:block">
+                        <p class="text-xs font-bold leading-none">Super Admin</p>
+                        <span class="text-[9px] text-slate-400 uppercase font-black">Wholesale Agent</span>
+                    </div>
+                </div>
+
+                <!-- Fullscreen Toggle -->
+                <button onclick="document.documentElement.requestFullscreen()" class="p-1.5 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800 hidden sm:block cursor-pointer" title="Toggle Fullscreen">
+                    <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Category Header Selector (Horizontal scroll bar) -->
+        <div class="bg-white border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between shrink-0 gap-3">
+            <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
+                <!-- All Products Category -->
+                <button @click="selectedCategory = 'all'" 
+                        class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
+                        :class="selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
+                    All Products
+                </button>
+                            </div>
+            
+            <!-- Mobile Toggle Tabs (Only visible on mobile layout viewports) -->
+            <div class="flex items-center gap-1.5 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
+                <button @click="mobileTab = 'products'" class="px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
+                <button @click="mobileTab = 'cart'" class="px-3 py-1 rounded-md relative" :class="mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : ''">
+                    <span>Cart</span>
+                    <span x-show="cart.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] h-4.5 w-4.5 rounded-full flex items-center justify-center font-black" x-text="cart.length"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- POS Master Grid: Product display on left; Cart layout on right -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Left Side: Product Grid Section -->
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
+                <!-- Products Card Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                    <template x-for="product in filteredProducts()" :key="product.id">
+                        <div @click="openProductFlow(product)" 
+                             class="bg-white border border-slate-250/70 rounded-xl p-2 flex flex-col justify-between hover:shadow-md cursor-pointer transition select-none hover:border-blue-400 group">
+                            <!-- Image Stand-in matching mockup styling -->
+                            <div class="h-16 sm:h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:scale-102 transition shrink-0 relative overflow-hidden">
+                                <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                                <!-- Product stock warning indicator -->
+                                <span class="absolute top-1 right-1 px-1 py-0.5 text-[8px] font-black rounded-md shadow-xs bg-slate-900/60 text-white" 
+                                      :class="product.stock <= product.stock_alert_quantity ? 'bg-red-650 text-white' : ''"
+                                      x-text="'Stock: ' + parseInt(product.stock)"></span>
+                            </div>
+                            
+                            <!-- Text Details -->
+                            <div class="mt-2 space-y-1 w-full min-w-0">
+                                <h4 class="text-[11px] font-bold text-slate-700 leading-tight line-clamp-2 h-7 group-hover:text-blue-600 transition" x-text="product.name"></h4>
+                                <h5 class="text-xs font-black text-blue-600">Rs. <span x-text="formatMoney(product.wholesale_price)"></span></h5>
+                                <div class="flex items-center justify-between pt-0.5">
+                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Wholesale</span>
+                                    <button class="p-0.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition focus:outline-none">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Right Side: Cart & Checkout Section -->
+            <div class="w-full lg:w-96 border-l border-slate-200/80 bg-white p-4 flex flex-col overflow-hidden shrink-0 select-none"
+                 :class="mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'">
+                
+                <!-- Customer Selection Header -->
+                <div class="space-y-3 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <!-- SCREEN 9: Customer Selection/Add Popup Trigger -->
+                        <div class="relative flex-1">
+                            <select x-model="selectedCustomerId" class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition">
+                                <template x-for="cust in customers" :key="cust.id">
+                                    <option :value="cust.id" x-text="cust.name + (cust.phone !== 'N/A' ? ' (' + cust.phone + ')' : '')"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <button @click="showAddCustomerModal = true" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-500/10 cursor-pointer" title="Add Customer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Cart Item Table Header -->
+                    <div class="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-100">
+                        <span class="col-span-6">Item</span>
+                        <span class="col-span-3 text-center">Qty</span>
+                        <span class="col-span-3 text-right">Total</span>
+                    </div>
+                </div>
+
+                <!-- Cart Items Scroll Area -->
+                <div class="flex-1 overflow-y-auto py-2 divide-y divide-slate-100/60">
+                    <template x-for="(item, index) in cart" :key="index">
+                        <div class="grid grid-cols-12 gap-1 items-center py-2.5 group">
+                            <!-- Item name and specs -->
+                            <div class="col-span-6 space-y-0.5">
+                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate hover:text-blue-600 cursor-pointer transition" 
+                                    @click="openEditItemModal(item, index)" 
+                                    x-text="item.name"
+                                    title="Click to edit item discount, qty, and price"></h4>
+                                <template x-if="item.variant_label">
+                                    <div class="text-[9px] font-bold text-blue-600" x-text="item.variant_label"></div>
+                                </template>
+                                <div class="flex items-center gap-1.5">
+                                    <!-- Price edit field -->
+                                    <span class="text-[9px] text-slate-400 font-bold">Wh: </span>
+                                    <input type="number" 
+                                           x-model.number="item.selling_price" 
+                                           @input="updateLineTotal(item)"
+                                           class="w-14 px-1 py-0.5 border border-slate-200 rounded text-[9px] font-semibold focus:outline-none" />
+                                </div>
+                            </div>
+                            
+                            <!-- Qty steppers -->
+                            <div class="col-span-3 flex items-center justify-center gap-1">
+                                <button @click="decrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                </button>
+                                <span class="text-xs font-black w-4 text-center text-slate-800" x-text="item.quantity"></span>
+                                <button @click="incrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Line subtotal and remove -->
+                            <div class="col-span-3 flex flex-col items-end justify-center">
+                                <span class="text-xs font-black text-slate-800">Rs. <span x-text="formatMoney(item.line_total)"></span></span>
+                                <button @click="removeFromCart(index)" class="text-[9px] text-red-500 hover:text-red-650 font-bold mt-1 opacity-60 hover:opacity-100 cursor-pointer">Remove</button>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="cart.length === 0">
+                        <div class="flex flex-col items-center justify-center h-full gap-2 text-slate-400 py-12">
+                            <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                            </svg>
+                            <span class="text-xs font-bold">Your POS Cart is empty</span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Totals Checkout Panel & Payment Screen Actions -->
+                <div class="border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
+                    <div class="space-y-1.5 text-xs">
+                        <div class="flex items-center justify-between text-slate-500">
+                            <span class="font-bold text-slate-700">Items</span>
+                            <span class="font-bold text-slate-800" x-text="cart.length"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-500">
+                            <span class="font-bold text-slate-700">Subtotal</span>
+                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateSubtotal())"></span></span>
+                        </div>
+                        <template x-if="totals.addedTax > 0 || (totals.addedTax == 0 && totals.includedTax == 0)">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="font-bold text-slate-700">Taxable Amount</span>
+                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.subTotal - totals.discount)"></span></span>
+                            </div>
+                        </template>
+                        <template x-if="totals.addedTax > 0">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="font-bold text-slate-700">Added VAT</span>
+                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.addedTax)"></span></span>
+                            </div>
+                        </template>
+                        <template x-if="totals.includedTax > 0">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="font-bold text-slate-700">Tax Included</span>
+                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.includedTax)"></span></span>
+                            </div>
+                        </template>
+                        <div class="flex items-center justify-between text-slate-800 font-black text-sm pt-1 mt-1 border-t border-slate-200">
+                            <span>Payable</span>
+                            <span>Rs <span x-text="formatMoney(calculateGrandTotal())"></span></span>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-2 pt-2">
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
+                                <input type="radio" value="fixed" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                                Fixed
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
+                                <input type="radio" value="percentage" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                                %
+                            </label>
+                            <div class="flex-1 ml-1">
+                                <input type="number" step="any" min="0" placeholder="Discount" x-model.number="globalDiscountValue" class="w-full text-left px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Method</span><button @click="openMultiplePayments()" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100">+ Multiple Payment</button></div>
+                        <div class="grid grid-cols-5 gap-2 text-[10px] font-bold">
+                            <template x-for="method in ['Cash','Bank Transfer','Cheque']"><button @click="selectSinglePayment(method)" class="min-h-11 rounded-lg border px-1 transition" :class="!useMultiplePayments && paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 bg-slate-50 text-slate-600'" x-text="method === 'Bank Transfer' ? 'Bank' : method === 'QR Payment' ? 'QR' : method"></button></template>
+                        </div>
+                        <div x-show="useMultiplePayments" class="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs"><span class="font-bold text-blue-700"><span x-text="paymentRows.length"></span> payment allocations selected</span><button @click="openMultiplePayments()" class="font-bold text-blue-600">Edit</button></div>
+                        <div x-show="!useMultiplePayments" class="grid grid-cols-2 gap-3 text-xs font-bold">
+                            <div><label class="mb-1 block text-[10px] text-slate-500">Paid Amount</label><input type="number" min="0" step="0.01" x-model.number="paidAmount" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"></div>
+                            <div><label class="mb-1 block text-[10px] text-slate-500">Change Amount</label><div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-100 px-3 py-2"><span x-text="currencySymbol"></span><span x-text="formatMoney(calculateChangeAmount())"></span></div></div>
+                        </div>
+                        <div x-show="!useMultiplePayments && paymentMethod === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2">
+                            <input x-model="chequeDetails.cheque_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Cheque number *"><input type="date" x-model="chequeDetails.cheque_date" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs"><input x-model="chequeDetails.bank_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Bank *"><input x-model="chequeDetails.branch_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Branch"><input x-model="chequeDetails.account_holder_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account holder *"><input x-model="chequeDetails.account_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account number">
+                        </div>
+                    </div>
+
+                    <!-- Checkout Bottom Action Buttons -->
+                    <div class="grid grid-cols-3 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
+                        <button @click="clearCart()" class="py-3 bg-red-150 hover:bg-red-200 text-red-650 border border-red-200 rounded-xl transition cursor-pointer">Clear</button>
+                        <button @click="holdCurrentSale()" class="py-3 bg-amber-100 hover:bg-amber-200 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer">Hold (F2)</button>
+                        <button @click="submitPOSCheckout()" 
+                                class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
+                                :disabled="cart.length === 0 || !checkoutPaymentValid()"
+                                :class="cart.length === 0 || !checkoutPaymentValid() ? 'opacity-50 cursor-not-allowed' : ''">
+                            <span>Pay (F12)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multiple payment allocations are kept in a popup so the standard POS stays compact. -->
+    <div x-show="showMultiplePaymentModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+        <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl" @click.away="closeMultiplePayments(false)">
+            <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4"><div><h3 class="text-lg font-black text-slate-900">Multiple Payments</h3><p class="text-xs text-slate-500">Add every payment used for this invoice. Cheques are tracked separately.</p></div><button @click="closeMultiplePayments(false)" class="text-2xl text-slate-400">×</button></div>
+            <div class="overflow-y-auto p-6">
+                <div class="mb-4 grid grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="min-h-10 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold hover:border-blue-400 hover:text-blue-600" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+                <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div class="grid grid-cols-[1fr_130px_28px] gap-2">
+                        <select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs">
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Other">Other</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Customer Credit / Due">Customer Credit / Due</option>
+                        </select>
+                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                    <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs flex-col col-span-2" placeholder="Account holder *"></div>
+                </div></template></div>
+                <div class="mt-4 grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-bold"><div>Allocated<br><span class="text-lg" x-text="currencySymbol + formatMoney(allocatedTotal())"></span></div><div class="text-amber-600">Cheque hold<br><span class="text-lg" x-text="currencySymbol + formatMoney(chequeHoldTotal())"></span></div><div :class="Math.abs(remainingToAllocate()) < .01 ? 'text-emerald-600' : 'text-red-600'">Remaining<br><span class="text-lg" x-text="currencySymbol + formatMoney(remainingToAllocate())"></span></div></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 border-t border-slate-200 px-6 py-4"><button @click="closeMultiplePayments(false)" class="rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700">Cancel</button><button @click="closeMultiplePayments(true)" :disabled="!paymentsValid()" :class="!paymentsValid() ? 'opacity-50' : ''" class="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white">Use Multiple Payments</button></div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: Wholesale Product Popup Modal (Desktop Only) -->
+    <!-- AND SCREEN 6: Mobile Bottom Sheet Product Popup (Mobile Viewports) -->
+    <div x-show="showProductModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
+        <!-- Modal Card Container -->
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl flex flex-col md:flex-row gap-6 border border-slate-200 transform scale-100 transition duration-300"
+             @click.away="closeProductModal()">
+            
+            <!-- Left Panel: Product visual -->
+            <div class="w-full md:w-2/5 flex flex-col items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <div class="aspect-square w-24 h-24 flex items-center justify-center text-slate-400 bg-white rounded-xl shadow-xs">
+                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </div>
+                <h3 class="text-sm font-extrabold text-slate-850 text-center mt-3.5" x-text="selectedProduct ? selectedProduct.name : ''"></h3>
+                <div class="mt-2 flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Available Stock:</span>
+                    <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[10px] font-black" x-text="selectedProduct ? parseInt(selectedProduct.stock) : 0"></span>
+                </div>
+            </div>
+
+            <!-- Right Panel: Inputs, Quantity, and Totals -->
+            <div class="w-full md:w-3/5 flex flex-col justify-between space-y-4">
+                <!-- Info cards (cost vs wholesale selling) -->
+                <div class="grid grid-cols-2 gap-3 text-[10px] font-bold text-slate-500">
+                    <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-2.5 text-center">
+                        <span class="block text-slate-400 uppercase tracking-wider mb-1">Cost Price</span>
+                        <span class="text-xs font-black text-slate-800">Rs. <span x-text="selectedProduct ? formatMoney(selectedProduct.cost_price) : 0"></span></span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-2.5 text-center">
+                        <span class="block text-slate-400 uppercase tracking-wider mb-1">Wholesale price</span>
+                        <span class="text-xs font-black text-blue-600">Rs. <span x-text="selectedProduct ? formatMoney(selectedProduct.wholesale_price) : 0"></span></span>
+                    </div>
+                </div>
+
+                <template x-if="selectedProduct && selectedProduct.variants && selectedProduct.variants.length > 0">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Variation</label>
+                        <select x-model="selectedVariantId" @change="applySelectedVariant()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <template x-for="variant in selectedProduct.variants" :key="variant.id">
+                                <option :value="variant.id" x-text="`${variant.label} | Stock: ${parseInt(variant.stock_quantity)} | Rs. ${formatMoney(variant.wholesale_price)}`"></option>
+                            </template>
+                        </select>
+                    </div>
+                </template>
+
+                <!-- Quantity controls -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Quantity</label>
+                    <div class="flex items-center gap-2">
+                        <button @click="modalQuantity = Math.max(1, modalQuantity - 1)" class="p-2 border border-slate-250 bg-slate-50 rounded-xl focus:outline-none cursor-pointer">
+                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                        <input type="number" x-model.number="modalQuantity" @input="modalQuantity = selectedProduct ? Math.max(1, Math.min(selectedProduct.stock, modalQuantity)) : Math.max(1, modalQuantity)" class="w-full text-center py-2.5 bg-slate-50 border border-slate-250 rounded-xl font-bold focus:outline-none" />
+                        <button @click="modalQuantity = selectedProduct ? Math.min(selectedProduct.stock, modalQuantity + 1) : modalQuantity + 1" class="p-2 border border-slate-250 bg-slate-50 rounded-xl focus:outline-none cursor-pointer">
+                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                    </div>
+                    <!-- Stock limit warning -->
+                    <template x-if="selectedProduct && modalQuantity >= selectedProduct.stock">
+                        <div class="text-[10px] font-semibold text-amber-600 mt-1 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            <span>Maximum available stock reached!</span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Custom Discount inputs -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-1">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Type</label>
+                        <select x-model="modalDiscountType" class="w-full px-2 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold focus:outline-none">
+                            <option value="percentage">%</option>
+                            <option value="fixed">Fixed</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Discount Amount</label>
+                        <input type="number" x-model.number="modalDiscountAmount" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none" />
+                    </div>
+                </div>
+
+                <!-- Editable Selling Price -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Editable Selling Price</label>
+                    <input type="number" x-model.number="modalPrice" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none font-bold text-blue-600" />
+                    <!-- Cost protection warning -->
+                    <template x-if="selectedProduct && modalPrice < selectedProduct.cost_price">
+                        <div class="text-[10px] font-semibold text-amber-600 mt-1 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            <span>Selling price is below cost price! Manager approval may be required.</span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Line Note -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Add Note</label>
+                    <input type="text" x-model="modalNote" placeholder="Optional line transaction note" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none" />
+                </div>
+
+                <!-- Real-time Live Line Total Preview -->
+                <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-2xl flex items-center justify-between text-xs font-bold text-slate-600">
+                    <span>Line Total:</span>
+                    <span class="text-blue-600 font-extrabold text-sm">Rs. <span x-text="formatMoney(calculateModalLineTotal())"></span></span>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="grid grid-cols-2 gap-3 text-xs font-bold">
+                    <button @click="closeProductModal()" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
+                    <button @click="addProductToCart()" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition cursor-pointer" x-text="editingCartIndex !== null ? 'Save Changes' : 'Add to Cart'"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 8: Hold Sales Screen Overlay (F2 list) -->
+    <div x-show="showHoldSalesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col justify-between"
+             @click.away="showHoldSalesModal = false">
+            
+            <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-850">Hold Invoices Queue</h3>
+                    <p class="text-[10px] text-slate-400">Recall transactions back into the checkout cart</p>
+                </div>
+                <button @click="showHoldSalesModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Hold sales list -->
+            <div class="space-y-3 flex-1 overflow-y-auto max-h-[360px] min-h-60 pr-1">
+                                    <div class="py-12 text-center text-slate-400 font-semibold text-xs flex flex-col items-center justify-center gap-2">
+                        <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>No transactions currently on hold.</span>
+                    </div>
+                            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 9: Customer Selection/Add Popup Modal -->
+    <div x-show="showAddCustomerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200"
+             @click.away="showAddCustomerModal = false">
+            
+            <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-850">Add Wholesale Customer</h3>
+                    <p class="text-[10px] text-slate-400">Quick-create customer details</p>
+                </div>
+                <button @click="showAddCustomerModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Customer inputs -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Full Name</label>
+                    <input type="text" x-model="customerForm.name" placeholder="E.g. Saman Kumara" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none" />
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phone Number</label>
+                    <input type="text" x-model="customerForm.phone" placeholder="E.g. 0771234567" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none" />
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Email Address</label>
+                    <input type="email" x-model="customerForm.email" placeholder="E.g. customer@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none" />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 text-xs font-bold pt-2">
+                    <button @click="showAddCustomerModal = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
+                    <button @click="quickCreateCustomer()" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition cursor-pointer">Create & Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 10: Payment Success Screen Modal -->
+    <div x-show="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 flex flex-col justify-between"
+             @click.away="showSuccessModal = false">
+            
+            <div class="text-center pb-4 border-b border-slate-100">
+                <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h3 class="text-base font-black text-slate-800 leading-none">Checkout Successful</h3>
+                <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">Invoice registered successfully</p>
+            </div>
+
+            <!-- Receipt layout inside modal -->
+            <div class="my-4 bg-slate-50 border border-slate-200/50 rounded-2xl p-4 font-mono text-[10px] text-slate-700 space-y-3 max-h-[300px] overflow-y-auto leading-relaxed" id="receipt-print-area">
+                <div class="text-center">
+                    <h4 class="font-extrabold text-xs text-slate-900 uppercase">Phone Shop POS</h4>
+                    <p class="text-[9px] text-slate-500 leading-tight">Wholesale & Distribution POS</p>
+                    <p class="text-[8px] text-slate-500">Colombo, Sri Lanka &bull; +94 76 247 2822</p>
+                </div>
+                
+                <div class="border-t border-dashed border-slate-300 pt-2 space-y-0.5">
+                    <p><strong>Invoice:</strong> <span x-text="checkoutSuccessData ? checkoutSuccessData.invoice_no : ''"></span></p>
+                    <p><strong>Date:</strong> <span x-text="checkoutSuccessData ? checkoutSuccessData.date : ''"></span></p>
+                    <p><strong>Cashier:</strong> Super Admin</p>
+                    <p><strong>Customer:</strong> <span x-text="checkoutSuccessData ? checkoutSuccessData.customer : ''"></span></p>
+                </div>
+
+                <table class="w-full border-t border-dashed border-slate-300 pt-2 text-left">
+                    <thead>
+                        <tr class="font-bold border-b border-slate-200 pb-1">
+                            <th>Item</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in (checkoutSuccessData ? checkoutSuccessData.items : [])">
+                            <tr class="border-b border-slate-100/50">
+                                <td class="py-1">
+                                    <span x-text="item.name"></span>
+                                    <template x-if="item.serial_no">
+                                        <span class="block text-[8px] text-slate-500 font-bold" x-text="'IMEI: ' + item.serial_no"></span>
+                                    </template>
+                                </td>
+                                <td class="text-center py-1" x-text="item.quantity"></td>
+                                <td class="text-right py-1" x-text="'Rs. ' + formatMoney(item.line_total)"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+
+                <div class="border-t border-dashed border-slate-300 pt-2 space-y-1 text-right">
+                    <div class="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.subtotal : 0)"></span>
+                    </div>
+                    <div class="flex justify-between text-red-650 font-semibold" x-show="checkoutSuccessData && checkoutSuccessData.discount > 0">
+                        <span>Discount:</span>
+                        <span x-text="'-Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.discount : 0)"></span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1">
+                        <span>Total Payable:</span>
+                        <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.payable : 0)"></span>
+                    </div>
+                    
+                    <template x-if="checkoutSuccessData && checkoutSuccessData.payment_rows && checkoutSuccessData.payment_rows.length > 0">
+                        <div class="border-t border-dashed border-slate-300 mt-1.5 pt-1.5 space-y-1">
+                            <template x-for="(row, index) in checkoutSuccessData.payment_rows" :key="index">
+                                <div>
+                                    <div class="flex justify-between font-semibold">
+                                        <span x-text="'Paid (' + row.method + '):'"></span>
+                                        <span x-text="'Rs. ' + formatMoney(row.amount)"></span>
+                                    </div>
+                                    <template x-if="row.method === 'Cheque'">
+                                        <div class="text-[9px] text-slate-500 text-left mt-0.5 leading-tight">
+                                            <span x-text="'Chq No: ' + (row.cheque?.cheque_number || 'N/A')"></span><br>
+                                            <span x-text="'Date: ' + (row.cheque?.cheque_date || 'N/A')"></span><br>
+                                            <span x-text="'Bank: ' + (row.cheque?.bank_name || 'N/A')"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="row.method === 'Bank Transfer' && row.reference_number">
+                                        <div class="text-[9px] text-slate-500 text-left mt-0.5">
+                                            <span x-text="'Ref: ' + row.reference_number"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="!(checkoutSuccessData && checkoutSuccessData.payment_rows && checkoutSuccessData.payment_rows.length > 0)">
+                        <div class="flex justify-between font-semibold mt-1.5 pt-1.5 border-t border-dashed border-slate-300">
+                            <span>Paid Total:</span>
+                            <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.paid_amount : 0)"></span>
+                        </div>
+                    </template>
+                    <div class="flex justify-between text-emerald-600 font-bold">
+                        <span>Change Cash:</span>
+                        <span x-text="'Rs. ' + formatMoney(checkoutSuccessData ? checkoutSuccessData.change : 0)"></span>
+                    </div>
+                </div>
+
+                <div class="text-center border-t border-dashed border-slate-300 pt-2 mt-2 text-[8px] text-slate-400">
+                    <p>Thank you for shopping with us!</p>
+                    <p class="font-extrabold uppercase mt-1 text-[7px] tracking-wider">Powered by twinsofte.com</p>
+                </div>
+            </div>
+
+            <!-- Print Actions -->
+            <div class="space-y-2.5">
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                    <button onclick="window.print()" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2m-2-9v10H8V9"/></svg>
+                        <span>58mm / 80mm</span>
+                    </button>
+                    <button @click="showSuccessModal = false" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer">
+                        Close Preview
+                    </button>
+                </div>
+                <button @click="shareWhatsApp()" class="w-full py-2.5 bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.022-.014-.508-.25-1.5-.742-.16-.076-.27-.114-.38-.114-.11 0-.22.038-.32.19l-.43.56c-.1.15-.22.18-.33.12-.12-.06-.5-.18-.95-.58-.35-.31-.59-.7-.66-.82-.07-.12-.01-.18.05-.24.05-.05.12-.14.18-.2.06-.06.08-.12.12-.2.04-.07.02-.13-.01-.2-.03-.08-.38-.92-.52-1.27-.14-.35-.29-.3-.38-.3h-.33c-.1 0-.27.04-.42.2-.15.17-.58.57-.58 1.39 0 .82.6 1.62.68 1.73.08.12 1.18 1.8 2.87 2.53.4.17.72.28.96.35.4.12.76.1 1.05.06.32-.05 1-.4 1.14-.78.14-.38.14-.7.1-.78-.04-.08-.13-.12-.24-.18zM12 2A10 10 0 0 0 2 12a9.9 9.9 0 0 0 1.52 5.23L2 22l4.9-1.28A9.9 9.9 0 0 0 12 22a10 10 0 0 0 10-10A10 10 0 0 0 12 2z"/>
+                    </svg>
+                    <span>Share via WhatsApp</span>
+                </button>
+                <button @click="resetPOSForNewSale()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl transition cursor-pointer">
+                    New Sale (ESC)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client-side SPA POS Logic -->
+    <script>
+        function posApp() {
+            return {
+                products: [],
+                categories: [],
+                customers: [],
+                paymentMethods: [],
+                holdSales: [],
+                resumeHold: null,
+                settings: [],
+                sourceType: "lorry",
+                activeLorryId: 1,
+                activeTripId: null,
+                
+                cart: [],
+                totals: { subTotal: 0, discount: 0, addedTax: 0, includedTax: 0, totalTax: 0, grandTotal: 0 },
+                globalDiscountType: 'fixed',
+                globalDiscountValue: 0,
+                selectedCategory: 'all',
+                searchQuery: '',
+                selectedCustomerId: 1, // Default Walk-in
+                currentHoldId: null,
+                taxPercentage: Number(15),
+                taxMode: "exclusive",
+                shippingCost: 0,
+                paidAmount: 0,
+                paymentMethod: 'Cash',
+                chequeDetails: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder_name: '', account_number: '', reference_number: '' },
+                paymentRows: [],
+                useMultiplePayments: false,
+                currencySymbol: "Rs.",
+                decimalPlaces: Number(2),
+                enableTax: Boolean(true),
+                enableDiscount: Boolean(true),
+                
+                // Helpers
+                toNumber(value) {
+                    if (value === null || value === undefined || value === '') return 0;
+                    if (typeof value === 'number') return value;
+                    if (typeof value === 'string') {
+                        let cleaned = value.replace(/[^\d.-]/g, '');
+                        let parsed = parseFloat(cleaned);
+                        return isNaN(parsed) ? 0 : parsed;
+                    }
+                    return 0;
+                },
+                roundMoney(value) {
+                    return Math.round((this.toNumber(value) + Number.EPSILON) * 100) / 100;
+                },
+                
+                mobileTab: 'products', // products, cart
+                
+                // Modals/Sheets
+                showMenuDrawer: false,
+                showHoldSalesModal: false,
+                showAddCustomerModal: false,
+                showProductModal: false,
+                showSuccessModal: false,
+                showMultiplePaymentModal: false,
+                
+                // Modal form fields
+                selectedProduct: null,
+                selectedVariantId: '',
+                modalQuantity: 1,
+                modalDiscountType: 'percentage',
+                modalDiscountAmount: 0,
+                modalPrice: 0,
+                modalNote: '',
+                editingCartIndex: null,
+                
+                // Customer quick create form
+                customerForm: {
+                    name: '',
+                    phone: '',
+                    email: ''
+                },
+                
+                checkoutSuccessData: {},
+
+                init() {
+                    if (this.resumeHold) {
+                        this.recallHeldSale(this.resumeHold, true);
+                    }
+
+                    // Register keyboard shortcuts
+                    window.addEventListener('keydown', (e) => {
+                        if (e.key === 'F1') {
+                            e.preventDefault();
+                            document.getElementById('search-input').focus();
+                        } else if (e.key === 'F2') {
+                            e.preventDefault();
+                            this.holdCurrentSale();
+                        } else if (e.key === 'F3') {
+                            e.preventDefault();
+                            this.showHoldSalesModal = true;
+                        } else if (e.key === 'F12') {
+                            e.preventDefault();
+                            this.submitPOSCheckout();
+                        } else if (e.key === 'Escape') {
+                            if (this.showMultiplePaymentModal) {
+                                this.closeMultiplePayments(false);
+                            } else if (this.showSuccessModal) {
+                                this.resetPOSForNewSale();
+                            } else {
+                                this.showMenuDrawer = false;
+                                this.showHoldSalesModal = false;
+                                this.showAddCustomerModal = false;
+                                this.showProductModal = false;
+                            }
+                        }
+                    });
+                },
+
+                // Filters products by selected category and search input
+                filteredProducts() {
+                    return this.products.filter(p => {
+                        const matchesCategory = this.selectedCategory === 'all' || p.category_id == this.getCategoryIdBySlug(this.selectedCategory);
+                        const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                              p.sku.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                              (p.barcode && p.barcode.includes(this.searchQuery));
+                        const matchesStock = this.sourceType !== 'lorry' || Number(p.stock || 0) > 0;
+                        return matchesCategory && matchesSearch && matchesStock;
+                    });
+                },
+
+                getCategoryIdBySlug(slug) {
+                    const cat = this.categories.find(c => c.slug === slug);
+                    return cat ? cat.id : null;
+                },
+
+                // Opens custom popup modal for item parameters
+                openProductFlow(product) {
+                    this.selectedProduct = JSON.parse(JSON.stringify(product));
+                    this.selectedVariantId = '';
+                    this.modalQuantity = 1;
+                    this.modalDiscountType = 'percentage';
+                    this.modalDiscountAmount = 0;
+                    this.modalPrice = product.wholesale_price;
+                    this.modalNote = '';
+                    this.editingCartIndex = null;
+
+                    if (this.selectedProduct.variants && this.selectedProduct.variants.length > 0) {
+                        this.selectedVariantId = this.selectedProduct.variants[0].id;
+                        this.applySelectedVariant();
+                    }
+                    
+                    this.showProductModal = true;
+                },
+
+                openEditItemModal(item, index) {
+                    this.editingCartIndex = index;
+                    this.selectedProduct = {
+                        id: item.product_id,
+                        name: item.name,
+                        variant_id: item.variant_id || null,
+                        variant_label: item.variant_label || '',
+                        cost_price: item.cost_price,
+                        stock: item.stock,
+                        wholesale_price: item.selling_price,
+                        variants: []
+                    };
+                    this.selectedVariantId = item.variant_id || '';
+                    this.modalQuantity = item.quantity;
+                    this.modalDiscountType = item.discount_type || 'percentage';
+                    this.modalDiscountAmount = item.discount_amount || 0;
+                    this.modalPrice = item.selling_price;
+                    this.modalNote = item.note || '';
+                    
+                    this.showProductModal = true;
+                },
+
+                closeProductModal() {
+                    this.showProductModal = false;
+                    this.selectedProduct = null;
+                    this.selectedVariantId = '';
+                    this.editingCartIndex = null;
+                },
+
+                selectedVariant() {
+                    if (!this.selectedProduct || !this.selectedProduct.variants) return null;
+                    return this.selectedProduct.variants.find(variant => Number(variant.id) === Number(this.selectedVariantId)) || null;
+                },
+
+                applySelectedVariant() {
+                    const variant = this.selectedVariant();
+                    if (!variant) return;
+
+                    this.selectedProduct.variant_id = variant.id;
+                    this.selectedProduct.variant_label = variant.label;
+                    this.selectedProduct.cost_price = variant.cost_price || this.selectedProduct.cost_price;
+                    this.selectedProduct.wholesale_price = variant.wholesale_price || this.selectedProduct.wholesale_price;
+                    this.selectedProduct.stock = variant.stock_quantity;
+                    this.modalPrice = this.selectedProduct.wholesale_price;
+                    this.modalQuantity = Math.min(Math.max(1, this.modalQuantity || 1), this.selectedProduct.stock || 1);
+                },
+
+                // Computes the preview subtotal of modal item details
+                calculateModalLineTotal() {
+                    if (!this.selectedProduct) return 0;
+                    let baseTotal = this.modalPrice * this.modalQuantity;
+                    if (this.modalDiscountType === 'percentage') {
+                        return baseTotal - (baseTotal * (this.modalDiscountAmount / 100));
+                    } else {
+                        return Math.max(0, baseTotal - this.modalDiscountAmount);
+                    }
+                },
+
+                // Push custom details into cart array
+                addProductToCart() {
+                    if (this.modalQuantity > this.selectedProduct.stock) {
+                        Swal.fire({ text: 'Error: Cannot add more than available stock (' + parseInt(this.selectedProduct.stock) + ')!', icon: 'error' });
+                        return;
+                    }
+                    
+                    if (this.editingCartIndex !== null) {
+                        // Update existing item in cart
+                        let item = this.cart[this.editingCartIndex];
+                        item.quantity = this.modalQuantity;
+                        item.selling_price = this.toNumber(this.modalPrice);
+                        item.discount_type = this.modalDiscountType;
+                        item.discount_amount = this.toNumber(this.modalDiscountAmount);
+                        item.note = this.modalNote;
+                        this.recalculateCartTotals();
+                    } else {
+                        // Check for duplicate IMEI
+                        let serialNo = this.selectedProduct.serials && this.selectedProduct.serials.length > 0 ? this.selectedProduct.serials[0] : '';
+                        if (this.selectedProduct.category_slug === 'smartphones' && serialNo) {
+                            let isDuplicate = this.cart.some(item => item.product_id === this.selectedProduct.id && item.serial_no === serialNo);
+                            if (isDuplicate) {
+                                Swal.fire({ text: 'This specific IMEI is already in the cart!', icon: 'warning' });
+                                return;
+                            }
+                        }
+
+                        // Add details to cart array
+                        this.cart.push({
+                            product_id: this.selectedProduct.id,
+                            variant_id: this.selectedProduct.variant_id || null,
+                            variant_label: this.selectedProduct.variant_label || '',
+                            name: this.selectedProduct.name,
+                            quantity: this.toNumber(this.modalQuantity),
+                            cost_price: this.toNumber(this.selectedProduct.cost_price),
+                            selling_price: this.toNumber(this.modalPrice),
+                            discount_type: this.modalDiscountType,
+                            discount_amount: this.toNumber(this.modalDiscountAmount),
+                            tax_mode: this.selectedProduct.tax_mode,
+                            tax_status: this.selectedProduct.tax_status,
+                            tax_rate: this.toNumber(this.selectedProduct.tax_rate) || 0,
+                            tax_id: this.selectedProduct.tax_id || null,
+                            line_total: this.toNumber(this.calculateModalLineTotal()),
+                            note: this.modalNote,
+                            stock: this.toNumber(this.selectedProduct.stock),
+                            is_smartphone: this.selectedProduct.category_slug === 'smartphones',
+                            serials: this.selectedProduct.serials || [],
+                            serial_no: serialNo
+                        });
+                        this.recalculateCartTotals();
+                    }
+
+                    this.closeProductModal();
+                },
+
+                updateLineTotal(item) {
+                    this.recalculateCartTotals();
+                },
+
+                incrementQty(item) {
+                    if (item.quantity < item.stock) {
+                        item.quantity++;
+                        this.recalculateCartTotals();
+                    } else {
+                        Swal.fire({ text: 'Cannot add more than available stock quantity (' + parseInt(item.stock) + ')!', icon: 'warning' });
+                    }
+                },
+
+                decrementQty(item) {
+                    if (item.quantity > 1) {
+                        item.quantity--;
+                        this.recalculateCartTotals();
+                    }
+                },
+
+                removeFromCart(index) {
+                    this.cart.splice(index, 1);
+                    this.recalculateCartTotals();
+                },
+
+                clearCart() {
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'Clear the current transaction cart?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#3b82f6',
+                        confirmButtonText: 'Yes, clear it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.cart = [];
+                            this.globalDiscountType = 'fixed';
+                            this.globalDiscountValue = 0;
+                            this.paidAmount = 0;
+                            this.paymentRows = [];
+                            this.useMultiplePayments = false;
+                            this.shippingCost = 0;
+                            this.recalculateCartTotals();
+                        }
+                    });
+                },
+
+                // Calcs totals
+                recalculateCartTotals() {
+                    let subTotal = 0;
+                    let includedTax = 0;
+                    let addedTax = 0;
+                    let totalTax = 0;
+                    
+                    let globalDiscount = this.globalDiscountType === 'percentage'
+                        ? 0 
+                        : this.toNumber(this.globalDiscountValue);
+
+                    // First pass: Calculate item raw line totals
+                    this.cart.forEach(item => {
+                        let price = this.toNumber(item.selling_price);
+                        let qty = this.toNumber(item.quantity);
+                        let discount = this.toNumber(item.discount_amount);
+                        let baseTotal = price * qty;
+                        
+                        if (item.discount_type === 'percentage') {
+                            item.line_total = this.roundMoney(baseTotal - (baseTotal * (discount / 100)));
+                        } else {
+                            item.line_total = Math.max(0, this.roundMoney(baseTotal - discount));
+                        }
+                        
+                        subTotal += item.line_total;
+                    });
+                    
+                    // Global Discount Percentage
+                    if (this.globalDiscountType === 'percentage') {
+                        globalDiscount = (subTotal * this.toNumber(this.globalDiscountValue)) / 100;
+                    }
+                    globalDiscount = this.roundMoney(globalDiscount);
+
+                    // Second pass: Tax calculation
+                    if (this.enableTax) {
+                        this.cart.forEach(item => {
+                            let itemShare = subTotal > 0 ? (item.line_total / subTotal) : 0;
+                            let itemDiscountShare = this.roundMoney(globalDiscount * itemShare);
+                            let discountedAmount = Math.max(0, item.line_total - itemDiscountShare);
+                            
+                            let taxStatus = item.tax_status || 'taxable';
+                            let rate = (['non_taxable', 'zero_rated', 'exempt'].includes(taxStatus)) ? 0 : this.toNumber(item.tax_rate !== undefined ? item.tax_rate : this.taxPercentage);
+                            
+                            let itemTaxMode = item.tax_mode || 'use_global';
+                            if (itemTaxMode === 'use_global') itemTaxMode = this.taxMode || 'exclusive';
+                            
+                            let itemTax = 0;
+                            if (itemTaxMode === 'inclusive') {
+                                let taxable = this.roundMoney(discountedAmount / (1 + (rate / 100)));
+                                itemTax = this.roundMoney(discountedAmount - taxable);
+                                item.taxable_amount = taxable;
+                                item.tax_amount = itemTax;
+                                includedTax += itemTax;
+                            } else {
+                                itemTax = this.roundMoney(discountedAmount * (rate / 100));
+                                item.taxable_amount = discountedAmount;
+                                item.tax_amount = itemTax;
+                                addedTax += itemTax;
+                            }
+                            totalTax += itemTax;
+                        });
+                    }
+                    
+                    this.totals.subTotal = this.roundMoney(subTotal);
+                    this.totals.discount = globalDiscount;
+                    this.totals.addedTax = this.roundMoney(addedTax);
+                    this.totals.includedTax = this.roundMoney(includedTax);
+                    this.totals.totalTax = this.roundMoney(totalTax);
+                    this.totals.grandTotal = Math.max(0, this.roundMoney(subTotal - globalDiscount + addedTax + this.toNumber(this.shippingCost)));
+                    
+                    this.syncSinglePayment();
+                },
+
+                calculateSubtotal() { return this.totals.subTotal; },
+                calculateDiscountAmount() { return this.totals.discount; },
+                calculateTaxDetails() { return { totalTax: this.totals.totalTax, addedTax: this.totals.addedTax, includedTax: this.totals.includedTax }; },
+                calculateTaxAmount() { return this.totals.totalTax; },
+                calculateGrandTotal() { return this.totals.grandTotal; },
+
+                calculateChangeAmount() {
+                    return Math.max(0, this.allocatedTotal() - this.calculateGrandTotal());
+                },
+
+                addPaymentRow(method = 'Cash') {
+                    const remaining = Math.max(0, this.remainingToAllocate());
+                    this.paymentRows.push({ id: Date.now() + Math.random(), method, amount: remaining || 0, reference_no: '', cheque: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder: '', account_number: '', notes: '' } });
+                },
+                removePaymentRow(index) { this.paymentRows.splice(index, 1); },
+                allocatedTotal() { return this.paymentRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0); },
+                chequeHoldTotal() { return this.paymentRows.filter(row => row.method === 'Cheque').reduce((sum, row) => sum + (Number(row.amount) || 0), 0); },
+                remainingToAllocate() { return this.calculateGrandTotal() - this.allocatedTotal(); },
+                paymentsValid() {
+                    if (!this.paymentRows.length || Math.abs(this.remainingToAllocate()) > .009) return false;
+                    return this.paymentRows.every(row => Number(row.amount) > 0 && (row.method !== 'Cheque' || (row.cheque.cheque_number && row.cheque.cheque_date && row.cheque.bank_name && row.cheque.account_holder)));
+                },
+                selectSinglePayment(method) {
+                    this.useMultiplePayments = false;
+                    this.paymentMethod = method;
+                    this.paidAmount = this.calculateGrandTotal();
+                },
+                singlePaymentRow() {
+                    const row = { method: this.paymentMethod, amount: Number(this.paidAmount) || 0, reference_no: '' };
+                    if (this.paymentMethod === 'Cheque') row.cheque = { cheque_number: this.chequeDetails.cheque_number, cheque_date: this.chequeDetails.cheque_date, bank_name: this.chequeDetails.bank_name, branch_name: this.chequeDetails.branch_name, account_holder: this.chequeDetails.account_holder_name, account_number: this.chequeDetails.account_number };
+                    return row;
+                },
+                openMultiplePayments() {
+                    if (!this.useMultiplePayments || !this.paymentRows.length) this.paymentRows = [this.singlePaymentRow()];
+                    this.showMultiplePaymentModal = true;
+                },
+                closeMultiplePayments(apply) {
+                    if (apply && this.paymentsValid()) this.useMultiplePayments = true;
+                    this.showMultiplePaymentModal = false;
+                },
+                checkoutPaymentValid() {
+                    if (this.useMultiplePayments) return this.paymentsValid();
+                    if ((Number(this.paidAmount) || 0) <= 0 || Number(this.paidAmount) > this.calculateGrandTotal() + .009) return false;
+                    return this.paymentMethod !== 'Cheque' || (this.chequeDetails.cheque_number && this.chequeDetails.cheque_date && this.chequeDetails.bank_name && this.chequeDetails.account_holder_name);
+                },
+                syncSinglePayment() {
+                    this.paidAmount = this.calculateGrandTotal();
+                    if (this.useMultiplePayments && this.paymentRows.length === 1) this.paymentRows[0].amount = this.calculateGrandTotal();
+                },
+
+                // Creates customer via AJAX
+                quickCreateCustomer() {
+                    if (!this.customerForm.name) {
+                        Swal.fire({ text: 'Please enter a name for the customer.', icon: 'warning' });
+                        return;
+                    }
+                    
+                    fetch('http://localhost:8000/pos/wholesale/customer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': 'VC3cmQ3ETuCtW2at3pjeG9bNFI7ypXFUIxMkl1D7'
+                        },
+                        body: JSON.stringify(this.customerForm)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.customers.push(data.customer);
+                            this.selectedCustomerId = data.customer.id;
+                            this.showAddCustomerModal = false;
+                            this.customerForm = { name: '', phone: '', email: '' };
+                        } else {
+                            Swal.fire({ text: 'Failed to create customer: ' + data.message, icon: 'error' });
+                        }
+                    });
+                },
+
+                // Submits checkout details to Laravel backend controller
+                submitPOSCheckout() {
+                    if (this.cart.length === 0) {
+                        Swal.fire({ text: 'Please add products to the cart before checking out.', icon: 'warning' });
+                        return;
+                    }
+
+                    const checkoutRows = this.useMultiplePayments ? this.paymentRows : [this.singlePaymentRow()];
+                    if (!this.useMultiplePayments && Number(this.paidAmount) < this.calculateGrandTotal() - .009) checkoutRows.push({ method: 'Customer Credit / Due', amount: this.calculateGrandTotal() - Number(this.paidAmount) });
+
+                    let hasCheque = checkoutRows.some(row => row.method === 'Cheque');
+                    let customer = this.customers.find(c => c.id == this.selectedCustomerId);
+                    if (hasCheque && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
+                        Swal.fire({
+                            title: 'Customer Required',
+                            text: 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
+                            icon: 'warning',
+                            confirmButtonColor: '#f59e0b'
+                        });
+                        return;
+                    }
+                    const payload = {
+                        customer_id: this.selectedCustomerId,
+                        pos_type: 'wholesale',
+                        items: this.cart,
+                        total_amount: this.calculateSubtotal(),
+                        discount_type: this.globalDiscountType,
+                        discount_amount: this.calculateDiscountAmount(),
+                        tax_amount: this.calculateTaxAmount(),
+                        payable_amount: this.calculateGrandTotal(),
+                        paid_amount: checkoutRows.filter(row => !['Cheque','Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+                        payment_method: this.useMultiplePayments ? 'Mixed' : this.paymentMethod,
+                        payment_rows: checkoutRows,
+                        hold_id: this.currentHoldId,
+                        store_id: 1,
+                        source_type: this.sourceType,
+                        lorry_id: this.activeLorryId,
+                        trip_id: this.activeTripId
+                    };
+
+                    fetch('http://localhost:8000/pos/wholesale/store', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': 'VC3cmQ3ETuCtW2at3pjeG9bNFI7ypXFUIxMkl1D7'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.checkoutSuccessData = {
+                                invoice_no: data.invoice_no,
+                                date: new Date().toLocaleString(),
+                                customer: this.customers.find(c => c.id == this.selectedCustomerId)?.name || 'Walk-in Customer',
+                                items: JSON.parse(JSON.stringify(this.cart)),
+                                subtotal: this.calculateSubtotal(),
+                                discount: this.calculateDiscountAmount(),
+                                payable: this.calculateGrandTotal(),
+                                paid_amount: checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+                                payment_rows: JSON.parse(JSON.stringify(checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)))),
+                                change: data.change
+                            };
+                            this.showSuccessModal = true;
+                            this.currentHoldId = null;
+                        } else {
+                            Swal.fire({ text: 'Checkout error: ' + data.message, icon: 'error' });
+                        }
+                    });
+                },
+
+                // Puts a transaction on hold (Local storage/cookies mapping is standard)
+                holdCurrentSale() {
+                    if (this.cart.length === 0) {
+                        Swal.fire({ text: 'No products in cart to hold.', icon: 'warning' });
+                        return;
+                    }
+
+                    const holdRef = 'HOLD-' + Math.floor(1000 + Math.random() * 9000);
+                    
+                    // Simple AJAX or prompt save (we can insert directly or use local state, let's insert standard hold)
+                    Swal.fire({ text: 'Sale placed on hold with Reference: ' + holdRef, icon: 'success' });
+                    this.cart = [];
+                    this.paidAmount = 0;
+                },
+
+                // Recalls a held transaction from the list
+                recallHeldSale(hold, fromServer = false) {
+                    this.showHoldSalesModal = false;
+                    this.cart = hold.items || [];
+                    this.selectedCustomerId = hold.customer_id || this.selectedCustomerId;
+                    this.globalDiscountType = hold.discountType || 'fixed';
+                    this.globalDiscountValue = hold.discountValue || 0;
+                    this.taxPercentage = hold.taxPercentage || this.taxPercentage;
+                    this.shippingCost = hold.shippingCost || 0;
+                    this.currentHoldId = fromServer ? hold.id : null;
+                    this.holdSales = this.holdSales.filter(h => h.id !== hold.id);
+                    this.syncSinglePayment();
+                },
+
+                printReceipt(format) {
+                    Swal.fire({ text: 'Sending print signal for ' + format + ' size thermal receipt.', icon: 'info' });
+                },
+
+                shareWhatsApp() {
+                    Swal.fire({ text: 'Opening WhatsApp sharing link for invoice details.', icon: 'info' });
+                },
+
+                resetPOSForNewSale() {
+                    this.cart = [];
+                    this.paidAmount = 0;
+                    this.paymentRows = [];
+                    this.useMultiplePayments = false;
+                    this.globalDiscountType = 'fixed';
+                    this.globalDiscountValue = 0;
+                    this.shippingCost = 0;
+                    this.currentHoldId = null;
+                    this.showSuccessModal = false;
+                    this.checkoutSuccessData = {};
+                },
+
+                formatMoney(value) {
+                    return Number(value || 0).toLocaleString('en-US', {
+                        minimumFractionDigits: this.decimalPlaces,
+                        maximumFractionDigits: this.decimalPlaces
+                    });
+                }
+            };
+        }
+    </script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receipt-print-area, #receipt-print-area * {
+                visibility: visible;
+            }
+            #receipt-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none !important;
+                border: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                background: transparent !important;
+            }
+            #receipt-print-area::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    </style>
+</body>
+</html>

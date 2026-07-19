@@ -86,13 +86,22 @@
                         <div class="mt-2 text-xs text-amber-700 font-medium">
                             <ul class="list-disc pl-5 space-y-1.5">
                                 @foreach($upcomingCheques->take(3) as $cheque)
-                                    <li>
-                                        <strong class="font-bold text-amber-900">{{ ucfirst($cheque->cheque_type) }} ({{ $cheque->cheque_type === 'received' ? ($cheque->received_from ?: 'Customer') : ($cheque->issued_to ?: 'Supplier') }})</strong> - 
-                                        <span class="font-extrabold">{{ \App\Support\SystemSettings::money((float)$cheque->amount) }}</span> 
-                                        <span class="text-amber-600 ml-1">
-                                            (No: {{ $cheque->cheque_number }} | Bank: {{ $cheque->bank_name ?? 'N/A' }} | 
-                                            Date: <span class="{{ $cheque->cheque_date < date('Y-m-d') ? 'text-red-600 font-bold' : ($cheque->cheque_date == date('Y-m-d') ? 'text-amber-800 font-bold' : '') }}">{{ $cheque->cheque_date }}</span>)
-                                        </span>
+                                    <li class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-amber-200/50 last:border-0 last:pb-0">
+                                        <div>
+                                            <strong class="font-bold text-amber-900">{{ ucfirst($cheque->cheque_type) }} ({{ $cheque->cheque_type === 'received' ? ($cheque->received_from ?: 'Customer') : ($cheque->issued_to ?: 'Supplier') }})</strong> - 
+                                            <span class="font-extrabold">{{ \App\Support\SystemSettings::money((float)$cheque->amount) }}</span> 
+                                            <span class="text-amber-600 ml-1">
+                                                (No: {{ $cheque->cheque_number }} | Bank: {{ $cheque->bank_name ?? 'N/A' }} | 
+                                                Date: <span class="{{ $cheque->cheque_date < date('Y-m-d') ? 'text-red-600 font-bold' : ($cheque->cheque_date == date('Y-m-d') ? 'text-amber-800 font-bold' : '') }}">{{ $cheque->cheque_date }}</span>)
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+                                            <a href="{{ route('cheques.show', $cheque->id) }}" class="text-[10px] font-bold px-2 py-1 rounded bg-amber-200/50 text-amber-800 hover:bg-amber-300 transition">View</a>
+                                            @if($cheque->cheque_date <= date('Y-m-d'))
+                                                <button type="button" onclick="passCheque({{ $cheque->id }})" class="text-[10px] font-bold px-2 py-1 rounded bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm transition">Pass</button>
+                                                <button type="button" onclick="returnCheque({{ $cheque->id }})" class="text-[10px] font-bold px-2 py-1 rounded bg-rose-500 text-white hover:bg-rose-600 shadow-sm transition">Return</button>
+                                            @endif
+                                        </div>
                                     </li>
                                 @endforeach
                                 @if($upcomingCheques->count() > 3)
@@ -103,6 +112,50 @@
                     </div>
                 </div>
             </div>
+            
+            <script>
+            function passCheque(id) {
+                Swal.fire({
+                    title: 'Mark as Passed',
+                    html: '<div class="text-left mt-2"><label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 ml-1">Cleared Date</label><input id="swal-cdate" type="date" value="{{ date('Y-m-d') }}" class="swal2-input !mt-0 !mb-4 !text-sm"><label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 ml-1">Deposit Reference (Optional)</label><input id="swal-cref" placeholder="e.g., TXN-8392" class="swal2-input !mt-0 !text-sm"></div>',
+                    confirmButtonText: 'Pass Cheque',
+                    showCancelButton: true,
+                    confirmButtonColor: '#10b981',
+                    preConfirm: () => ({
+                        date: document.getElementById('swal-cdate').value,
+                        ref: document.getElementById('swal-cref').value
+                    })
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let f = document.createElement('form');
+                        f.method = 'POST'; f.action = '{{ url("cheques") }}/' + id + '/pass';
+                        f.innerHTML = '@csrf<input type="hidden" name="cleared_date" value="'+result.value.date+'"><input type="hidden" name="deposit_reference" value="'+result.value.ref+'">';
+                        document.body.appendChild(f); f.submit();
+                    }
+                });
+            }
+            function returnCheque(id) {
+                Swal.fire({
+                    title: 'Mark as Returned',
+                    html: '<div class="text-left mt-2"><label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 ml-1">Return Date</label><input id="swal-rdate" type="date" value="{{ date('Y-m-d') }}" class="swal2-input !mt-0 !mb-4 !text-sm"><label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 ml-1">Reason</label><select id="swal-rreason" class="swal2-select !mt-0 !mb-4 !w-full !text-sm flex"><option>Insufficient Funds</option><option>Signature Mismatch</option><option>Account Closed</option><option>Payment Stopped</option><option>Date Error</option><option>Technical Error</option><option>Other</option></select><label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 ml-1">Return Charge (Optional)</label><input id="swal-rcharge" type="number" step="0.01" placeholder="0.00" class="swal2-input !mt-0 !text-sm"></div>',
+                    confirmButtonText: 'Return Cheque',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    preConfirm: () => ({
+                        date: document.getElementById('swal-rdate').value,
+                        reason: document.getElementById('swal-rreason').value,
+                        charge: document.getElementById('swal-rcharge').value
+                    })
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let f = document.createElement('form');
+                        f.method = 'POST'; f.action = '{{ url("cheques") }}/' + id + '/return';
+                        f.innerHTML = '@csrf<input type="hidden" name="return_date" value="'+result.value.date+'"><input type="hidden" name="return_reason" value="'+result.value.reason+'"><input type="hidden" name="return_charge" value="'+result.value.charge+'">';
+                        document.body.appendChild(f); f.submit();
+                    }
+                });
+            }
+            </script>
         @endif
 
         <!-- 5 Stats Cards Grid -->

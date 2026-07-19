@@ -77,7 +77,12 @@ class CustomerController extends Controller
             ->paginate(10, ['*'], 'sales_page')
             ->withQueryString();
 
-        return view('customers.show', compact('customer', 'transactions', 'sales'));
+        $holdAmount = \App\Models\Cheque::where('customer_id', $customer->id)
+            ->where('cheque_type', 'received')
+            ->open()
+            ->sum('hold_amount');
+
+        return view('customers.show', compact('customer', 'transactions', 'sales', 'holdAmount'));
     }
 
     public function store(Request $request)

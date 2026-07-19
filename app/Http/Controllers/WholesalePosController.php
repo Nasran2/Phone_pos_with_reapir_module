@@ -418,6 +418,22 @@ class WholesalePosController extends Controller
 
             // 4. Handle Mixed Payments
             DB::table('customers')->where('id', $request->customer_id)->increment('balance', $request->payable_amount);
+            $cBalance = DB::table('customers')->where('id', $request->customer_id)->value('balance');
+            if ($request->payable_amount > 0) {
+                \App\Models\CustomerTransaction::create([
+                    'customer_id' => $request->customer_id,
+                    'transactionable_type' => \App\Models\Sale::class,
+                    'transactionable_id' => $saleId,
+                    'transaction_date' => $today,
+                    'type' => 'sale',
+                    'debit' => $request->payable_amount,
+                    'credit' => 0,
+                    'balance_after' => $cBalance,
+                    'reference_no' => $invoiceNo,
+                    'note' => 'Wholesale Sale Invoice',
+                    'created_by' => auth()->id(),
+                ]);
+            }
             $allocation = $mixedPayments->allocateSale(\App\Models\Sale::findOrFail($saleId), $paymentRows, [
                 'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
                 'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,

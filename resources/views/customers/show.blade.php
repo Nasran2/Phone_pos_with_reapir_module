@@ -84,6 +84,14 @@
                         <span class="text-base font-extrabold text-emerald-600">Rs. 0.00</span>
                         @endif
                     </div>
+                    <div>
+                        <span class="text-slate-400 block font-semibold mb-0.5">Cheque Hold Balance</span>
+                        @if($holdAmount > 0)
+                        <span class="text-base font-extrabold text-amber-500">Rs. {{ number_format($holdAmount, 2) }}</span>
+                        @else
+                        <span class="text-base font-extrabold text-slate-500">Rs. 0.00</span>
+                        @endif
+                    </div>
                     @if($customer->notes)
                     <div>
                         <span class="text-slate-400 block font-semibold mb-0.5">Notes / Remark</span>
