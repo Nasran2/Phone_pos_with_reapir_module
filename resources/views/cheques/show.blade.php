@@ -41,7 +41,8 @@
                             ['Branch', $cheque->branch_name ?: '-'],
                             ['Account Holder', $cheque->account_holder ?: '-'],
                             ['Account Number', auth()->user()->hasPermission('cheques.view_bank_details') ? ($cheque->account_number ?: '-') : 'Protected'],
-                            ['Related Document', $cheque->sale?->invoice_no ?? ($cheque->purchase?->purchase_no ?? '-')]
+                            ['Related Document', $cheque->sale?->invoice_no ?? ($cheque->purchase?->purchase_no ?? '-')],
+                            ['Source Lorry', $cheque->lorry_id ? ($cheque->lorry->lorry_no ?? 'Lorry ' . $cheque->lorry_id) : '-']
                         ] as $d)
                             <div class="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
                                 <dt class="text-[10px] font-black tracking-wider uppercase text-slate-400">{{ $d[0] }}</dt>
@@ -104,6 +105,7 @@
 
             <aside class="space-y-6">
                 @if(in_array($cheque->status, ['pending','upcoming','due_today','overdue','deposited']))
+                    @if(auth()->user()->hasPermission('cheques.mark_passed'))
                     <form method="POST" action="{{ route('cheques.pass', $cheque) }}" class="rounded-3xl border border-emerald-200/60 bg-gradient-to-b from-white to-emerald-50/30 p-6 md:p-8 shadow-sm relative overflow-hidden">
                         @csrf
                         <div class="absolute top-0 right-0 p-4 opacity-10">
@@ -127,7 +129,9 @@
                             </button>
                         </div>
                     </form>
+                    @endif
 
+                    @if(auth()->user()->hasPermission('cheques.mark_returned'))
                     <form method="POST" action="{{ route('cheques.return', $cheque) }}" class="rounded-3xl border border-rose-200/60 bg-gradient-to-b from-white to-rose-50/30 p-6 md:p-8 shadow-sm relative overflow-hidden">
                         @csrf
                         <div class="absolute top-0 right-0 p-4 opacity-10">
@@ -158,6 +162,7 @@
                             </button>
                         </div>
                     </form>
+                    @endif
                 @endif
 
                 @if($cheque->status === 'returned')

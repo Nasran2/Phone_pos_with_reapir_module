@@ -421,7 +421,7 @@
                         </div>
 
                         <div class="relative">
-                            <input x-model.debounce.350ms="query" @input="search()" placeholder="Search product by name, SKU, or barcode" class="rounded-2xl">
+                            <input x-model="query" @input.debounce.350ms="search()" placeholder="Search product by name, SKU, or barcode" class="rounded-2xl">
                             <div x-show="results.length" x-cloak class="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl max-h-80 overflow-auto">
                                 <template x-for="product in results" :key="product.id">
                                     <button type="button" @click="add(product)" class="w-full px-5 py-3 text-left hover:bg-blue-50 border-b border-slate-100">

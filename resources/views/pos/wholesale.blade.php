@@ -423,13 +423,19 @@
                     </div>
 
                     <!-- Checkout Bottom Action Buttons -->
-                    <div class="grid grid-cols-3 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
+                    <div class="grid grid-cols-4 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
                         <button @click="clearCart()" class="py-3 bg-red-150 hover:bg-red-200 text-red-650 border border-red-200 rounded-xl transition cursor-pointer">Clear</button>
                         <button @click="holdCurrentSale()" class="py-3 bg-amber-100 hover:bg-amber-200 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer">Hold (F2)</button>
-                        <button @click="submitPOSCheckout()" 
+                        <button @click="quickPay()" 
+                                class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
+                                :disabled="cart.length === 0"
+                                :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
+                            <span>Quick Pay (F10)</span>
+                        </button>
+                        <button @click="openMultiplePayments()" 
                                 class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
-                                :disabled="cart.length === 0 || !checkoutPaymentValid()"
-                                :class="cart.length === 0 || !checkoutPaymentValid() ? 'opacity-50 cursor-not-allowed' : ''">
+                                :disabled="cart.length === 0"
+                                :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
                             <span>Pay (F12)</span>
                         </button>
                     </div>
@@ -459,7 +465,7 @@
                 </div></template></div>
                 <div class="mt-4 grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-bold"><div>Allocated<br><span class="text-lg" x-text="currencySymbol + formatMoney(allocatedTotal())"></span></div><div class="text-amber-600">Cheque hold<br><span class="text-lg" x-text="currencySymbol + formatMoney(chequeHoldTotal())"></span></div><div :class="Math.abs(remainingToAllocate()) < .01 ? 'text-emerald-600' : 'text-red-600'">Remaining<br><span class="text-lg" x-text="currencySymbol + formatMoney(remainingToAllocate())"></span></div></div>
             </div>
-            <div class="grid grid-cols-2 gap-3 border-t border-slate-200 px-6 py-4"><button @click="closeMultiplePayments(false)" class="rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700">Cancel</button><button @click="closeMultiplePayments(true)" :disabled="!paymentsValid()" :class="!paymentsValid() ? 'opacity-50' : ''" class="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white">Use Multiple Payments</button></div>
+            <div class="grid grid-cols-2 gap-3 border-t border-slate-200 px-6 py-4"><button @click="closeMultiplePayments(false)" class="rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700">Cancel</button><button @click="submitFromModal()" :disabled="!paymentsValid()" :class="!paymentsValid() ? 'opacity-50' : ''" class="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white">Complete Checkout (Enter)</button></div>
         </div>
     </div>
 
@@ -888,9 +894,12 @@
                         } else if (e.key === 'F3') {
                             e.preventDefault();
                             this.showHoldSalesModal = true;
+                        } else if (e.key === 'F10') {
+                            e.preventDefault();
+                            this.quickPay();
                         } else if (e.key === 'F12') {
                             e.preventDefault();
-                            this.submitPOSCheckout();
+                            this.openMultiplePayments();
                         } else if (e.key === 'Escape') {
                             if (this.showMultiplePaymentModal) {
                                 this.closeMultiplePayments(false);
@@ -903,7 +912,28 @@
                                 this.showProductModal = false;
                             }
                         }
+                        if (e.key === 'Enter' && this.showMultiplePaymentModal && this.paymentsValid()) {
+                            e.preventDefault();
+                            this.submitFromModal();
+                        }
                     });
+                },
+
+                submitFromModal() {
+                    this.useMultiplePayments = true;
+                    this.showMultiplePaymentModal = false;
+                    this.submitPOSCheckout();
+                },
+
+                quickPay() {
+                    if (this.cart.length === 0) {
+                        Swal.fire({ text: 'Please add products to the cart before checking out.', icon: 'warning' });
+                        return;
+                    }
+                    this.useMultiplePayments = false;
+                    this.paymentMethod = 'Cash';
+                    this.paidAmount = this.calculateGrandTotal();
+                    this.submitPOSCheckout();
                 },
 
                 // Filters products by selected category and search input
@@ -1205,7 +1235,7 @@
                 },
                 singlePaymentRow() {
                     const row = { method: this.paymentMethod, amount: Number(this.paidAmount) || 0, reference_no: '' };
-                    if (this.paymentMethod === 'Cheque') row.cheque = { cheque_number: this.chequeDetails.cheque_number, cheque_date: this.chequeDetails.cheque_date, bank_name: this.chequeDetails.bank_name, branch_name: this.chequeDetails.branch_name, account_holder: this.chequeDetails.account_holder_name, account_number: this.chequeDetails.account_number };
+                    row.cheque = { cheque_number: this.chequeDetails.cheque_number || '', cheque_date: this.chequeDetails.cheque_date || '', bank_name: this.chequeDetails.bank_name || '', branch_name: this.chequeDetails.branch_name || '', account_holder: this.chequeDetails.account_holder_name || '', account_number: this.chequeDetails.account_number || '' };
                     return row;
                 },
                 openMultiplePayments() {
@@ -1298,11 +1328,20 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         body: JSON.stringify(payload)
                     })
-                    .then(res => res.json())
+                    .then(async res => {
+                        const contentType = res.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            return res.json();
+                        } else {
+                            const text = await res.text();
+                            throw new Error("Server returned HTML instead of JSON. " + text.substring(0, 100));
+                        }
+                    })
                     .then(data => {
                         if (data.success) {
                             this.checkoutSuccessData = {

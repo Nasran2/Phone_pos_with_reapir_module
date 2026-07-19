@@ -415,9 +415,16 @@
                     </div>
 
                     <!-- Checkout button -->
-                    <div class="grid grid-cols-3 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
+                    <!-- Checkout button -->
+                    <div class="grid grid-cols-4 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
                         <button @click="clearCart()" class="py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl transition cursor-pointer hover:bg-red-100">Clear</button>
                         <button @click="holdCurrentSale()" class="py-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer hover:bg-amber-100">Hold (F6)</button>
+                        <button @click="quickPay()" 
+                                class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
+                                :disabled="cart.length === 0"
+                                :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
+                            <span>Quick (F10)</span>
+                        </button>
                         <button @click="openPaymentPopup()" 
                                 class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
                                 :disabled="cart.length === 0"
@@ -941,8 +948,26 @@
                             this.showHoldSalesModal = true;
                         } else if (e.key === 'F8') {
                             e.preventDefault();
-                            if (this.showPaymentPopup) {
+                            document.getElementById('search-input').focus();
+                        } else if (e.key === 'F10') {
+                            e.preventDefault();
+                            this.quickPay();
+                        } else if (e.key === 'F12') {
+                            e.preventDefault();
+                            if (this.showPaymentPopup && this.paymentsValid()) {
                                 this.submitPOSCheckout();
+                            }
+                        } else if (e.key === 'Escape') {
+                            if (this.showPaymentPopup) {
+                                this.showPaymentPopup = false;
+                            } else if (this.showSuccessModal) {
+                                this.startNewSale();
+                            } else if (this.showHoldSalesModal) {
+                                this.showHoldSalesModal = false;
+                            } else if (this.showAddCustomerModal) {
+                                this.showAddCustomerModal = false;
+                            } else if (this.showVariantModal) {
+                                this.showVariantModal = false;
                             }
                         } else if (e.key === 'Delete') {
                             // Delete last element in cart
@@ -1421,7 +1446,22 @@
                     window.location.href = '{{ route("pos.retail") }}?hold_id=' + hold.id;
                 },
 
-                // Checkout submit details
+                quickPay() {
+                    if (this.cart.length === 0) {
+                        Swal.fire({ text: 'Please add products to the cart before checking out.', icon: 'warning' });
+                        return;
+                    }
+                    this.paymentRows = [{
+                        id: Date.now(),
+                        method: 'Cash',
+                        amount: this.calculateGrandTotal(),
+                        reference_no: '',
+                        cheque: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder: '', account_number: '', notes: '' }
+                    }];
+                    this.submitPOSCheckout();
+                },
+
+                // Submits checkout details to Laravel backend controller
                 submitPOSCheckout() {
                     if (this.cart.length === 0) return;
 
@@ -1467,6 +1507,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         body: JSON.stringify({
@@ -1486,7 +1527,15 @@
                             trip_id: this.tripId,
                         })
                     })
-                    .then(res => res.json())
+                    .then(async res => {
+                        const contentType = res.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            return res.json();
+                        } else {
+                            const text = await res.text();
+                            throw new Error("Server returned HTML instead of JSON. " + text.substring(0, 100));
+                        }
+                    })
                     .then(data => {
                         if (data.success) {
                             const now = new Date();

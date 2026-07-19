@@ -46,7 +46,7 @@
         $canAccessDistribution = auth()->check() && auth()->user()->hasPermission('distribution.view') && \App\Support\SystemSettings::bool('enable_distribution_module', true, 'business_settings');
         $isDistributionActive = request()->routeIs('distribution.*');
         $canAccessCheques = auth()->check() && auth()->user()->hasPermission('cheques.view') && \App\Models\Setting::get('cheque_enabled', '1') === '1';
-        $chequeBadge = $canAccessCheques && \Illuminate\Support\Facades\Schema::hasTable('cheques') ? \App\Models\Cheque::open()->whereDate('cheque_date', '<=', today()->addDays((int) \App\Models\Setting::get('cheque_reminder_days', 3)))->count() : 0;
+        $chequeBadge = $canAccessCheques && \Illuminate\Support\Facades\Schema::hasTable('cheques') ? app(\App\Services\ChequeAccessService::class)->scope(\App\Models\Cheque::open(), auth()->user())->whereDate('cheque_date', '<=', today()->addDays((int) \App\Models\Setting::get('cheque_reminder_days', 3)))->count() : 0;
         $distributionMenu = [
             ['label' => 'Distribution Dashboard', 'route' => 'distribution.dashboard', 'permission' => 'distribution.dashboard'],
             ['label' => 'Lorry Management', 'route' => 'distribution.lorries.index', 'permission' => 'lorries.view'],

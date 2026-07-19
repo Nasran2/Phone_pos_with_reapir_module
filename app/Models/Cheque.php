@@ -25,6 +25,7 @@ class Cheque extends Model
     public function reminders() { return $this->hasMany(ChequeReminder::class); }
     public function replacement() { return $this->belongsTo(self::class, 'replacement_cheque_id'); }
     public function original() { return $this->belongsTo(self::class, 'previous_cheque_id'); }
+    public function getLorryAttribute() { return $this->lorry_id ? \Illuminate\Support\Facades\DB::table('lorries')->where('id', $this->lorry_id)->first() : null; }
 
     public function getDisplayStatusAttribute(): string
     {

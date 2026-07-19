@@ -509,26 +509,33 @@ class DistributionController extends Controller
         $storeId = (int) $request->input('store_id', DB::table('stores')->where('is_default', true)->value('id') ?? 1);
         $lorryId = (int) $request->input('lorry_id');
 
-        $products = DB::table('products')
-            ->leftJoin('product_store_stock', function ($join) use ($storeId) {
+        $query = DB::table('products');
+
+        if ($source === 'lorry' && $lorryId) {
+            $query->join('lorry_stocks', function ($join) use ($lorryId) {
+                $join->on('lorry_stocks.product_id', '=', 'products.id')
+                    ->where('lorry_stocks.lorry_id', '=', $lorryId)
+                    ->whereNull('lorry_stocks.variant_id')
+                    ->where('lorry_stocks.quantity', '>', 0);
+            });
+            $stockSelect = 'lorry_stocks.quantity as stock';
+        } else {
+            $query->join('product_store_stock', function ($join) use ($storeId) {
                 $join->on('product_store_stock.product_id', '=', 'products.id')
-                    ->where('product_store_stock.store_id', '=', $storeId);
-            })
-            ->when($source === 'lorry' && $lorryId, function ($query) use ($lorryId) {
-                $query->leftJoin('lorry_stocks', function ($join) use ($lorryId) {
-                    $join->on('lorry_stocks.product_id', '=', 'products.id')
-                        ->where('lorry_stocks.lorry_id', '=', $lorryId)
-                        ->whereNull('lorry_stocks.variant_id');
-                });
-            })
-            ->whereNull('products.deleted_at')
+                    ->where('product_store_stock.store_id', '=', $storeId)
+                    ->where('product_store_stock.quantity', '>', 0);
+            });
+            $stockSelect = 'product_store_stock.quantity as stock';
+        }
+
+        $products = $query->whereNull('products.deleted_at')
             ->when($q !== '', fn ($query) => $query->where(function ($inner) use ($q) {
                 $inner->where('products.name', 'like', "%{$q}%")
                     ->orWhere('products.sku', 'like', "%{$q}%")
                     ->orWhere('products.barcode', 'like', "%{$q}%");
             }))
             ->select('products.id', 'products.name', 'products.sku', 'products.barcode', 'products.cost_price', 'products.wholesale_price', 'products.retail_price',
-                DB::raw($source === 'lorry' && $lorryId ? 'COALESCE(lorry_stocks.quantity, 0) as stock' : 'COALESCE(product_store_stock.quantity, 0) as stock'))
+                DB::raw($stockSelect))
             ->orderBy('products.name')
             ->limit(30)
             ->get();
