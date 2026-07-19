@@ -429,10 +429,24 @@ class DistributionController extends Controller
             ->when($lorryId, fn ($q) => $q->where('lorry_id', $lorryId))
             ->whereBetween('sale_date', [$from, $to])
             ->sum('payable_amount');
+        $profitTotal = DB::table('sales')->where('source_type', 'lorry')
+            ->when($lorryId, fn ($q) => $q->where('lorry_id', $lorryId))
+            ->whereBetween('sale_date', [$from, $to])
+            ->sum('total_profit_amount');
         $collectionsTotal = DB::table('lorry_collections')
             ->when($lorryId, fn ($q) => $q->where('lorry_id', $lorryId))
             ->whereBetween('collection_date', [$from, $to])
             ->sum('amount');
+        
+        $salesCollections = DB::table('sale_payments')
+            ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
+            ->where('sales.source_type', 'lorry')
+            ->when($lorryId, fn ($q) => $q->where('sales.lorry_id', $lorryId))
+            ->whereBetween('sales.sale_date', [$from, $to])
+            ->where('sale_payments.status', '!=', 'cancelled')
+            ->sum('sale_payments.amount');
+            
+        $collectionsTotal += $salesCollections;
         $expensesTotal = DB::table('expenses')
             ->when($lorryId, fn ($q) => $q->where('lorry_id', $lorryId))
             ->whereBetween('expense_date', [$from, $to])
@@ -442,10 +456,11 @@ class DistributionController extends Controller
             ->sum('amount');
 
         $summary = [
-            ['label' => 'Lorry Sales', 'value' => $this->money($salesTotal)],
-            ['label' => 'Collections', 'value' => $this->money($collectionsTotal)],
-            ['label' => 'Expenses', 'value' => $this->money($expensesTotal)],
-            ['label' => 'Net Cash', 'value' => $this->money($collectionsTotal - $expensesTotal)],
+            ['label' => 'Lorry Sales', 'value' => $this->money($salesTotal), 'color' => 'blue'],
+            ['label' => 'Lorry Profit', 'value' => $this->money($profitTotal), 'color' => 'emerald'],
+            ['label' => 'Collections', 'value' => $this->money($collectionsTotal), 'color' => 'violet'],
+            ['label' => 'Expenses', 'value' => $this->money($expensesTotal), 'color' => 'rose'],
+            ['label' => 'Net Cash', 'value' => $this->money($collectionsTotal - $expensesTotal), 'color' => 'amber'],
         ];
 
         $stockByLorry = DB::table('lorry_stocks')
@@ -456,7 +471,71 @@ class DistributionController extends Controller
             ->orderBy('lorries.lorry_no')
             ->get();
 
-        return $this->page('reports', compact('summary', 'from', 'to', 'lorryId', 'stockByLorry'));
+        $salesBreakdown = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.source_type', 'lorry')
+            ->when($lorryId, fn ($q) => $q->where('sales.lorry_id', $lorryId))
+            ->whereBetween('sales.sale_date', [$from, $to])
+            ->select(
+                'products.name as product_name',
+                DB::raw('SUM(sale_items.quantity) as total_qty'),
+                DB::raw('SUM(sale_items.line_total) as total_sales'),
+                DB::raw('SUM(sale_items.profit_amount) as total_profit')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_sales')
+            ->get();
+
+        $expensesBreakdown = DB::table('expenses')
+            ->join('expense_categories', 'expense_categories.id', '=', 'expenses.expense_category_id')
+            ->when($lorryId, fn ($q) => $q->where('expenses.lorry_id', $lorryId))
+            ->whereBetween('expenses.expense_date', [$from, $to])
+            ->where(function ($q) {
+                $q->whereNotNull('expenses.lorry_id')->orWhereNotNull('expenses.trip_id');
+            })
+            ->select(
+                'expense_categories.name as category_name',
+                DB::raw('SUM(expenses.amount) as total_amount')
+            )
+            ->groupBy('expense_categories.id', 'expense_categories.name')
+            ->orderByDesc('total_amount')
+            ->get();
+
+        $salesList = DB::table('sales')
+            ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
+            ->leftJoin('lorries', 'lorries.id', '=', 'sales.lorry_id')
+            ->select('sales.id', 'sales.invoice_no', 'customers.name as customer_name', 'lorries.lorry_no', 'sales.payable_amount', 'sales.paid_amount', 'sales.due_amount', 'sales.payment_status')
+            ->where('sales.source_type', 'lorry')
+            ->when($lorryId, fn ($q) => $q->where('sales.lorry_id', $lorryId))
+            ->whereBetween('sales.sale_date', [$from, $to])
+            ->orderByDesc('sales.id')
+            ->get();
+
+        $saleIds = $salesList->pluck('id')->toArray();
+        $salePayments = DB::table('sale_payments')
+            ->whereIn('sale_id', $saleIds)
+            ->where('status', '!=', 'cancelled')
+            ->select('sale_id', 'payment_method', DB::raw('SUM(amount) as total_amount'))
+            ->groupBy('sale_id', 'payment_method')
+            ->get()
+            ->groupBy('sale_id');
+
+        $saleCheques = DB::table('cheques')
+            ->whereIn('sale_id', $saleIds)
+            ->select('sale_id', 'status')
+            ->get()
+            ->groupBy('sale_id');
+
+        foreach ($salesList as $sale) {
+            $payments = $salePayments->get($sale->id, collect());
+            $sale->cash_paid = $payments->where('payment_method', 'Cash')->sum('total_amount');
+            $sale->bank_paid = $payments->whereIn('payment_method', ['Bank Transfer', 'Card', 'Bank', 'Online Payment', 'Other'])->sum('total_amount');
+            $sale->cheque_paid = $payments->where('payment_method', 'Cheque')->sum('total_amount');
+            $sale->cheque_statuses = $saleCheques->get($sale->id, collect())->pluck('status')->unique()->toArray();
+        }
+
+        return $this->page('reports', compact('summary', 'from', 'to', 'lorryId', 'stockByLorry', 'salesBreakdown', 'expensesBreakdown', 'salesList'));
     }
 
     public function settings(Request $request)

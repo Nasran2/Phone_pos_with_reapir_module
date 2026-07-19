@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\InvoicePayment;
 use App\Models\Sale;
+use App\Models\Account;
+use App\Services\JournalService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -12,7 +14,7 @@ class MixedPaymentService
 {
     private const CLEARED = ['Cash','Card','Bank Transfer','Bank','QR Payment','Other'];
 
-    public function __construct(private ChequeService $cheques) {}
+    public function __construct(private ChequeService $cheques, private JournalService $journals) {}
 
     public function rowsFromRequest(array $input, float $payable): array
     {
@@ -90,6 +92,20 @@ class MixedPaymentService
                     $cleared+=$amount;
                     DB::table('sale_payments')->insert(['sale_id'=>$sale->id,'payment_date'=>today(),'amount'=>$amount,'status'=>'cleared','invoice_payment_id'=>$payment->id,'payment_method'=>$method,'reference_no'=>$row['reference_no']??null,'note'=>$row['notes']??'Mixed payment','created_by'=>auth()->id(),'created_at'=>now(),'updated_at'=>now()]);
                     $sale->paid_amount=(float)$sale->paid_amount+$amount; $sale->due_amount=max(0,(float)$sale->due_amount-$amount); $sale->save();
+                    
+                    $assetAccount = in_array(strtolower($method), ['cash', '']) 
+                        ? Account::where('account_type','Asset')->where('account_name','like','%Cash%')->value('id') 
+                        : Account::where('account_type','Asset')->where('account_name','like','%Bank%')->value('id');
+                    if (!$assetAccount) $assetAccount = Account::where('account_type','Asset')->where('account_name','like','%Cash%')->value('id');
+                    $customerAccount = Account::where('account_code','1105')->value('id');
+                    
+                    if ($assetAccount && $customerAccount) {
+                        $this->journals->createEntry(today(), 'SalePayment', $payment->id, $row['reference_no']??$sale->invoice_no, 'Payment received for Sale ' . $sale->invoice_no, [
+                            ['account_id'=>$assetAccount,'debit'=>$amount,'credit'=>0],
+                            ['account_id'=>$customerAccount,'debit'=>0,'credit'=>$amount]
+                        ], true, auth()->id());
+                    }
+
                     if($sale->customer_id) {
                         $deduct = min($amount,(float)\App\Models\Customer::whereKey($sale->customer_id)->value('balance'));
                         \App\Models\Customer::whereKey($sale->customer_id)->decrement('balance', $deduct);

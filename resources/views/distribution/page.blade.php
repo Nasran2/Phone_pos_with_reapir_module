@@ -515,9 +515,15 @@
                     <input name="to" type="date" value="{{ $to }}" class="rounded-xl border-slate-200 text-sm">
                     <button class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white">Run Report</button>
                 </form>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                     @foreach($summary as $card)
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div class="text-xs font-bold uppercase tracking-wide text-slate-400">{{ $card['label'] }}</div><div class="text-xl font-black text-slate-900 mt-2">{{ $card['value'] }}</div></div>
+                    <div class="relative overflow-hidden rounded-2xl border border-{{ $card['color'] ?? 'slate' }}-200 bg-gradient-to-br from-white to-{{ $card['color'] ?? 'slate' }}-50/50 p-5 shadow-sm transition hover:shadow-md">
+                        <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-{{ $card['color'] ?? 'slate' }}-100/40 blur-2xl"></div>
+                        <div class="relative z-10">
+                            <div class="text-[11px] font-extrabold uppercase tracking-widest text-{{ $card['color'] ?? 'slate' }}-600/70">{{ $card['label'] }}</div>
+                            <div class="text-2xl font-black text-{{ $card['color'] ?? 'slate' }}-900 mt-2 tracking-tight">{{ $card['value'] }}</div>
+                        </div>
+                    </div>
                     @endforeach
                 </div>
             </section>
@@ -529,6 +535,97 @@
                         @foreach($stockByLorry as $row)<tr><td class="px-5 py-4 font-bold">{{ $row->lorry_no }} - {{ $row->name }}</td><td class="px-5 py-4 text-right">{{ number_format($row->qty, 2) }}</td><td class="px-5 py-4 text-right font-bold">{{ $money($row->value) }}</td></tr>@endforeach
                     </tbody>
                 </table>
+            </section>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Sales & Profit Breakdown -->
+                <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col max-h-[500px]">
+                    <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 sticky top-0"><h2 class="font-black text-slate-900">Sales & Profit Breakdown</h2><p class="text-xs text-slate-500 mt-1">By product for the selected period</p></div>
+                    <div class="overflow-y-auto flex-1">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500 sticky top-0 shadow-sm"><tr><th class="text-left px-5 py-3">Product</th><th class="text-right px-5 py-3">Qty</th><th class="text-right px-5 py-3">Sales</th><th class="text-right px-5 py-3">Profit</th></tr></thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @forelse($salesBreakdown as $row)
+                                <tr><td class="px-5 py-3 font-bold">{{ $row->product_name }}</td><td class="px-5 py-3 text-right">{{ number_format($row->total_qty, 2) }}</td><td class="px-5 py-3 text-right font-bold text-slate-700">{{ $money($row->total_sales) }}</td><td class="px-5 py-3 text-right font-bold text-emerald-600">{{ $money($row->total_profit) }}</td></tr>
+                                @empty
+                                <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">No sales data for this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <!-- Expenses Breakdown -->
+                <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col max-h-[500px]">
+                    <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 sticky top-0"><h2 class="font-black text-slate-900">Expenses Breakdown</h2><p class="text-xs text-slate-500 mt-1">By category for the selected period</p></div>
+                    <div class="overflow-y-auto flex-1">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500 sticky top-0 shadow-sm"><tr><th class="text-left px-5 py-3">Category</th><th class="text-right px-5 py-3">Amount</th></tr></thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @forelse($expensesBreakdown as $row)
+                                <tr><td class="px-5 py-3 font-bold">{{ $row->category_name }}</td><td class="px-5 py-3 text-right font-bold text-rose-600">{{ $money($row->total_amount) }}</td></tr>
+                                @empty
+                                <tr><td colspan="2" class="px-5 py-10 text-center text-slate-400">No expense data for this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                </section>
+            </div>
+            
+            <!-- Invoices List -->
+            <section class="mt-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col max-h-[500px]">
+                <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 sticky top-0"><h2 class="font-black text-slate-900">Sales Invoices Breakdown</h2><p class="text-xs text-slate-500 mt-1">Individual invoices for the selected period</p></div>
+                <div class="overflow-y-auto flex-1">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500 sticky top-0 shadow-sm">
+                            <tr>
+                                <th class="text-left px-5 py-3">Invoice</th>
+                                <th class="text-left px-5 py-3">Customer</th>
+                                <th class="text-left px-5 py-3">Lorry</th>
+                                <th class="text-right px-5 py-3">Total</th>
+                                <th class="text-right px-5 py-3 text-emerald-600">Cash</th>
+                                <th class="text-right px-5 py-3 text-blue-600">Bank</th>
+                                <th class="text-right px-5 py-3 text-purple-600">Cheque</th>
+                                <th class="text-right px-5 py-3 text-rose-600">Due</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($salesList as $sale)
+                            <tr>
+                                <td class="px-5 py-3 font-bold">{{ $sale->invoice_no }}</td>
+                                <td class="px-5 py-3">{{ $sale->customer_name ?? 'Walk-in' }}</td>
+                                <td class="px-5 py-3">{{ $sale->lorry_no ?? '-' }}</td>
+                                <td class="px-5 py-3 text-right font-bold text-slate-700">{{ $money($sale->payable_amount) }}</td>
+                                <td class="px-5 py-3 text-right font-bold {{ $sale->cash_paid > 0 ? 'text-emerald-600' : 'text-slate-300' }}">{{ $money($sale->cash_paid) }}</td>
+                                <td class="px-5 py-3 text-right font-bold {{ $sale->bank_paid > 0 ? 'text-blue-600' : 'text-slate-300' }}">{{ $money($sale->bank_paid) }}</td>
+                                <td class="px-5 py-3 text-right font-bold {{ $sale->cheque_paid > 0 ? 'text-purple-600' : 'text-slate-300' }}">
+                                    {{ $money($sale->cheque_paid) }}
+                                    @if($sale->cheque_paid > 0 && !empty($sale->cheque_statuses))
+                                        <div class="mt-1 flex flex-wrap justify-end gap-1">
+                                            @foreach($sale->cheque_statuses as $status)
+                                                @php
+                                                    $statusColor = match($status) {
+                                                        'cleared', 'passed' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+                                                        'bounced', 'returned', 'rejected' => 'bg-rose-50 text-rose-700 ring-rose-600/20',
+                                                        'hold' => 'bg-amber-50 text-amber-700 ring-amber-600/20',
+                                                        default => 'bg-slate-50 text-slate-700 ring-slate-600/20'
+                                                    };
+                                                @endphp
+                                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset {{ $statusColor }}">{{ ucfirst($status) }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3 text-right font-bold {{ $sale->due_amount > 0 ? 'text-rose-600' : 'text-slate-300' }}">{{ $money($sale->due_amount) }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="8" class="px-5 py-10 text-center text-slate-400">No invoices for this period.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </section>
         @endif
     </div>

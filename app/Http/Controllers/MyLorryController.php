@@ -142,4 +142,23 @@ class MyLorryController extends Controller
             default => [today()->toDateString(), today()->toDateString()],
         };
     }
+
+    public function customers(Request $request)
+    {
+        $assignment = $this->access->currentAssignment($request->user());
+        
+        $customers = DB::table('customers')
+            ->where('status', 1)
+            ->when($request->filled('q'), function($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->q.'%')
+                  ->orWhere('phone', 'like', '%'.$request->q.'%');
+            })
+            ->select('id', 'name', 'phone', 'address', 'balance')
+            ->orderBy('name')
+            ->paginate(30)
+            ->withQueryString();
+            
+        ActivityLog::log('View', 'My Lorry', "Viewed customers for lorry {$assignment->lorry_no}");
+        return view('distribution.my-customers', compact('assignment', 'customers'));
+    }
 }

@@ -153,7 +153,7 @@ class RetailPosController extends Controller
     /**
      * Store a completed retail sale from the POS.
      */
-    public function store(Request $request, \App\Services\LorryAccessService $access, \App\Services\MixedPaymentService $mixedPayments)
+    public function store(Request $request, \App\Services\LorryAccessService $access, \App\Services\MixedPaymentService $mixedPayments, \App\Services\JournalService $journalService)
     {
         if ($access->isLorryUser($request->user()) && !$access->isUnrestricted($request->user())) {
             $assignment = $access->currentAssignment($request->user(), $request->integer('lorry_id') ?: null);
@@ -468,6 +468,16 @@ class RetailPosController extends Controller
             }
 
             \App\Models\ActivityLog::log('Sale', 'Retail POS', "Processed retail sale {$invoiceNo}");
+
+            // Create Journal Entry for the Sale
+            $customerAccount = \App\Models\Account::where('account_code','1105')->value('id');
+            $salesIncomeAccount = \App\Models\Account::where('account_code','4001')->value('id');
+            if ($customerAccount && $salesIncomeAccount && $request->payable_amount > 0) {
+                $journalService->createEntry($today, 'Sale', $saleId, $invoiceNo, 'Retail Sale Invoice', [
+                    ['account_id' => $customerAccount, 'debit' => $request->payable_amount, 'credit' => 0],
+                    ['account_id' => $salesIncomeAccount, 'debit' => 0, 'credit' => $request->payable_amount],
+                ], true, auth()->id());
+            }
 
             DB::commit();
 

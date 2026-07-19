@@ -446,6 +446,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('my-lorry/order', [MyLorryController::class, 'createOrder'])->name('my-lorry.order.create');
             Route::post('my-lorry/order', [MyLorryController::class, 'storeOrder'])->name('my-lorry.order.store');
             Route::get('my-lorry/sales', [MyLorryController::class, 'sales'])->name('my-lorry.sales');
+            Route::get('my-lorry/customers', [MyLorryController::class, 'customers'])->name('my-lorry.customers');
             Route::match(['get','post'], 'my-lorry/expenses', [MyLorryController::class, 'expenses'])->name('my-lorry.expenses');
         });
         Route::middleware('permission:distribution.view')->group(function () {
