@@ -138,7 +138,7 @@ class DashboardController extends Controller
         // 9. Upcoming Cheques Alert
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
         $upcomingChequesQuery = DB::table('cheques')
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'upcoming', 'due_today', 'overdue', 'deposited'])
             ->where('cheque_date', '<=', $tomorrow)
             ->orderBy('cheque_date', 'asc');
             

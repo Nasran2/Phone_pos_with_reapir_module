@@ -753,9 +753,9 @@
                                     </div>
                                     <template x-if="row.method === 'Cheque'">
                                         <div class="text-[9px] text-slate-500 text-left mt-0.5 leading-tight">
-                                            <span x-text="'Chq No: ' + (row.cheque_number || 'N/A')"></span><br>
-                                            <span x-text="'Date: ' + (row.cheque_date || 'N/A')"></span><br>
-                                            <span x-text="'Bank: ' + (row.bank_name || 'N/A')"></span>
+                                            <span x-text="'Chq No: ' + (row.cheque?.cheque_number || 'N/A')"></span><br>
+                                            <span x-text="'Date: ' + (row.cheque?.cheque_date || 'N/A')"></span><br>
+                                            <span x-text="'Bank: ' + (row.cheque?.bank_name || 'N/A')"></span>
                                         </div>
                                     </template>
                                     <template x-if="row.method === 'Bank Transfer' && row.reference_number">
@@ -1425,6 +1425,41 @@
                 submitPOSCheckout() {
                     if (this.cart.length === 0) return;
 
+                    let hasCheque = this.paymentRows.some(row => row.method === 'Cheque');
+                    let customer = this.customers.find(c => c.id == this.selectedCustomerId);
+                    if (hasCheque && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
+                        let customerOptions = {};
+                        this.customers.forEach(c => {
+                            if (!c.name.toLowerCase().includes('walk-in')) {
+                                customerOptions[c.id] = c.name + (c.phone ? ' - ' + c.phone : '');
+                            }
+                        });
+                        
+                        Swal.fire({
+                            title: 'Customer Required',
+                            text: 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
+                            icon: 'warning',
+                            input: 'select',
+                            inputOptions: customerOptions,
+                            inputPlaceholder: 'Select a customer',
+                            showCancelButton: true,
+                            confirmButtonText: 'Select & Continue',
+                            showDenyButton: true,
+                            denyButtonText: 'Add New',
+                            confirmButtonColor: '#3b82f6',
+                            denyButtonColor: '#10b981',
+                        }).then((result) => {
+                            if (result.isConfirmed && result.value) {
+                                this.selectedCustomerId = result.value;
+                                this.submitPOSCheckout();
+                            } else if (result.isDenied) {
+                                this.showPaymentPopup = false;
+                                setTimeout(() => { this.showAddCustomerModal = true; }, 300);
+                            }
+                        });
+                        return;
+                    }
+
                     let payable = this.calculateGrandTotal();
                     let totalPaid = this.calculateSplitTotalPaid();
 
@@ -1511,5 +1546,31 @@
             };
         }
     </script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receipt-print-area, #receipt-print-area * {
+                visibility: visible;
+            }
+            #receipt-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none !important;
+                border: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                background: transparent !important;
+            }
+            #receipt-print-area::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    </style>
 </body>
 </html>

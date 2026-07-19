@@ -77,7 +77,7 @@
     <h3 style="margin-top:32px">Payment Allocation</h3>
     <table>
         <thead><tr><th>Method</th><th>Reference / Cheque</th><th>Status</th><th class="right">Amount</th></tr></thead>
-        <tbody>@foreach($sale->invoicePayments as $payment)<tr><td>{{ $payment->payment_method }}</td><td>{{ $payment->reference_no ?: $payment->cheque?->cheque_number ?: '-' }}</td><td>{{ strtoupper($payment->status) }}</td><td class="right">Rs. {{ number_format((float)$payment->amount, 2) }}</td></tr>@endforeach</tbody>
+        <tbody>@foreach($sale->invoicePayments as $payment)<tr><td>{{ $payment->payment_method }}</td><td>{{ $payment->reference_no ?: ($payment->cheque ? $payment->cheque->cheque_number . ' (' . $payment->cheque->bank_name . ' - ' . $payment->cheque->cheque_date . ')' : '-') }}</td><td>{{ strtoupper($payment->status) }}</td><td class="right">Rs. {{ number_format((float)$payment->amount, 2) }}</td></tr>@endforeach</tbody>
     </table>
     @endif
 </body>

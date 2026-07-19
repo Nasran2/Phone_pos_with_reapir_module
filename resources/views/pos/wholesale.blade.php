@@ -736,9 +736,9 @@
                                     </div>
                                     <template x-if="row.method === 'Cheque'">
                                         <div class="text-[9px] text-slate-500 text-left mt-0.5 leading-tight">
-                                            <span x-text="'Chq No: ' + (row.cheque_number || 'N/A')"></span><br>
-                                            <span x-text="'Date: ' + (row.cheque_date || 'N/A')"></span><br>
-                                            <span x-text="'Bank: ' + (row.bank_name || 'N/A')"></span>
+                                            <span x-text="'Chq No: ' + (row.cheque?.cheque_number || 'N/A')"></span><br>
+                                            <span x-text="'Date: ' + (row.cheque?.cheque_date || 'N/A')"></span><br>
+                                            <span x-text="'Bank: ' + (row.cheque?.bank_name || 'N/A')"></span>
                                         </div>
                                     </template>
                                     <template x-if="row.method === 'Bank Transfer' && row.reference_number">
@@ -1263,6 +1263,18 @@
 
                     const checkoutRows = this.useMultiplePayments ? this.paymentRows : [this.singlePaymentRow()];
                     if (!this.useMultiplePayments && Number(this.paidAmount) < this.calculateGrandTotal() - .009) checkoutRows.push({ method: 'Customer Credit / Due', amount: this.calculateGrandTotal() - Number(this.paidAmount) });
+
+                    let hasCheque = checkoutRows.some(row => row.method === 'Cheque');
+                    let customer = this.customers.find(c => c.id == this.selectedCustomerId);
+                    if (hasCheque && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
+                        Swal.fire({
+                            title: 'Customer Required',
+                            text: 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
+                            icon: 'warning',
+                            confirmButtonColor: '#f59e0b'
+                        });
+                        return;
+                    }
                     const payload = {
                         customer_id: this.selectedCustomerId,
                         pos_type: 'wholesale',
@@ -1372,5 +1384,31 @@
             };
         }
     </script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receipt-print-area, #receipt-print-area * {
+                visibility: visible;
+            }
+            #receipt-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none !important;
+                border: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                background: transparent !important;
+            }
+            #receipt-print-area::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    </style>
 </body>
 </html>

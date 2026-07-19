@@ -87,7 +87,7 @@
                             <ul class="list-disc pl-5 space-y-1.5">
                                 @foreach($upcomingCheques->take(3) as $cheque)
                                     <li>
-                                        <strong class="font-bold text-amber-900">{{ ucfirst($cheque->cheque_type) }} ({{ $cheque->cheque_type === 'incoming' ? ($cheque->received_from ?: 'Customer') : ($cheque->issued_to ?: 'Supplier') }})</strong> - 
+                                        <strong class="font-bold text-amber-900">{{ ucfirst($cheque->cheque_type) }} ({{ $cheque->cheque_type === 'received' ? ($cheque->received_from ?: 'Customer') : ($cheque->issued_to ?: 'Supplier') }})</strong> - 
                                         <span class="font-extrabold">{{ \App\Support\SystemSettings::money((float)$cheque->amount) }}</span> 
                                         <span class="text-amber-600 ml-1">
                                             (No: {{ $cheque->cheque_number }} | Bank: {{ $cheque->bank_name ?? 'N/A' }} | 

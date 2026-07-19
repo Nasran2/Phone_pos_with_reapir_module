@@ -28,7 +28,8 @@ class Cheque extends Model
 
     public function getDisplayStatusAttribute(): string
     {
-        if (! in_array($this->status, ['pending', 'upcoming', 'due_today', 'overdue'], true)) return $this->status;
+        if (! in_array($this->status, ['pending', 'upcoming', 'due_today', 'overdue'], true)) return (string) $this->status;
+        if (! $this->cheque_date) return (string) $this->status;
         if ($this->cheque_date->isToday()) return 'due_today';
         if ($this->cheque_date->isPast()) return 'overdue';
         return $this->cheque_date->diffInDays(today()) <= (int) Setting::get('cheque_reminder_days', 3) ? 'upcoming' : 'pending';
