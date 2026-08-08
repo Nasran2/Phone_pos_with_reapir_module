@@ -136,7 +136,7 @@ class SaleController extends Controller
     public function storePayment(Request $request, Sale $sale)
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', Rule::in(['Cash', 'Bank Transfer', 'Card', 'QR Payment'])],
             'reference_no' => ['nullable', 'string', 'max:255'],
             'payment_date' => ['required', 'date'],
@@ -161,15 +161,17 @@ class SaleController extends Controller
                 throw ValidationException::withMessages(['amount' => 'Payment cannot exceed the current due amount.']);
             }
 
-            SalePayment::create([
-                'sale_id' => $sale->id,
-                'payment_date' => $validated['payment_date'],
-                'amount' => $amount,
-                'payment_method' => $validated['payment_method'],
-                'reference_no' => $validated['reference_no'] ?? null,
-                'note' => $validated['note'] ?? 'Due payment',
-                'created_by' => auth()->id(),
-            ]);
+            if ($amount > 0) {
+                SalePayment::create([
+                    'sale_id' => $sale->id,
+                    'payment_date' => $validated['payment_date'],
+                    'amount' => $amount,
+                    'payment_method' => $validated['payment_method'],
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'note' => $validated['note'] ?? 'Due payment',
+                    'created_by' => auth()->id(),
+                ]);
+            }
 
             $sale->paid_amount = (float) $sale->paid_amount + $amount;
             $sale->due_amount = max(0, $oldDue - $amount);
@@ -193,7 +195,7 @@ class SaleController extends Controller
                 throw ValidationException::withMessages(['amount' => $e->getMessage()]);
             }
 
-            if ($sale->customer && $oldDue > 0) {
+            if ($amount > 0 && $sale->customer && $oldDue > 0) {
                 $this->adjustCustomerBalance($sale->customer, -min($amount, $oldDue), 'sale_due_payment', $sale, $sale->invoice_no);
             }
 

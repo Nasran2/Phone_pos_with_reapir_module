@@ -94,7 +94,8 @@ class SaleReturnController extends Controller
             'return_type' => ['required', 'in:refund,replacement,exchange'],
             'return_date' => ['required', 'date'],
             'refund_method' => ['required', 'string'],
-            'refund_amount' => ['nullable', 'numeric', 'min:0'],
+            'refund_due_amount' => ['nullable', 'numeric', 'min:0'],
+            'refund_cash_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['nullable', 'string'],
             'payment_amount' => ['nullable', 'numeric', 'min:0'],
             'reason' => ['nullable', 'string'],
@@ -282,6 +283,8 @@ class SaleReturnController extends Controller
             
             // Handle Refund/Payment
             $refundAmount = 0;
+            $refundDueAmount = 0;
+            $refundCashAmount = 0;
             $paymentAmount = 0;
             $refundMethod = $validated['refund_method'];
             $paymentMethod = $validated['payment_method'] ?? 'Cash';
@@ -289,11 +292,15 @@ class SaleReturnController extends Controller
             if ($netDifference < 0) {
                 // Shop owes customer (Refund)
                 $amountToRefund = abs($netDifference);
-                if (in_array($refundMethod, ['No Refund', 'Customer Credit'])) {
-                    $refundAmount = 0;
+                $refundDueAmount = min((float) ($validated['refund_due_amount'] ?? 0), $amountToRefund);
+                
+                if ($refundMethod === 'No Refund') {
+                    $refundCashAmount = 0;
                 } else {
-                    $refundAmount = min((float) ($validated['refund_amount'] ?? $amountToRefund), $amountToRefund);
+                    $refundCashAmount = min((float) ($validated['refund_cash_amount'] ?? 0), $amountToRefund - $refundDueAmount);
                 }
+                
+                $refundAmount = $refundDueAmount + $refundCashAmount;
             } elseif ($netDifference > 0) {
                 // Customer owes shop (Payment)
                 if ($paymentMethod !== 'Due') {
@@ -327,7 +334,7 @@ class SaleReturnController extends Controller
                 'added_tax_total' => $addedTaxTotal,
                 'tax_total' => $taxTotal,
                 'payable_total' => $totalReturnAmount,
-                'refund_method' => $netDifference <= 0 ? $refundMethod : 'No Refund',
+                'refund_method' => $netDifference <= 0 ? ($refundDueAmount > 0 && $refundCashAmount > 0 ? 'Due & ' . $refundMethod : ($refundDueAmount > 0 ? 'Customer Credit' : $refundMethod)) : 'No Refund',
                 'refund_amount' => $refundAmount,
                 'refund_status' => $netDifference < 0 ? $this->refundStatus($refundMethod, $refundAmount, abs($netDifference)) : 'Completed',
                 'reason' => $validated['reason'] ?? null,
@@ -467,9 +474,9 @@ class SaleReturnController extends Controller
             if ($customerId) {
                 $customer = \App\Models\Customer::find($customerId);
                 if ($customer) {
-                    if ($netDifference < 0 && $refundMethod === 'Customer Credit') {
-                        // Shop owes customer, added to due (Negative due = credit)
-                        $this->adjustCustomerBalance($customer, $netDifference, 'sale_return', $saleReturn, $saleReturn->return_no);
+                    if ($netDifference < 0 && $refundDueAmount > 0) {
+                        // Shop owes customer, apply to due (Negative amount decreases due)
+                        $this->adjustCustomerBalance($customer, -$refundDueAmount, 'sale_return', $saleReturn, $saleReturn->return_no);
                     } elseif ($netDifference > 0 && $paymentMethod === 'Due') {
                         // Customer owes shop, added to due
                         $this->adjustCustomerBalance($customer, $netDifference, 'sale_exchange', $exchangeSale ?? $saleReturn, $saleReturn->return_no);

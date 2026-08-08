@@ -317,19 +317,36 @@
                     <!-- Options based on net difference -->
                     <div class="grid md:grid-cols-2 gap-6">
                         <!-- Shop Owes Customer (Negative Difference) -->
-                        <div x-show="netDifference <= 0" class="space-y-4">
-                            <div>
-                                <label class="text-[11px] font-bold uppercase text-slate-500 mb-1.5 block">Refund Method</label>
-                                <select name="refund_method" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-semibold">
-                                    <option value="Customer Credit">Add to Customer Due Balance</option>
-                                    <option value="Cash">Cash Handed Over</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="No Refund">No Refund</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[11px] font-bold uppercase text-slate-500 mb-1.5 block">Refund Amount Processed</label>
-                                <input type="number" step="any" min="0" name="refund_amount" :value="Math.abs(netDifference)" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm font-bold bg-slate-50 text-slate-800" readonly>
+                        <div x-show="netDifference <= 0" class="space-y-4" x-effect="refundDueAmount = Math.min(Math.abs(netDifference), customerDueAmount())">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                                <div class="flex justify-between items-center text-sm font-bold border-b border-slate-200 pb-2 mb-2">
+                                    <span class="text-slate-600">Total Refund Required:</span>
+                                    <span class="text-slate-900" x-text="'Rs. ' + formatCurrency(Math.abs(netDifference))"></span>
+                                </div>
+                                
+                                <div>
+                                    <label class="text-[11px] font-bold uppercase text-slate-500 mb-1.5 flex justify-between">
+                                        <span>Deduct from Due Balance</span>
+                                        <span class="text-red-500" x-text="'Max: Rs. ' + formatCurrency(Math.min(Math.abs(netDifference), customerDueAmount()))"></span>
+                                    </label>
+                                    <input type="number" step="0.01" min="0" :max="Math.min(Math.abs(netDifference), customerDueAmount())" x-model.number="refundDueAmount" name="refund_due_amount" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white font-bold text-slate-800 focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                
+                                <div>
+                                    <label class="text-[11px] font-bold uppercase text-slate-500 mb-1.5 flex justify-between">
+                                        <span>Cash / Bank Refund Remainder</span>
+                                        <span class="text-emerald-600" x-text="'Rs. ' + formatCurrency(Math.max(0, Math.abs(netDifference) - (refundDueAmount || 0)))"></span>
+                                    </label>
+                                    <input type="hidden" name="refund_cash_amount" :value="Math.max(0, Math.abs(netDifference) - (refundDueAmount || 0))">
+                                    <div class="flex gap-2">
+                                        <select name="refund_method" class="w-1/2 px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white font-semibold focus:ring-2 focus:ring-purple-500">
+                                            <option value="Cash">Cash Handed Over</option>
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                            <option value="No Refund">Keep as Shop Profit / Ignore</option>
+                                        </select>
+                                        <div class="w-1/2 px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-100 font-bold text-slate-800 flex items-center justify-end" x-text="formatCurrency(Math.max(0, Math.abs(netDifference) - (refundDueAmount || 0)))"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -388,6 +405,7 @@
                 oldReturnProductSelect: '',
                 
                 returnType: 'refund',
+                refundDueAmount: 0,
                 
                 exchangeItems: [],
                 exchangeProductSelect: '',

@@ -69,9 +69,9 @@
                     <option value="retail" @selected(request('sale_type') === 'retail')>Retail</option>
                     <option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>
                 </select>
-                <label class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-white">
-                    <input type="checkbox" name="pending_only" value="1" @checked(request()->boolean('pending_only'))>
-                    Pending inventory
+                <label class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-white cursor-pointer">
+                    <input type="checkbox" name="pending_only" value="1" onchange="this.form.submit()" @checked(request()->boolean('pending_only'))>
+                    Waiting Payment
                 </label>
                 <select name="payment_status" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
                     <option value="">All Status</option>
@@ -216,7 +216,23 @@
 
                 <form method="POST" :action="paymentModal ? paymentModal.payment_url : '#'"
                       class="space-y-4"
-                      @submit="if (deductStock && remainingAfterPayment() > 0.009 && !window.confirm('Deduct inventory now while Rs. ' + money(remainingAfterPayment()) + ' remains unpaid? The customer balance will remain due.')) $event.preventDefault()">
+                      @submit.prevent="
+                          if (deductStock && remainingAfterPayment() > 0.009) {
+                              Swal.fire({
+                                  title: 'Confirm Stock Deduction',
+                                  text: 'Deduct inventory now while Rs. ' + money(remainingAfterPayment()) + ' remains unpaid? The customer balance will remain due.',
+                                  icon: 'warning',
+                                  showCancelButton: true,
+                                  confirmButtonColor: '#059669',
+                                  cancelButtonColor: '#64748b',
+                                  confirmButtonText: 'Yes, deduct stock'
+                              }).then((result) => {
+                                  if (result.isConfirmed) $el.submit();
+                              });
+                          } else {
+                              $el.submit();
+                          }
+                      ">
                     @csrf
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
@@ -240,7 +256,7 @@
                         </div>
                         <div class="flex min-h-12 items-center rounded-xl border border-slate-300 bg-white px-3 focus-within:border-blue-500">
                             <span class="mr-2 text-sm font-black text-slate-500">Rs.</span>
-                            <input name="amount" x-model.number="paymentAmount" type="number" min="0.01" step="0.01" :max="paymentModal ? paymentModal.balance : 0" required class="w-full border-0 p-0 text-lg font-black text-slate-900 outline-none">
+                            <input name="amount" x-model.number="paymentAmount" type="number" min="0" step="0.01" :max="paymentModal ? paymentModal.balance : 0" required class="w-full border-0 p-0 text-lg font-black text-slate-900 outline-none">
                         </div>
                         <div class="mt-2 flex justify-between text-xs font-semibold"><span class="text-slate-500">Balance after payment</span><span class="text-red-600">Rs. <span x-text="money(remainingAfterPayment())"></span></span></div>
                     </div>
