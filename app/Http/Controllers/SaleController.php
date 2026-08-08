@@ -8,13 +8,17 @@ use App\Models\CustomerTransaction;
 use App\Models\ProductStoreStock;
 use App\Models\Sale;
 use App\Models\SalePayment;
+use App\Models\Setting;
 use App\Models\StockHistory;
 use App\Models\User;
+use App\Services\LorryAccessService;
+use App\Services\SaleInventoryService;
 use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SaleController extends Controller
 {
@@ -41,6 +45,10 @@ class SaleController extends Controller
             $query->where('payment_status', $request->input('payment_status'));
         }
 
+        if ($request->boolean('pending_only')) {
+            $query->whereNull('stock_deducted_at')->where('status', '!=', 'cancelled');
+        }
+
         if ($request->filled('cashier_id')) {
             $query->where('created_by', $request->input('cashier_id'));
         }
@@ -62,7 +70,7 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        if (!auth()->user()->hasPermission('sales.invoice_view') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+        if (! auth()->user()->hasPermission('sales.invoice_view') && ! app(LorryAccessService::class)->isLorryUser(auth()->user())) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -73,7 +81,7 @@ class SaleController extends Controller
 
     public function print(Sale $sale)
     {
-        if (!auth()->user()->hasPermission('sales.print') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+        if (! auth()->user()->hasPermission('sales.print') && ! app(LorryAccessService::class)->isLorryUser(auth()->user())) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -82,55 +90,77 @@ class SaleController extends Controller
         return view('sales.print', compact('sale'));
     }
 
+    public function shared(Request $request, Sale $sale)
+    {
+        abort_unless($request->hasValidSignature(), 403, 'This invoice link is invalid or has expired.');
+
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
+
+        return view('sales.print', ['sale' => $sale, 'shared' => true]);
+    }
+
     public function download(Sale $sale)
     {
-        if (!auth()->user()->hasPermission('sales.print') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+        if (! auth()->user()->hasPermission('sales.print') && ! app(LorryAccessService::class)->isLorryUser(auth()->user())) {
             abort(403, 'Unauthorized action.');
         }
 
         $sale->load(['customer', 'items.product', 'items.variant']);
         $lines = [
-            $sale->is_tax_invoice ? 'Tax Invoice: ' . $sale->invoice_no : 'Invoice: ' . $sale->invoice_no,
-            'Date: ' . $sale->created_at->format('Y-m-d h:i A'),
-            'TIN: ' . \App\Support\SystemSettings::get('company_tin', 'N/A', 'tax_settings'),
-            'VAT Reg: ' . \App\Support\SystemSettings::get('vat_registration_number', 'N/A', 'tax_settings'),
-            'Customer: ' . ($sale->customer->name ?? 'Walk-in Customer'),
-            'Sale Type: ' . ucfirst($sale->pos_type),
-            'Subtotal: ' . SystemSettings::money((float) $sale->total_amount),
-            'Discount: ' . SystemSettings::money((float) $sale->discount_amount),
-            'Tax Amount: ' . SystemSettings::money((float) $sale->tax_amount),
-            'Grand Total: ' . SystemSettings::money((float) $sale->payable_amount),
-            'Paid: ' . SystemSettings::money((float) $sale->paid_amount),
-            'Due: ' . SystemSettings::money((float) $sale->due_amount),
+            $sale->is_tax_invoice ? 'Tax Invoice: '.$sale->invoice_no : 'Invoice: '.$sale->invoice_no,
+            'Date: '.$sale->created_at->format('Y-m-d h:i A'),
+            'TIN: '.SystemSettings::get('company_tin', 'N/A', 'tax_settings'),
+            'VAT Reg: '.SystemSettings::get('vat_registration_number', 'N/A', 'tax_settings'),
+            'Customer: '.($sale->customer->name ?? 'Walk-in Customer'),
+            'Sale Type: '.ucfirst($sale->pos_type),
+            'Subtotal: '.SystemSettings::money((float) $sale->total_amount),
+            'Discount: '.SystemSettings::money((float) $sale->discount_amount),
+            'Tax Amount: '.SystemSettings::money((float) $sale->tax_amount),
+            'Grand Total: '.SystemSettings::money((float) $sale->payable_amount),
+            'Paid: '.SystemSettings::money((float) $sale->paid_amount),
+            'Due: '.SystemSettings::money((float) $sale->due_amount),
             '',
-            'Items:'
+            'Items:',
         ];
 
         foreach ($sale->items as $item) {
             $name = $item->product->name ?? 'Product';
             $variant = $item->variantLabel();
-            $lines[] = trim($name . ($variant ? ' - ' . $variant : '')) . ' x ' . (float) $item->quantity . ' = ' . SystemSettings::money((float) ($item->line_total ?: $item->subtotal));
+            $lines[] = trim($name.($variant ? ' - '.$variant : '')).' x '.(float) $item->quantity.' = '.SystemSettings::money((float) ($item->line_total ?: $item->subtotal));
         }
 
-        return response($this->simplePdf('Sales Invoice ' . $sale->invoice_no, $lines), 200, [
+        return response($this->simplePdf('Sales Invoice '.$sale->invoice_no, $lines), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $sale->invoice_no . '.pdf"',
+            'Content-Disposition' => 'attachment; filename="'.$sale->invoice_no.'.pdf"',
         ]);
     }
 
     public function storePayment(Request $request, Sale $sale)
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:0.01', 'max:' . max((float) $sale->due_amount, 0.01)],
-            'payment_method' => ['required', Rule::in(['Cash', 'Bank Transfer', 'Card', 'QR Payment', 'Cheque', 'Credit / Due'])],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'payment_method' => ['required', Rule::in(['Cash', 'Bank Transfer', 'Card', 'QR Payment'])],
             'reference_no' => ['nullable', 'string', 'max:255'],
             'payment_date' => ['required', 'date'],
             'note' => ['nullable', 'string'],
         ]);
 
         DB::transaction(function () use ($sale, $validated) {
+            $sale = Sale::query()->with('customer')->lockForUpdate()->findOrFail($sale->id);
             $amount = (float) $validated['amount'];
             $oldDue = (float) $sale->due_amount;
+
+            if ($sale->status === 'cancelled') {
+                throw ValidationException::withMessages(['amount' => 'Payments cannot be added to a cancelled invoice.']);
+            }
+
+            if ($oldDue <= 0.009) {
+                throw ValidationException::withMessages(['amount' => 'This invoice is already fully paid.']);
+            }
+
+            if ($amount > $oldDue + 0.009) {
+                throw ValidationException::withMessages(['amount' => 'Payment cannot exceed the current due amount.']);
+            }
 
             SalePayment::create([
                 'sale_id' => $sale->id,
@@ -146,6 +176,12 @@ class SaleController extends Controller
             $sale->due_amount = max(0, $oldDue - $amount);
             $sale->payment_status = $this->paymentStatus($sale);
             $sale->save();
+
+            try {
+                app(SaleInventoryService::class)->finalizeIfPaid($sale);
+            } catch (\RuntimeException $e) {
+                throw ValidationException::withMessages(['amount' => $e->getMessage()]);
+            }
 
             if ($sale->customer && $oldDue > 0) {
                 $this->adjustCustomerBalance($sale->customer, -min($amount, $oldDue), 'sale_due_payment', $sale, $sale->invoice_no);
@@ -166,19 +202,11 @@ class SaleController extends Controller
         }
 
         DB::transaction(function () use ($sale) {
-            foreach ($sale->items as $item) {
-                $this->restoreStock($item, 'sale_deleted', 'Sale deleted');
-            }
+            app(SaleInventoryService::class)->restore($sale, 'Sale deleted');
 
             if ($sale->customer && (float) $sale->due_amount > 0) {
                 $this->adjustCustomerBalance($sale->customer, -(float) $sale->due_amount, 'sale_deleted', $sale, $sale->invoice_no);
             }
-
-            DB::table('product_serials')->where('sale_id', $sale->id)->update([
-                'status' => 'available',
-                'sale_id' => null,
-                'updated_at' => now(),
-            ]);
 
             $invoiceNo = $sale->invoice_no;
             $sale->payments()->delete();
@@ -202,6 +230,7 @@ class SaleController extends Controller
             'wholesale_sales' => (clone $base)->where('pos_type', 'wholesale')->sum('payable_amount'),
             'due_sales' => (clone $base)->sum('due_amount'),
             'total_profit' => (clone $base)->sum('total_profit_amount'),
+            'pending_orders' => (clone $base)->whereNull('stock_deducted_at')->count(),
         ];
     }
 
@@ -226,7 +255,7 @@ class SaleController extends Controller
         } else {
             $stock = ProductStoreStock::firstOrCreate([
                 'product_id' => $item->product_id,
-                'store_id' => $item->sale->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+                'store_id' => $item->sale->store_id ?? Setting::get('default_store_id', 1),
             ], ['quantity' => 0]);
             $stock->quantity = (float) $stock->quantity + (float) $item->quantity;
             $stock->save();
@@ -242,7 +271,7 @@ class SaleController extends Controller
             'reference_no' => $item->sale->invoice_no ?? null,
             'note' => $note,
             'created_by' => auth()->id(),
-            'store_id' => $item->sale->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+            'store_id' => $item->sale->store_id ?? Setting::get('default_store_id', 1),
         ]);
 
         if (Schema::hasTable('stock_movements')) {
@@ -285,18 +314,18 @@ class SaleController extends Controller
 
     private function simplePdf(string $title, array $lines): string
     {
-        $text = "BT\n/F1 18 Tf\n50 780 Td\n(" . $this->pdfText($title) . ") Tj\n/F1 11 Tf\n0 -28 Td\n";
+        $text = "BT\n/F1 18 Tf\n50 780 Td\n(".$this->pdfText($title).") Tj\n/F1 11 Tf\n0 -28 Td\n";
         foreach ($lines as $line) {
-            $text .= '(' . $this->pdfText($line) . ") Tj\n0 -18 Td\n";
+            $text .= '('.$this->pdfText($line).") Tj\n0 -18 Td\n";
         }
-        $text .= "ET";
+        $text .= 'ET';
 
         $objects = [
             "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n",
             "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n",
             "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj\n",
             "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n",
-            "5 0 obj << /Length " . strlen($text) . " >> stream\n{$text}\nendstream endobj\n",
+            '5 0 obj << /Length '.strlen($text)." >> stream\n{$text}\nendstream endobj\n",
         ];
 
         $pdf = "%PDF-1.4\n";
@@ -306,11 +335,11 @@ class SaleController extends Controller
             $pdf .= $object;
         }
         $xref = strlen($pdf);
-        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n0000000000 65535 f \n";
+        $pdf .= "xref\n0 ".(count($objects) + 1)."\n0000000000 65535 f \n";
         for ($i = 1; $i <= count($objects); $i++) {
-            $pdf .= str_pad((string) $offsets[$i], 10, '0', STR_PAD_LEFT) . " 00000 n \n";
+            $pdf .= str_pad((string) $offsets[$i], 10, '0', STR_PAD_LEFT)." 00000 n \n";
         }
-        $pdf .= "trailer << /Size " . (count($objects) + 1) . " /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
+        $pdf .= 'trailer << /Size '.(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
 
         return $pdf;
     }

@@ -20,23 +20,24 @@
         <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-800 text-xs font-semibold">{{ session('error') }}</div>
         @endif
 
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
             @foreach([
                 ['Today Sales', $summary['today_sales'], 'blue'],
                 ['Retail Sales', $summary['retail_sales'], 'emerald'],
                 ['Wholesale Sales', $summary['wholesale_sales'], 'indigo'],
                 ['Due Sales', $summary['due_sales'], 'red'],
                 ['Total Profit', $summary['total_profit'], 'amber'],
+                ['Pending Orders', $summary['pending_orders'], 'orange'],
             ] as [$label, $amount, $color])
             <div class="bg-white border border-slate-200/70 rounded-xl p-4 shadow-xs">
                 <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">{{ $label }}</p>
-                <p class="mt-2 text-lg font-black text-slate-850">Rs. {{ number_format((float) $amount, 2) }}</p>
+                <p class="mt-2 text-lg font-black text-slate-850">{{ $label === 'Pending Orders' ? number_format((int) $amount) : 'Rs. '.number_format((float) $amount, 2) }}</p>
             </div>
             @endforeach
         </div>
 
         <div class="bg-white rounded-xl border border-slate-200/70 p-4 shadow-xs">
-            <form method="GET" action="{{ route('sales.index') }}" class="grid grid-cols-1 md:grid-cols-8 gap-3">
+            <form method="GET" action="{{ route('sales.index') }}" class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-9 gap-3">
                 <div class="md:col-span-2 relative">
                     <input name="search" value="{{ request('search') }}" placeholder="Invoice, customer, phone..." class="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none">
                     <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -46,9 +47,13 @@
                     <option value="retail" @selected(request('sale_type') === 'retail')>Retail</option>
                     <option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>
                 </select>
+                <label class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-white">
+                    <input type="checkbox" name="pending_only" value="1" @checked(request()->boolean('pending_only'))>
+                    Pending inventory
+                </label>
                 <select name="payment_status" class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
                     <option value="">All Status</option>
-                    @foreach(['Paid', 'Partial', 'Due', 'Refunded', 'Cancelled'] as $status)
+                    @foreach(['Paid', 'Partial', 'Due', 'Cheque Hold', 'Partial + Cheque Hold', 'Partial Paid + Cheque Hold', 'Partial + Cheque Hold + Due', 'Cheque Hold + Due', 'Refunded', 'Cancelled'] as $status)
                     <option value="{{ $status }}" @selected(request('payment_status') === $status)>{{ $status }}</option>
                     @endforeach
                 </select>
@@ -83,6 +88,7 @@
                             <th class="px-4 py-4 text-right">Paid</th>
                             <th class="px-4 py-4 text-right">Due</th>
                             <th class="px-4 py-4">Payment</th>
+                            <th class="px-4 py-4">Inventory</th>
                             <th class="px-4 py-4">Cashier</th>
                             <th class="px-4 py-4 text-right">Action</th>
                         </tr>
@@ -115,6 +121,7 @@
                             <td class="px-4 py-4 text-right text-emerald-700 font-bold">Rs. {{ number_format((float) $sale->paid_amount, 2) }}</td>
                             <td class="px-4 py-4 text-right text-red-600 font-bold">Rs. {{ number_format((float) $sale->due_amount, 2) }}</td>
                             <td class="px-4 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">{{ $status }}</span></td>
+                            <td class="px-4 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $sale->stock_deducted_at ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">{{ $sale->inventoryStatus() }}</span></td>
                             <td class="px-4 py-4">{{ $sale->cashier->name ?? '-' }}</td>
                             <td class="px-4 py-4">
                                 <div class="flex justify-end gap-1.5">
@@ -127,7 +134,7 @@
                                     @if(auth()->user()->hasPermission('sales.pdf'))
                                     <a href="{{ route('sales.download', $sale) }}" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="PDF"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></a>
                                     @endif
-                                    @if(auth()->user()->hasPermission('sales_return.create'))
+                                    @if(auth()->user()->hasPermission('sales_return.create') && $sale->stock_deducted_at)
                                     <a href="{{ route('sales-returns.create', ['sale_id' => $sale->id]) }}" class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50" title="Return"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 010 8h-1"/></svg></a>
                                     @endif
                                     @if(auth()->user()->hasPermission('sales.delete'))
@@ -140,7 +147,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="13" class="px-5 py-12 text-center text-slate-400 font-semibold">No sales found.</td></tr>
+                        <tr><td colspan="14" class="px-5 py-12 text-center text-slate-400 font-semibold">No sales found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

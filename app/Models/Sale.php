@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
-    use \App\Traits\LogsActivity;
+    use LogsActivity;
 
     protected $fillable = [
         'store_id',
@@ -26,6 +27,7 @@ class Sale extends Model
         'cheque_hold_amount',
         'due_amount',
         'payment_status',
+        'stock_deducted_at',
         'total_cost_amount',
         'total_profit_amount',
         'status',
@@ -48,6 +50,7 @@ class Sale extends Model
         'total_cost_amount' => 'decimal:2',
         'total_profit_amount' => 'decimal:2',
         'cancelled_at' => 'datetime',
+        'stock_deducted_at' => 'datetime',
     ];
 
     public function customer()
@@ -105,6 +108,19 @@ class Sale extends Model
         }
 
         return (float) $this->paid_amount > 0 ? 'Partial' : 'Due';
+    }
+
+    public function isPaymentComplete(): bool
+    {
+        return $this->status !== 'cancelled'
+            && (float) $this->due_amount <= 0.009
+            && (float) $this->cheque_hold_amount <= 0.009
+            && (float) $this->paid_amount + 0.009 >= (float) $this->payable_amount;
+    }
+
+    public function inventoryStatus(): string
+    {
+        return $this->stock_deducted_at ? 'Deducted' : 'Awaiting Payment';
     }
 
     public function store()

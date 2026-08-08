@@ -54,6 +54,10 @@ Route::get('/link-storage', function () {
 
 Route::redirect('/', 'login')->name('home');
 
+Route::get('shared/invoices/{sale}', [SaleController::class, 'shared'])
+    ->name('sales.shared')
+    ->middleware('signed');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])
@@ -167,6 +171,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:barcodes.view');
 
     // Products
+    Route::get('products/import-template', [ProductController::class, 'importTemplate'])
+        ->name('products.import-template')
+        ->middleware('permission:products.create');
     Route::get('products/export', [ProductController::class, 'export'])
         ->name('products.export')
         ->middleware('permission:products.view');

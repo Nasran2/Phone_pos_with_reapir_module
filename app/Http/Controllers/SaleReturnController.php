@@ -54,6 +54,7 @@ class SaleReturnController extends Controller
     {
         $salesQuery = Sale::with('customer')
             ->where('status', '!=', 'cancelled')
+            ->whereNotNull('stock_deducted_at')
             ->latest('created_at');
 
         if ($request->filled('invoice_search')) {
@@ -72,6 +73,7 @@ class SaleReturnController extends Controller
         $selectedSale = null;
         if ($request->filled('sale_id')) {
             $selectedSale = Sale::with(['customer', 'items.product', 'items.variant', 'items.returnedItems'])
+                ->whereNotNull('stock_deducted_at')
                 ->find($request->input('sale_id'));
         }
         
@@ -120,6 +122,9 @@ class SaleReturnController extends Controller
 
             if ($validated['source_type'] === 'invoice') {
                 $sale = Sale::with(['customer', 'items.returnedItems', 'items.product'])->findOrFail($validated['sale_id']);
+                if (! $sale->stock_deducted_at) {
+                    return back()->withInput()->withErrors(['sale_id' => 'A pending invoice cannot be returned because its stock has not been deducted.']);
+                }
                 $customerId = $sale->customer_id;
                 
                 foreach ($validated['items'] as $inputItem) {
@@ -448,13 +453,12 @@ class SaleReturnController extends Controller
                         'line_total' => $exItem['line_total'],
                     ]);
                     
-                    // Reduce Stock
-                    $this->decrementProductStock($exItem['product']->id, $exItem['quantity'], $exchangeSale->invoice_no);
                 }
 
                 $exchangeSale->payment_status = $exchangeSale->due_amount > 0 ? 'Partial' : 'Paid';
                 if ($exchangeSale->due_amount == $exchangeSale->payable_amount) $exchangeSale->payment_status = 'Due';
                 $exchangeSale->save();
+                app(\App\Services\SaleInventoryService::class)->finalizeIfPaid($exchangeSale);
 
                 $saleReturn->update(['exchange_sale_id' => $exchangeSale->id]);
             }

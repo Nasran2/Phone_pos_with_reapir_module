@@ -2,21 +2,25 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use \App\Traits\LogsActivity;
-
+    use LogsActivity;
     use SoftDeletes;
 
     protected $fillable = [
-        'category_id', 'brand_id', 'unit_id', 'name', 'sku', 'barcode', 
-        'description', 'image', 'cost_price', 'retail_price', 'wholesale_price', 
+        'category_id', 'brand_id', 'unit_id', 'name', 'sku', 'barcode',
+        'description', 'image', 'cost_price', 'retail_price', 'wholesale_price',
         'stock_alert_quantity', 'is_active', 'created_by', 'updated_by',
         'sales_tax_profile_id', 'purchase_tax_profile_id', 'tax_classification', 'tax_type',
-        'tax_mode', 'tax_status'
+        'tax_mode', 'tax_status',
     ];
 
     protected $casts = [
@@ -24,30 +28,35 @@ class Product extends Model
         'retail_price' => 'decimal:2',
         'wholesale_price' => 'decimal:2',
         'stock_alert_quantity' => 'integer',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
-    public function category()
+    /** @return BelongsTo<Category, $this> */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function brand()
+    /** @return BelongsTo<Brand, $this> */
+    public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
     }
 
-    public function unit()
+    /** @return BelongsTo<Unit, $this> */
+    public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
     }
 
-    public function defaultSalesTaxProfile()
+    /** @return BelongsTo<TaxRate, $this> */
+    public function defaultSalesTaxProfile(): BelongsTo
     {
         return $this->belongsTo(TaxRate::class, 'sales_tax_profile_id');
     }
 
-    public function defaultPurchaseTaxProfile()
+    /** @return BelongsTo<TaxRate, $this> */
+    public function defaultPurchaseTaxProfile(): BelongsTo
     {
         return $this->belongsTo(TaxRate::class, 'purchase_tax_profile_id');
     }
@@ -55,7 +64,8 @@ class Product extends Model
     /**
      * Get the global stock for this product (deprecated in multi-store, use getStockForStore).
      */
-    public function stock()
+    /** @return HasOne<ProductStoreStock, $this> */
+    public function stock(): HasOne
     {
         return $this->hasOne(ProductStoreStock::class)->where('store_id', Setting::get('default_store_id', 1));
     }
@@ -63,7 +73,8 @@ class Product extends Model
     /**
      * Get all store stock entries for this product.
      */
-    public function storeStocks()
+    /** @return HasMany<ProductStoreStock, $this> */
+    public function storeStocks(): HasMany
     {
         return $this->hasMany(ProductStoreStock::class);
     }
@@ -71,46 +82,53 @@ class Product extends Model
     /**
      * Get stores this product is available in.
      */
-    public function stores()
+    /** @return BelongsToMany<Store, $this> */
+    public function stores(): BelongsToMany
     {
         return $this->belongsToMany(Store::class, 'product_store_stock')
-                    ->withPivot('quantity', 'minimum_stock', 'maximum_stock', 'last_purchase', 'last_sale')
-                    ->withTimestamps();
+            ->withPivot('quantity', 'minimum_stock', 'maximum_stock', 'last_purchase', 'last_sale')
+            ->withTimestamps();
     }
 
     /**
      * Get stock for a specific store.
      */
-    public function getStockForStore($storeId = null)
+    public function getStockForStore(?int $storeId = null): float
     {
-        if (!$storeId) {
+        if (! $storeId) {
             $storeId = Setting::get('default_store_id', 1);
         }
         $stock = $this->storeStocks()->where('store_id', $storeId)->first();
-        return $stock ? $stock->quantity : 0;
+
+        return $stock ? (float) $stock->quantity : 0.0;
     }
 
-    public function variants()
+    /** @return HasMany<ProductVariant, $this> */
+    public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
     }
 
-    public function serials()
+    /** @return HasMany<ProductSerial, $this> */
+    public function serials(): HasMany
     {
         return $this->hasMany(ProductSerial::class);
     }
 
-    public function stock_histories()
+    /** @return HasMany<StockHistory, $this> */
+    public function stock_histories(): HasMany
     {
         return $this->hasMany(StockHistory::class);
     }
 
-    public function creator()
+    /** @return BelongsTo<User, $this> */
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updater()
+    /** @return BelongsTo<User, $this> */
+    public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }

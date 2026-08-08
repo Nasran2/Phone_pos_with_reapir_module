@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,20 +24,24 @@ class DashboardController extends Controller
         }
 
         $today = date('Y-m-d');
-        $enableMultiStore = \App\Models\Setting::get('enable_multi_store', false);
+        $enableMultiStore = Setting::get('enable_multi_store', false);
         $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : collect();
         $storeId = $request->input('store_id');
 
         // 1. Stats Cards
         $salesQuery = DB::table('sales')->where('sale_date', $today);
-        if ($enableMultiStore && $storeId) $salesQuery->where('store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $salesQuery->where('store_id', $storeId);
+        }
         $totalSalesToday = (clone $salesQuery)->sum('payable_amount');
         $retailSalesToday = (clone $salesQuery)->where('pos_type', 'retail')->sum('payable_amount');
         $wholesaleSalesToday = (clone $salesQuery)->where('pos_type', 'wholesale')->sum('payable_amount');
         $totalProfitToday = (clone $salesQuery)->sum('total_profit_amount');
-        
+
         $purchaseQuery = DB::table('purchases')->where('purchase_date', $today);
-        if ($enableMultiStore && $storeId) $purchaseQuery->where('store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $purchaseQuery->where('store_id', $storeId);
+        }
         $totalPurchaseToday = $purchaseQuery->sum('total_amount');
 
         // 2. Customer & Supplier Summary
@@ -45,28 +50,36 @@ class DashboardController extends Controller
         $totalSuppliers = DB::table('suppliers')->count();
         $supplierDue = DB::table('suppliers')->sum('balance');
         $expensesQuery = DB::table('expenses')->where('expense_date', $today);
-        if ($enableMultiStore && $storeId) $expensesQuery->where('store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $expensesQuery->where('store_id', $storeId);
+        }
         $totalExpensesToday = $expensesQuery->sum('amount');
-        
+
         // 3. Bank/Cash accounts
         $cashInHand = DB::table('accounts')->where('account_type', 'Asset')->where('account_name', 'like', '%cash%')->sum('current_balance') ?? 0.00;
         $bankBalance = DB::table('accounts')->where('account_type', 'Asset')->where('account_name', 'like', '%bank%')->sum('current_balance') ?? 0.00;
 
         // 3. Bottom Quick Widgets
         $totalProducts = DB::table('products')->count();
-        
+
         $stockQuery = DB::table('product_store_stock');
-        if ($enableMultiStore && $storeId) $stockQuery->where('store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $stockQuery->where('store_id', $storeId);
+        }
         $totalStockValue = (float) $stockQuery
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
-        
+
         $ordersQuery = DB::table('sales')->where('sale_date', $today);
-        if ($enableMultiStore && $storeId) $ordersQuery->where('store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $ordersQuery->where('store_id', $storeId);
+        }
         $todayOrders = $ordersQuery->count();
-        
+
         $dueQuery = DB::table('sales')->where('due_amount', '>', 0);
-        if ($enableMultiStore && $storeId) $dueQuery->where('store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $dueQuery->where('store_id', $storeId);
+        }
         $dueInvoices = $dueQuery->count();
         $unreadNotifications = 0;
 
@@ -75,7 +88,9 @@ class DashboardController extends Controller
             ->join('customers', 'customers.id', '=', 'sales.customer_id')
             ->select('sales.*', 'customers.name as customer_name')
             ->orderBy('sales.id', 'desc');
-        if ($enableMultiStore && $storeId) $rsQuery->where('sales.store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $rsQuery->where('sales.store_id', $storeId);
+        }
         $recentSales = $rsQuery->take(5)->get();
 
         // 5. Recent Purchases
@@ -83,7 +98,9 @@ class DashboardController extends Controller
             ->join('suppliers', 'suppliers.id', '=', 'purchases.supplier_id')
             ->select('purchases.*', 'suppliers.name as supplier_name')
             ->orderBy('purchases.id', 'desc');
-        if ($enableMultiStore && $storeId) $rpQuery->where('purchases.store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $rpQuery->where('purchases.store_id', $storeId);
+        }
         $recentPurchases = $rpQuery->take(5)->get();
 
         // 6. Low Stock Alerts
@@ -92,7 +109,9 @@ class DashboardController extends Controller
             ->whereRaw('product_store_stock.quantity <= products.stock_alert_quantity')
             ->select('products.*', 'product_store_stock.quantity as current_stock')
             ->orderBy('current_stock', 'asc');
-        if ($enableMultiStore && $storeId) $lsQuery->where('product_store_stock.store_id', $storeId);
+        if ($enableMultiStore && $storeId) {
+            $lsQuery->where('product_store_stock.store_id', $storeId);
+        }
         $lowStockAlerts = $lsQuery->take(5)->get();
 
         // 7. Sales Overview Line Chart (Dynamic Hourly Sales)
@@ -100,15 +119,21 @@ class DashboardController extends Controller
         $retailSalesHourly = array_fill(0, 8, 0);
         $wholesaleSalesHourly = array_fill(0, 8, 0);
 
+        $hourExpression = DB::connection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%H', created_at) AS INTEGER)"
+            : 'HOUR(created_at)';
+
         $hourlySalesQuery = DB::table('sales')
-            ->select('pos_type', DB::raw('FLOOR(HOUR(created_at) / 3) as hour_group'), DB::raw('SUM(payable_amount) as total'))
+            ->select('pos_type', DB::raw("FLOOR(($hourExpression) / 3) as hour_group"), DB::raw('SUM(payable_amount) as total'))
             ->where('sale_date', $today)
             ->groupBy('pos_type', 'hour_group');
-            
-        if ($enableMultiStore && $storeId) $hourlySalesQuery->where('store_id', $storeId);
-        
+
+        if ($enableMultiStore && $storeId) {
+            $hourlySalesQuery->where('store_id', $storeId);
+        }
+
         $hourlySales = $hourlySalesQuery->get();
-            
+
         foreach ($hourlySales as $sale) {
             $index = (int) $sale->hour_group;
             if ($index >= 0 && $index <= 7) {
@@ -125,9 +150,11 @@ class DashboardController extends Controller
         $paymentMethodsData = DB::table('sale_payments')
             ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
             ->where('sales.sale_date', $today);
-            
-        if ($enableMultiStore && $storeId) $paymentMethodsData->where('sales.store_id', $storeId);
-        
+
+        if ($enableMultiStore && $storeId) {
+            $paymentMethodsData->where('sales.store_id', $storeId);
+        }
+
         $paymentMethodsData = $paymentMethodsData
             ->select('sale_payments.payment_method', DB::raw('SUM(sale_payments.amount) as total'))
             ->groupBy('sale_payments.payment_method')
@@ -138,7 +165,7 @@ class DashboardController extends Controller
             'Card' => 0.00,
             'Bank Transfer' => 0.00,
             'QR / Mobile Pay' => 0.00,
-            'Other' => 0.00
+            'Other' => 0.00,
         ];
 
         // Reconcile real payments from DB into summary
@@ -157,7 +184,7 @@ class DashboardController extends Controller
             ->whereIn('status', ['pending', 'upcoming', 'due_today', 'overdue', 'deposited'])
             ->where('cheque_date', '<=', $tomorrow)
             ->orderBy('cheque_date', 'asc');
-            
+
         if ($enableMultiStore && $storeId) {
             $upcomingChequesQuery->where('store_id', $storeId);
         }

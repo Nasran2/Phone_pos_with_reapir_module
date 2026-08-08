@@ -28,7 +28,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                 </svg>
-                <span>Import CSV</span>
+                <span>Import Excel / CSV</span>
             </button>
 
             @if(auth()->user()->hasPermission('products.create'))
@@ -736,21 +736,22 @@
     <div id="importModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden flex flex-col modal-container text-slate-800">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-sm font-bold text-slate-850">Import Products CSV</h3>
+                <h3 class="text-sm font-bold text-slate-850">Import Products</h3>
                 <button onclick="closeModal('importModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
             </div>
             <form method="POST" action="{{ route('products.import') }}" enctype="multipart/form-data" class="p-6 space-y-4">
                 @csrf
                 <div class="text-xs text-slate-500 leading-relaxed space-y-1">
-                    <div>Please download the sample CSV template structure to make sure column matching works correctly.</div>
+                    <div>Download the Excel template to see the current products and separate category, brand, and unit reference sheets.</div>
+                    <a href="{{ route('products.import-template') }}" class="inline-flex rounded-lg bg-emerald-600 px-3 py-2 font-bold text-white hover:bg-emerald-700">Download Excel Template</a>
                     <div class="font-bold">Columns structure:</div>
                     <div class="font-mono bg-slate-50 border border-slate-100 p-1.5 rounded select-all break-words">
                         ID, Name, SKU, Barcode, Category, Brand, Unit, Cost Price, Retail Price, Wholesale Price, Stock Alert Qty, Status, Opening Stock
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Select CSV File</label>
-                    <input type="file" name="file" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Select Spreadsheet File</label>
+                    <input type="file" name="file" accept=".xlsx,.xls,.csv,.txt" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
                     <button type="button" onclick="closeModal('importModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg cursor-pointer">Cancel</button>

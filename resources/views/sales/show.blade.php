@@ -14,11 +14,12 @@
             @endif
             @if(auth()->user()->hasPermission('sales.whatsapp_share'))
             @php
-                $message = rawurlencode("Invoice {$sale->invoice_no}\nGrand Total: Rs. ".number_format((float) $sale->payable_amount, 2)."\nPaid: Rs. ".number_format((float) $sale->paid_amount, 2)."\nDue: Rs. ".number_format((float) $sale->due_amount, 2));
+                $shareUrl = \Illuminate\Support\Facades\URL::signedRoute('sales.shared', ['sale' => $sale]);
+                $message = rawurlencode("Invoice {$sale->invoice_no}\nGrand Total: Rs. ".number_format((float) $sale->payable_amount, 2)."\nPaid: Rs. ".number_format((float) $sale->paid_amount, 2)."\nDue: Rs. ".number_format((float) $sale->due_amount, 2)."\nView invoice: {$shareUrl}");
             @endphp
             <a href="https://wa.me/?text={{ $message }}" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">WhatsApp</a>
             @endif
-            @if(auth()->user()->hasPermission('sales_return.create'))
+            @if(auth()->user()->hasPermission('sales_return.create') && $sale->stock_deducted_at)
             <a href="{{ route('sales-returns.create', ['sale_id' => $sale->id]) }}" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold">Return Sale</a>
             @endif
         </div>
@@ -30,6 +31,12 @@
         @endif
         @if($errors->any())
         <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-800 text-xs font-semibold">{{ $errors->first() }}</div>
+        @endif
+
+        @if(!$sale->stock_deducted_at && $sale->status !== 'cancelled')
+        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl text-amber-900 text-xs font-semibold">
+            Pending order: inventory and serial/IMEI stock remain unchanged until the outstanding payment has fully cleared.
+        </div>
         @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -145,7 +152,7 @@
                     <h3 class="font-black text-slate-850">Record Due Payment</h3>
                     <input type="date" name="payment_date" value="{{ now()->toDateString() }}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
                     <select name="payment_method" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white">
-                        @foreach(['Cash', 'Bank Transfer', 'Card', 'QR Payment', 'Cheque', 'Credit / Due'] as $method)
+                        @foreach(['Cash', 'Bank Transfer', 'Card', 'QR Payment'] as $method)
                         <option value="{{ $method }}">{{ $method }}</option>
                         @endforeach
                     </select>

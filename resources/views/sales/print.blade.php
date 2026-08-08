@@ -18,6 +18,11 @@
 </head>
 <body>
     <button class="no-print" onclick="window.print()">Print</button>
+    @if(!$sale->stock_deducted_at && $sale->status !== 'cancelled')
+    <div style="margin: 12px 0; padding: 10px 12px; background: #fffbeb; border: 1px solid #f59e0b; color: #92400e; font-size: 12px;">
+        PAYMENT PENDING — This invoice has not reduced inventory. Stock will be deducted automatically after full payment clears.
+    </div>
+    @endif
     <div class="top">
         <div>
             <h1>{{ \App\Support\SystemSettings::get('business_name', 'Phone Shop POS', 'business_settings') }}</h1>

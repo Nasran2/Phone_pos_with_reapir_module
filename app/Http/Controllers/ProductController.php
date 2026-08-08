@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Category;
-use App\Models\Brand;
-use App\Models\Unit;
-use App\Models\ProductStoreStock;
-use App\Models\ProductSerial;
-use App\Models\ProductVariant;
-use App\Models\StockHistory;
+use App\Exports\ProductImportWorkbookExport;
 use App\Models\ActivityLog;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductSerial;
+use App\Models\ProductStoreStock;
+use App\Models\ProductVariant;
 use App\Models\Setting;
+use App\Models\StockHistory;
+use App\Models\Store;
+use App\Models\TaxRate;
+use App\Models\Unit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -31,9 +37,9 @@ class ProductController extends Controller
             $storeIds = [$request->input('store_id')];
         }
 
-        $query = Product::with(['category', 'brand', 'unit', 'variants', 'serials', 'storeStocks' => function($q) use ($storeIds) {
+        $query = Product::with(['category', 'brand', 'unit', 'variants', 'serials', 'storeStocks' => function ($q) use ($storeIds) {
             $q->with('store');
-            if (!empty($storeIds)) {
+            if (! empty($storeIds)) {
                 $q->whereIn('store_id', $storeIds);
             }
         }])->select('products.*');
@@ -42,11 +48,11 @@ class ProductController extends Controller
             ->selectRaw('COALESCE(SUM(quantity), 0)')
             ->whereColumn('product_id', 'products.id');
 
-        if (!empty($storeIds)) {
+        if (! empty($storeIds)) {
             $stockSubquery->whereIn('store_id', $storeIds);
-            
+
             // Only show products assigned to at least one of the selected stores
-            $query->whereHas('storeStocks', function($q) use ($storeIds) {
+            $query->whereHas('storeStocks', function ($q) use ($storeIds) {
                 $q->whereIn('store_id', $storeIds);
             });
         }
@@ -58,16 +64,16 @@ class ProductController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%")
-                  ->orWhereHas('serials', function ($sq) use ($search) {
-                      $sq->where('serial_number', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('variants', function ($vq) use ($search) {
-                      $vq->where('sku', 'like', "%{$search}%")
-                         ->orWhere('color', 'like', "%{$search}%")
-                         ->orWhere('storage', 'like', "%{$search}%");
-                  });
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('barcode', 'like', "%{$search}%")
+                    ->orWhereHas('serials', function ($sq) use ($search) {
+                        $sq->where('serial_number', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('variants', function ($vq) use ($search) {
+                        $vq->where('sku', 'like', "%{$search}%")
+                            ->orWhere('color', 'like', "%{$search}%")
+                            ->orWhere('storage', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -91,8 +97,8 @@ class ProductController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
-        $stores = \App\Models\Store::all();
-        $taxProfiles = \App\Models\TaxRate::where('is_active', true)->orderBy('name')->get();
+        $stores = Store::all();
+        $taxProfiles = TaxRate::where('is_active', true)->orderBy('name')->get();
 
         return view('products.index', compact('products', 'categories', 'brands', 'units', 'stores', 'taxProfiles'));
     }
@@ -139,12 +145,12 @@ class ProductController extends Controller
 
         try {
             // Generate SKU if missing
-            $sku = ($validated['sku'] ?? null) ?: 'PROD-' . strtoupper(Str::random(8));
-            
+            $sku = ($validated['sku'] ?? null) ?: 'PROD-'.strtoupper(Str::random(8));
+
             // Barcode Auto Generate
             $barcode = $validated['barcode'] ?? null;
             if (empty($barcode)) {
-                $barcode = 'BC-' . time() . rand(100, 999);
+                $barcode = 'BC-'.time().rand(100, 999);
             }
 
             $logoPath = null;
@@ -203,14 +209,16 @@ class ProductController extends Controller
             if ($request->filled('imeis')) {
                 $imeis = array_filter(array_map('trim', explode("\n", $request->imeis)));
                 foreach ($imeis as $imei) {
-                    if (empty($imei)) continue;
+                    if (empty($imei)) {
+                        continue;
+                    }
                     ProductSerial::create([
                         'product_id' => $product->id,
                         'serial_number' => $imei,
                         'status' => 'available',
                     ]);
                 }
-                
+
                 // Re-sync quantity based on serials count if positive
                 $imeiCount = count($imeis);
                 if ($imeiCount > 0) {
@@ -218,12 +226,12 @@ class ProductController extends Controller
                     $stock = ProductStoreStock::where('product_id', $product->id)
                         ->where('store_id', $primaryStoreId)
                         ->first();
-                        
-                    if (!$stock) {
+
+                    if (! $stock) {
                         $stock = ProductStoreStock::create([
                             'product_id' => $product->id,
                             'store_id' => $primaryStoreId,
-                            'quantity' => 0
+                            'quantity' => 0,
                         ]);
                     }
                     $stock->quantity = $imeiCount;
@@ -244,7 +252,9 @@ class ProductController extends Controller
             // Save Variants
             if ($request->has('variants')) {
                 foreach ($request->variants as $v) {
-                    if (empty($v['sku'])) continue;
+                    if (empty($v['sku'])) {
+                        continue;
+                    }
                     $variant = ProductVariant::create([
                         'product_id' => $product->id,
                         'color' => $v['color'] ?? null,
@@ -277,11 +287,13 @@ class ProductController extends Controller
             ActivityLog::log('Create', 'Products Module', "Created product: {$product->name} (SKU: {$product->sku})");
 
             DB::commit();
+
             return redirect()->route('products.index')->with('success', 'Product created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => 'Failed to create product: ' . $e->getMessage()]);
+
+            return redirect()->back()->withErrors(['error' => 'Failed to create product: '.$e->getMessage()]);
         }
     }
 
@@ -332,7 +344,7 @@ class ProductController extends Controller
                 }
 
                 $duplicateVariant = ProductVariant::where('sku', $variantInput['sku'])
-                    ->when(!empty($variantInput['id']), fn ($query) => $query->where('id', '!=', $variantInput['id']))
+                    ->when(! empty($variantInput['id']), fn ($query) => $query->where('id', '!=', $variantInput['id']))
                     ->exists();
 
                 if ($duplicateVariant) {
@@ -388,7 +400,7 @@ class ProductController extends Controller
                     'is_active' => true,
                 ];
 
-                if (!empty($variantInput['id'])) {
+                if (! empty($variantInput['id'])) {
                     $variant = ProductVariant::where('product_id', $product->id)->findOrFail($variantInput['id']);
                     $variant->update($variantData);
                 } else {
@@ -399,7 +411,7 @@ class ProductController extends Controller
             }
 
             ProductVariant::where('product_id', $product->id)
-                ->when(!empty($keptVariantIds), fn ($query) => $query->whereNotIn('id', $keptVariantIds))
+                ->when(! empty($keptVariantIds), fn ($query) => $query->whereNotIn('id', $keptVariantIds))
                 ->delete();
 
             // Handle Store assignments
@@ -419,7 +431,7 @@ class ProductController extends Controller
                         'store_id' => $storeId,
                         'quantity' => $qty,
                     ]);
-                    
+
                     if ($qty > 0) {
                         StockHistory::create([
                             'product_id' => $product->id,
@@ -454,11 +466,13 @@ class ProductController extends Controller
             ActivityLog::log('Update', 'Products Module', "Updated product: {$product->name}");
 
             DB::commit();
+
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => 'Failed to update product: ' . $e->getMessage()]);
+
+            return redirect()->back()->withErrors(['error' => 'Failed to update product: '.$e->getMessage()]);
         }
     }
 
@@ -468,15 +482,17 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $productName = $product->name;
-        
+
         DB::beginTransaction();
         try {
             $product->delete();
             ActivityLog::log('Delete', 'Products Module', "Soft deleted product: {$productName}");
             DB::commit();
+
             return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->route('products.index')->with('error', 'Failed to delete product.');
         }
     }
@@ -500,13 +516,13 @@ class ProductController extends Controller
                     'reference_no' => $item->reference_no ?: '-',
                     'note' => $item->note ?: '-',
                     'creator' => $item->creator->name ?? 'System',
-                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-'
+                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-',
                 ];
             });
 
         return response()->json([
             'success' => true,
-            'history' => $history
+            'history' => $history,
         ]);
     }
 
@@ -516,13 +532,14 @@ class ProductController extends Controller
     public function export()
     {
         $headers = [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="products_export.csv"',
         ];
 
-        $callback = function() {
+        $callback = function () {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Cost Price', 'Retail Price', 'Wholesale Price', 'Stock Alert Qty', 'Status', 'Current Stock']);
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['ID', 'Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Cost Price', 'Retail Price', 'Wholesale Price', 'Stock Alert Qty', 'Status', 'Opening Stock']);
 
             $products = Product::with(['category', 'brand', 'unit', 'stock'])->get();
             foreach ($products as $product) {
@@ -539,7 +556,7 @@ class ProductController extends Controller
                     $product->wholesale_price,
                     $product->stock_alert_quantity,
                     $product->is_active ? 'Active' : 'Inactive',
-                    $product->stock->quantity ?? 0
+                    $product->stock->quantity ?? 0,
                 ]);
             }
             fclose($file);
@@ -549,65 +566,110 @@ class ProductController extends Controller
     }
 
     /**
-     * Import products from CSV.
+     * Download an Excel-ready import workbook with visible reference sheets.
+     */
+    public function importTemplate()
+    {
+        return Excel::download(new ProductImportWorkbookExport, 'product_import_template.xlsx');
+    }
+
+    /**
+     * Import products from CSV or from the Products sheet in the Excel workbook.
      */
     public function import(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048']
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'max:5120'],
         ]);
 
         $file = $request->file('file');
-        $handle = fopen($file->getRealPath(), 'r');
-        
-        // Skip header row
-        fgetcsv($handle);
-        
+        $rows = $this->productImportRows($file);
+        $header = array_shift($rows);
+
+        if (! $header) {
+            throw ValidationException::withMessages(['file' => 'The import file is empty.']);
+        }
+
+        $columns = [];
+        foreach ($header as $index => $heading) {
+            $columns[$this->normalizeImportHeading((string) $heading)] = $index;
+        }
+
+        foreach (['name', 'sku'] as $requiredColumn) {
+            if (! array_key_exists($requiredColumn, $columns)) {
+                throw ValidationException::withMessages(['file' => "The Products sheet is missing the {$requiredColumn} column."]);
+            }
+        }
+
+        $value = static function (array $row, array $columns, string ...$names) {
+            foreach ($names as $name) {
+                if (array_key_exists($name, $columns)) {
+                    return $row[$columns[$name]] ?? null;
+                }
+            }
+
+            return null;
+        };
+
         $importedCount = 0;
-        DB::beginTransaction();
+        $skippedCount = 0;
+
         try {
-            while (($row = fgetcsv($handle)) !== false) {
-                if (count($row) < 12) continue;
-                
-                $name = $row[1] ?? '';
-                $sku = $row[2] ?? '';
-                $barcode = $row[3] ?? null;
-                $categoryName = $row[4] ?? '';
-                $brandName = $row[5] ?? '';
-                $unitName = $row[6] ?? '';
-                $costPrice = floatval($row[7] ?? 0);
-                $retailPrice = floatval($row[8] ?? 0);
-                $wholesalePrice = floatval($row[9] ?? 0);
-                $alertQty = intval($row[10] ?? 5);
-                $isActive = ($row[11] ?? 'Active') === 'Active';
-                $openingStock = floatval($row[12] ?? 0);
+            DB::transaction(function () use ($rows, $columns, $value, &$importedCount, &$skippedCount) {
+                foreach ($rows as $rowOffset => $row) {
+                    if (! collect($row)->contains(fn ($cell) => filled($cell))) {
+                        continue;
+                    }
 
-                if (empty($name) || empty($sku)) continue;
+                    $name = trim((string) $value($row, $columns, 'name'));
+                    $sku = trim((string) $value($row, $columns, 'sku'));
 
-                $category = null;
-                if (!empty($categoryName)) {
-                    $category = Category::firstOrCreate(['name' => $categoryName], [
-                        'slug' => Str::slug($categoryName)
-                    ]);
-                }
-                $brand = null;
-                if (!empty($brandName)) {
-                    $brand = Brand::firstOrCreate(['name' => $brandName], [
-                        'slug' => Str::slug($brandName)
-                    ]);
-                }
-                $unit = null;
-                if (!empty($unitName)) {
-                    $unit = Unit::firstOrCreate(['name' => $unitName], [
-                        'short_name' => Str::lower(substr($unitName, 0, 3))
-                    ]);
-                }
+                    if ($name === '' && $sku === '') {
+                        $skippedCount++;
 
-                $product = Product::updateOrCreate(
-                    ['sku' => $sku],
-                    [
+                        continue;
+                    }
+
+                    if ($name === '' || $sku === '') {
+                        $excelRow = $rowOffset + 2;
+                        throw ValidationException::withMessages(['file' => "Row {$excelRow} must contain both Name and SKU."]);
+                    }
+
+                    $barcode = trim((string) $value($row, $columns, 'barcode'));
+                    $categoryName = trim((string) $value($row, $columns, 'category'));
+                    $brandName = trim((string) $value($row, $columns, 'brand'));
+                    $unitName = trim((string) $value($row, $columns, 'unit'));
+                    $costPrice = (float) $value($row, $columns, 'cost_price');
+                    $retailPrice = (float) $value($row, $columns, 'retail_price');
+                    $wholesalePrice = (float) $value($row, $columns, 'wholesale_price');
+                    $alertValue = $value($row, $columns, 'stock_alert_qty', 'stock_alert_quantity');
+                    $alertQty = filled($alertValue) ? (int) $alertValue : 5;
+                    $status = strtolower(trim((string) ($value($row, $columns, 'status') ?? 'Active')));
+                    $isActive = $status === '' || in_array($status, ['active', '1', 'yes', 'true'], true);
+                    $openingStock = (float) ($value($row, $columns, 'opening_stock', 'current_stock') ?? 0);
+
+                    $category = $categoryName !== ''
+                        ? Category::firstOrCreate(['name' => $categoryName], ['slug' => $this->uniqueCategorySlug($categoryName)])
+                        : null;
+                    $brand = null;
+                    if ($brandName !== '') {
+                        $brand = Brand::withTrashed()->where('name', $brandName)->first();
+                        if ($brand?->trashed()) {
+                            $brand->restore();
+                        }
+                        $brand ??= Brand::create(['name' => $brandName, 'slug' => $this->uniqueBrandSlug($brandName)]);
+                    }
+                    $unit = $unitName !== ''
+                        ? Unit::firstOrCreate(['name' => $unitName], ['short_name' => Str::lower(substr($unitName, 0, 10))])
+                        : null;
+
+                    $product = Product::withTrashed()->where('sku', $sku)->first();
+                    if ($product?->trashed()) {
+                        $product->restore();
+                    }
+                    $productData = [
                         'name' => $name,
-                        'barcode' => $barcode ?: 'BC-' . time() . rand(100, 999),
+                        'barcode' => $barcode !== '' ? $barcode : ($product?->barcode ?: 'BC-'.Str::upper(Str::random(12))),
                         'category_id' => $category?->id,
                         'brand_id' => $brand?->id,
                         'unit_id' => $unit?->id,
@@ -616,39 +678,113 @@ class ProductController extends Controller
                         'wholesale_price' => $wholesalePrice,
                         'stock_alert_quantity' => $alertQty,
                         'is_active' => $isActive,
-                        'created_by' => auth()->id()
-                    ]
-                );
+                    ];
 
-                // Update Stock
-                $stock = ProductStoreStock::updateOrCreate(
-                    ['product_id' => $product->id, 'store_id' => Setting::get('default_store_id', 1)],
-                    ['quantity' => $openingStock]
-                );
+                    if ($product) {
+                        $product->fill($productData + ['updated_by' => auth()->id()])->save();
+                    } else {
+                        $product = Product::create($productData + ['sku' => $sku, 'created_by' => auth()->id()]);
+                    }
 
-                if ($openingStock > 0) {
-                    StockHistory::create([
-                        'product_id' => $product->id,
-                        'quantity_change' => $openingStock,
-                        'new_quantity' => $openingStock,
-                        'type' => 'opening_stock',
-                        'note' => 'Imported via CSV',
-                        'created_by' => auth()->id(),
-                        'store_id' => Setting::get('default_store_id', 1),
-                    ]);
+                    $storeId = (int) Setting::get('default_store_id', 1);
+                    $stock = ProductStoreStock::firstOrNew(['product_id' => $product->id, 'store_id' => $storeId]);
+                    $previousStock = (float) ($stock->quantity ?? 0);
+                    $stock->quantity = $openingStock;
+                    $stock->save();
+                    $stockChange = $openingStock - $previousStock;
+
+                    if (abs($stockChange) > 0.0001) {
+                        StockHistory::create([
+                            'product_id' => $product->id,
+                            'quantity_change' => $stockChange,
+                            'new_quantity' => $openingStock,
+                            'type' => $previousStock == 0.0 ? 'opening_stock' : 'import_adjustment',
+                            'note' => 'Imported from product workbook',
+                            'created_by' => auth()->id(),
+                            'store_id' => $storeId,
+                        ]);
+                    }
+
+                    $importedCount++;
                 }
 
-                $importedCount++;
-            }
-            fclose($handle);
-            ActivityLog::log('Create', 'Products Module', "Imported {$importedCount} products via CSV.");
-            DB::commit();
+                ActivityLog::log('Create', 'Products Module', "Imported {$importedCount} products from spreadsheet.");
+            });
 
-            return redirect()->route('products.index')->with('success', "Imported {$importedCount} products successfully.");
+            $message = "Imported {$importedCount} products successfully.";
+            if ($skippedCount > 0) {
+                $message .= " Skipped {$skippedCount} reference or empty rows.";
+            }
+
+            return redirect()->route('products.index')->with('success', $message);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            fclose($handle);
-            DB::rollBack();
-            return redirect()->route('products.index')->with('error', 'CSV Import failed: ' . $e->getMessage());
+            report($e);
+
+            return redirect()->route('products.index')->with('error', 'Product import failed: '.$e->getMessage());
         }
+    }
+
+    private function productImportRows(UploadedFile $file): array
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (in_array($extension, ['xlsx', 'xls'], true)) {
+            $sheets = Excel::toArray(new \stdClass, $file);
+            foreach ($sheets as $sheet) {
+                $headings = array_map(fn ($heading) => $this->normalizeImportHeading((string) $heading), $sheet[0] ?? []);
+                if (in_array('name', $headings, true) && in_array('sku', $headings, true)) {
+                    return $sheet;
+                }
+            }
+
+            throw ValidationException::withMessages(['file' => 'The workbook does not contain a Products sheet with Name and SKU columns.']);
+        }
+
+        $handle = fopen($file->getRealPath(), 'r');
+        if (! $handle) {
+            throw ValidationException::withMessages(['file' => 'The CSV file could not be opened.']);
+        }
+
+        $rows = [];
+        try {
+            while (($row = fgetcsv($handle)) !== false) {
+                $rows[] = $row;
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        return $rows;
+    }
+
+    private function normalizeImportHeading(string $heading): string
+    {
+        $heading = preg_replace('/^\xEF\xBB\xBF/', '', trim($heading));
+
+        return (string) Str::of($heading)->lower()->replaceMatches('/[^a-z0-9]+/', '_')->trim('_');
+    }
+
+    private function uniqueCategorySlug(string $name): string
+    {
+        return $this->uniqueSlug(Category::query(), $name);
+    }
+
+    private function uniqueBrandSlug(string $name): string
+    {
+        return $this->uniqueSlug(Brand::withTrashed(), $name);
+    }
+
+    private function uniqueSlug($query, string $name): string
+    {
+        $base = Str::slug($name) ?: Str::lower(Str::random(8));
+        $slug = $base;
+        $suffix = 2;
+
+        while ((clone $query)->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.$suffix++;
+        }
+
+        return $slug;
     }
 }

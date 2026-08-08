@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\SystemSettings;
-use App\Services\LorryStockService;
+use App\Models\Account;
+use App\Models\ActivityLog;
+use App\Models\CustomerTransaction;
+use App\Models\Sale;
+use App\Models\Setting;
+use App\Services\JournalService;
 use App\Services\LorryAccessService;
+use App\Services\MixedPaymentService;
+use App\Services\SaleInventoryService;
+use App\Services\TaxCalculationService;
+use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class WholesalePosController extends Controller
 {
@@ -20,8 +29,8 @@ class WholesalePosController extends Controller
         // Fetch Categories
         $categories = DB::table('categories')->get();
 
-        $storeId = \App\Models\Setting::get('default_store_id', 1);
-        if (request()->has('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+        $storeId = Setting::get('default_store_id', 1);
+        if (request()->has('store_id') && Setting::get('enable_multi_store', false)) {
             $storeId = request('store_id');
         }
 
@@ -30,7 +39,7 @@ class WholesalePosController extends Controller
         $activeLorryId = request('lorry_id');
         $activeTripId = request('trip_id');
         $lorryAssignment = null;
-        if ($access->isLorryUser(auth()->user()) && !$access->isUnrestricted(auth()->user())) {
+        if ($access->isLorryUser(auth()->user()) && ! $access->isUnrestricted(auth()->user())) {
             $lorryAssignment = $access->currentAssignment(auth()->user(), request()->integer('lorry_id') ?: null);
             abort_unless($lorryAssignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
             $sourceType = 'lorry';
@@ -50,9 +59,9 @@ class WholesalePosController extends Controller
                     ->whereNull('lorry_stocks.variant_id');
             });
         } else {
-            $productsQuery->join('product_store_stock', function($join) use ($storeId) {
+            $productsQuery->join('product_store_stock', function ($join) use ($storeId) {
                 $join->on('product_store_stock.product_id', '=', 'products.id')
-                     ->where('product_store_stock.store_id', '=', $storeId);
+                    ->where('product_store_stock.store_id', '=', $storeId);
             });
         }
 
@@ -128,7 +137,7 @@ class WholesalePosController extends Controller
             ->orderBy('hold_sales.id', 'desc')
             ->get();
         $resumeHold = request()->filled('hold_id') ? $this->resumeHoldPayload((int) request('hold_id'), 'wholesale') : null;
-            
+
         // Fetch Payment Methods
         $paymentMethods = $this->enabledPaymentMethods();
 
@@ -136,7 +145,7 @@ class WholesalePosController extends Controller
         // Fetch Stores
         $enableMultiStore = true; // Force true to always allow store selection if there are multiple
         $stores = DB::table('stores')->where('status', true)->get();
-        $lorries = $distributionEnabled ? DB::table('lorries')->whereNull('deleted_at')->where('status', 'active')->when($lorryAssignment, fn($q) => $q->whereIn('id', $access->allowedIds(auth()->user())))->orderBy('lorry_no')->get() : collect();
+        $lorries = $distributionEnabled ? DB::table('lorries')->whereNull('deleted_at')->where('status', 'active')->when($lorryAssignment, fn ($q) => $q->whereIn('id', $access->allowedIds(auth()->user())))->orderBy('lorry_no')->get() : collect();
         $distributionTrips = $activeLorryId ? DB::table('distribution_trips')->where('lorry_id', $activeLorryId)->whereIn('status', ['planned', 'active'])->orderByDesc('id')->get() : collect();
         $activeStoreId = $storeId;
         $posSettings = SystemSettings::posPayload();
@@ -147,18 +156,25 @@ class WholesalePosController extends Controller
     /**
      * Store a completed sale from the POS.
      */
-    public function store(Request $request, LorryAccessService $access, \App\Services\MixedPaymentService $mixedPayments, \App\Services\JournalService $journalService)
+    public function store(Request $request, LorryAccessService $access, MixedPaymentService $mixedPayments, JournalService $journalService)
     {
-        if ($access->isLorryUser($request->user()) && !$access->isUnrestricted($request->user())) {
+        if ($access->isLorryUser($request->user()) && ! $access->isUnrestricted($request->user())) {
             $assignment = $access->currentAssignment($request->user(), $request->integer('lorry_id') ?: null);
             abort_unless($assignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
             $request->merge(['source_type' => 'lorry', 'lorry_id' => $assignment->lorry_id]);
-            if ($request->filled('trip_id')) abort_unless(DB::table('distribution_trips')->where('id', $request->trip_id)->where('lorry_id', $assignment->lorry_id)->exists(), 403);
+            if ($request->filled('trip_id')) {
+                abort_unless(DB::table('distribution_trips')->where('id', $request->trip_id)->where('lorry_id', $assignment->lorry_id)->exists(), 403);
+            }
         }
         $request->validate([
             'customer_id' => 'required',
             'pos_type' => 'required|in:retail,wholesale',
             'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.variant_id' => 'nullable|integer|exists:product_variants,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.selling_price' => 'required|numeric|min:0',
+            'items.*.serial_no' => 'nullable|string|max:255',
             'total_amount' => 'required|numeric',
             'payable_amount' => 'required|numeric',
             'paid_amount' => 'nullable|numeric',
@@ -180,15 +196,15 @@ class WholesalePosController extends Controller
 
         try {
             $today = date('Y-m-d');
-            $invoiceNo = SystemSettings::get('wholesale_invoice_prefix', 'WSL', 'invoice_settings') . '-' . strtoupper(uniqid());
+            $invoiceNo = SystemSettings::get('wholesale_invoice_prefix', 'WSL', 'invoice_settings').'-'.strtoupper(uniqid());
 
             // --- TAX CALCULATION BEGIN ---
-            $taxService = app(\App\Services\TaxCalculationService::class);
-            $globalTaxMode = \App\Support\SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
+            $taxService = app(TaxCalculationService::class);
+            $globalTaxMode = SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
             $invoiceDiscountType = $request->discount_type ?? 'fixed';
             $invoiceDiscountAmount = (float) ($request->discount_amount ?? 0);
-            
-            $preDiscountGrossTotal = collect($request->items)->sum(function($item) {
+
+            $preDiscountGrossTotal = collect($request->items)->sum(function ($item) {
                 return ((float) $item['quantity']) * ((float) $item['selling_price']);
             });
 
@@ -199,22 +215,22 @@ class WholesalePosController extends Controller
             $calculatedTaxTotal = 0;
             $calculatedGrandTotal = 0;
             $totalCostAmount = 0;
-            
+
             $processedItems = [];
             $taxTransactionsData = [];
 
             foreach ($request->items as $idx => $item) {
                 $product = DB::table('products')->where('id', $item['product_id'])->first();
-                $variant = !empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
+                $variant = ! empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
                 $itemCost = $variant ? $variant->cost_price : ($product ? $product->cost_price : 0);
-                
+
                 $qty = (float) $item['quantity'];
                 $price = (float) $item['selling_price'];
                 $totalCostAmount += $itemCost * $qty;
-                
+
                 $itemGross = $qty * $price;
                 $itemShare = $preDiscountGrossTotal > 0 ? ($itemGross / $preDiscountGrossTotal) : 0;
-                
+
                 $proRatedInvoiceDiscount = 0;
                 if ($invoiceDiscountType === 'percentage' && $invoiceDiscountAmount > 0) {
                     $proRatedInvoiceDiscount = $itemGross * ($invoiceDiscountAmount / 100);
@@ -224,7 +240,7 @@ class WholesalePosController extends Controller
 
                 $itemTaxOverride = $item['tax_mode'] ?? null;
                 $productTaxMode = $product->tax_mode ?? 'use_global';
-                
+
                 $resolvedTaxMode = $taxService->resolveTaxMode(
                     $itemTaxOverride,
                     $productTaxMode === 'use_global' ? null : $productTaxMode,
@@ -244,12 +260,12 @@ class WholesalePosController extends Controller
                     'tax_mode' => $resolvedTaxMode,
                     'tax_status' => $taxStatus,
                 ]);
-                
+
                 $item['calc'] = $calc;
                 $item['cost_price'] = $itemCost;
                 $item['profit_amount'] = $calc['taxable_amount'] - ($itemCost * $qty);
                 $processedItems[$idx] = $item;
-                
+
                 $calculatedTotalAmount += $calc['gross_amount'];
                 $calculatedTaxableTotal += $calc['taxable_amount'];
                 $calculatedIncludedTaxTotal += $calc['included_tax_amount'];
@@ -259,26 +275,27 @@ class WholesalePosController extends Controller
 
                 $itemTaxId = $item['tax_id'] ?? null;
                 if ($calc['tax_amount'] > 0 && $itemTaxId) {
-                    if (!isset($taxTransactionsData[$itemTaxId])) {
+                    if (! isset($taxTransactionsData[$itemTaxId])) {
                         $taxTransactionsData[$itemTaxId] = ['taxable_amount' => 0, 'tax_amount' => 0];
                     }
                     $taxTransactionsData[$itemTaxId]['taxable_amount'] += $calc['taxable_amount'];
                     $taxTransactionsData[$itemTaxId]['tax_amount'] += $calc['tax_amount'];
                 }
             }
-            
+
             $calculatedPayableTotal = $calculatedGrandTotal;
             $totalProfitAmount = $calculatedTaxableTotal - $totalCostAmount;
-            
+
             // Backend Total Validation: Ensure client-submitted totals match server calculations
-            if (abs((float)$request->payable_amount - $calculatedPayableTotal) > 0.05) {
+            if (abs((float) $request->payable_amount - $calculatedPayableTotal) > 0.05) {
                 DB::rollBack();
+
                 return response()->json([
-                    'success' => false, 
-                    'message' => 'Total calculation mismatch. The submitted totals do not match the server-calculated totals. Please refresh the page and try again.'
+                    'success' => false,
+                    'message' => 'Total calculation mismatch. The submitted totals do not match the server-calculated totals. Please refresh the page and try again.',
                 ], 422);
             }
-            
+
             $paymentRows = $mixedPayments->rowsFromRequest($request->all(), (float) $calculatedPayableTotal);
 
             $sourceType = $request->input('source_type') === 'lorry' ? 'lorry' : 'store';
@@ -304,14 +321,14 @@ class WholesalePosController extends Controller
                 'payment_status' => 'Due',
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
-                'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+                'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
                 'source_type' => $sourceType,
                 'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,
                 'trip_id' => $sourceType === 'lorry' ? $request->trip_id : null,
                 'status' => 'final',
                 'created_by' => auth()->id(),
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // 2. Insert Items & Update Stock
@@ -319,12 +336,31 @@ class WholesalePosController extends Controller
 
             foreach ($processedItems as $item) {
                 $calc = $item['calc'];
-                $variant = !empty($item['variant_id']) ? DB::table('product_variants')->where('id', $item['variant_id'])->first() : null;
+                $serialId = null;
+                if (! empty($item['serial_no'])) {
+                    $serialId = DB::table('product_serials')
+                        ->where('product_id', $item['product_id'])
+                        ->where('serial_number', $item['serial_no'])
+                        ->where('status', 'available')
+                        ->whereNotIn('id', DB::table('sale_items')
+                            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+                            ->whereNull('sales.stock_deducted_at')
+                            ->where('sales.status', '!=', 'cancelled')
+                            ->whereNotNull('sale_items.product_serial_id')
+                            ->select('sale_items.product_serial_id'))
+                        ->lockForUpdate()
+                        ->value('id');
+
+                    if (! $serialId) {
+                        throw new \RuntimeException("Serial/IMEI {$item['serial_no']} is unavailable or already assigned to a pending invoice.");
+                    }
+                }
 
                 DB::table('sale_items')->insert([
                     'sale_id' => $saleId,
                     'product_id' => $item['product_id'],
                     'variant_id' => $item['variant_id'] ?? null,
+                    'product_serial_id' => $serialId,
                     'quantity' => $calc['quantity'],
                     'cost_price' => $item['cost_price'],
                     'selling_price' => $calc['unit_price'],
@@ -338,58 +374,14 @@ class WholesalePosController extends Controller
                     'taxable_amount' => $calc['taxable_amount'],
                     'included_tax_amount' => $calc['included_tax_amount'],
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
-                if ($sourceType === 'lorry') {
-                    app(LorryStockService::class)->issueFromLorry((int) $request->lorry_id, (int) $item['product_id'], $item['variant_id'] ?? null, (float) $item['quantity'], $request->trip_id, $invoiceNo);
-                } elseif ($variant) {
-                    DB::table('product_variants')
-                        ->where('id', $variant->id)
-                        ->decrement('stock_quantity', $item['quantity']);
-                } else {
-                    $storeId = $request->store_id ?? \App\Models\Setting::get('default_store_id', 1);
-                    $storeStock = DB::table('product_store_stock')
-                        ->where('product_id', $item['product_id'])
-                        ->where('store_id', $storeId)
-                        ->first();
-                    
-                    if ($storeStock) {
-                        DB::table('product_store_stock')
-                            ->where('id', $storeStock->id)
-                            ->decrement('quantity', $item['quantity']);
-                    } else {
-                        DB::table('product_store_stock')->insert([
-                            'product_id' => $item['product_id'],
-                            'store_id' => $storeId,
-                            'quantity' => -$item['quantity'],
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
-                    }
-                }
-
-                if ($sourceType !== 'lorry') {
-                    // Insert Stock Movement
-                    DB::table('stock_histories')->insert([
-                        'product_id' => $item['product_id'],
-                        'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
-                        'quantity_change' => -$item['quantity'],
-                        'new_quantity' => $variant ?
-                            DB::table('product_variants')->where('id', $variant->id)->value('stock_quantity') :
-                            DB::table('product_store_stock')->where('product_id', $item['product_id'])->where('store_id', $request->store_id ?? \App\Models\Setting::get('default_store_id', 1))->value('quantity'),
-                        'type' => 'sale',
-                        'reference_no' => $invoiceNo,
-                        'note' => 'Wholesale Sale',
-                        'created_by' => auth()->id(),
-                        'created_at' => now(),
-                    ]);
-                }
             }
 
             // 3. Insert Tax Transactions
-            if (!empty($taxTransactionsData)) {
-                $storeId = $request->store_id ?? \App\Models\Setting::get('default_store_id', 1);
+            if (! empty($taxTransactionsData)) {
+                $storeId = $request->store_id ?? Setting::get('default_store_id', 1);
                 foreach ($taxTransactionsData as $taxId => $taxAmtData) {
                     $rateObj = $taxRatesData->get($taxId);
                     if ($rateObj) {
@@ -420,9 +412,9 @@ class WholesalePosController extends Controller
             DB::table('customers')->where('id', $request->customer_id)->increment('balance', $request->payable_amount);
             $cBalance = DB::table('customers')->where('id', $request->customer_id)->value('balance');
             if ($request->payable_amount > 0) {
-                \App\Models\CustomerTransaction::create([
+                CustomerTransaction::create([
                     'customer_id' => $request->customer_id,
-                    'transactionable_type' => \App\Models\Sale::class,
+                    'transactionable_type' => Sale::class,
                     'transactionable_id' => $saleId,
                     'transaction_date' => $today,
                     'type' => 'sale',
@@ -434,22 +426,24 @@ class WholesalePosController extends Controller
                     'created_by' => auth()->id(),
                 ]);
             }
-            $allocation = $mixedPayments->allocateSale(\App\Models\Sale::findOrFail($saleId), $paymentRows, [
-                'store_id' => $request->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+            $allocation = $mixedPayments->allocateSale(Sale::findOrFail($saleId), $paymentRows, [
+                'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
                 'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,
                 'trip_id' => $sourceType === 'lorry' ? $request->trip_id : null,
             ]);
+            $sale = Sale::findOrFail($saleId);
+            app(SaleInventoryService::class)->finalizeIfPaid($sale);
 
             if ($request->filled('hold_id')) {
                 DB::table('hold_sale_items')->where('hold_sale_id', $request->hold_id)->delete();
                 DB::table('hold_sales')->where('id', $request->hold_id)->where('pos_type', 'wholesale')->delete();
             }
 
-            \App\Models\ActivityLog::log('Sale', 'Wholesale POS', "Processed wholesale sale {$invoiceNo}");
+            ActivityLog::log('Sale', 'Wholesale POS', "Processed wholesale sale {$invoiceNo}");
 
             // Create Journal Entry for the Sale
-            $customerAccount = \App\Models\Account::where('account_code','1105')->value('id');
-            $salesIncomeAccount = \App\Models\Account::where('account_code','4002')->value('id');
+            $customerAccount = Account::where('account_code', '1105')->value('id');
+            $salesIncomeAccount = Account::where('account_code', '4002')->value('id');
             if ($customerAccount && $salesIncomeAccount && $request->payable_amount > 0) {
                 $journalService->createEntry($today, 'Sale', $saleId, $invoiceNo, 'Wholesale Sale Invoice', [
                     ['account_id' => $customerAccount, 'debit' => $request->payable_amount, 'credit' => 0],
@@ -465,16 +459,25 @@ class WholesalePosController extends Controller
                 'sale_id' => $saleId,
                 'change' => max(0, collect($paymentRows)->where('method', 'Cash')->sum('amount') - $request->payable_amount),
                 'cheque_hold_amount' => $allocation['hold'],
+                'inventory_status' => $sale->fresh()->inventoryStatus(),
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
             throw $e;
-        } catch (\Exception $e) {
+        } catch (\RuntimeException $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Checkout failed: ' . $e->getMessage()
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Checkout failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -487,7 +490,7 @@ class WholesalePosController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string',
-            'email' => 'nullable|email'
+            'email' => 'nullable|email',
         ]);
 
         $customerId = DB::table('customers')->insertGetId([
@@ -497,14 +500,14 @@ class WholesalePosController extends Controller
             'balance' => 0.00,
             'created_by' => auth()->id(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $customer = DB::table('customers')->where('id', $customerId)->first();
 
         return response()->json([
             'success' => true,
-            'customer' => $customer
+            'customer' => $customer,
         ]);
     }
 
@@ -517,16 +520,16 @@ class WholesalePosController extends Controller
             ->where('hold_sales.pos_type', $posType)
             ->first();
 
-        if (!$hold) {
+        if (! $hold) {
             return null;
         }
 
         $items = DB::table('hold_sale_items')
             ->join('products', 'products.id', '=', 'hold_sale_items.product_id')
             ->leftJoin('product_variants', 'product_variants.id', '=', 'hold_sale_items.variant_id')
-            ->leftJoin('product_store_stock', function($join) {
+            ->leftJoin('product_store_stock', function ($join) {
                 $join->on('product_store_stock.product_id', '=', 'products.id')
-                     ->where('product_store_stock.store_id', '=', \App\Models\Setting::get('default_store_id', 1));
+                    ->where('product_store_stock.store_id', '=', Setting::get('default_store_id', 1));
             })
             ->where('hold_sale_items.hold_sale_id', $hold->id)
             ->select(

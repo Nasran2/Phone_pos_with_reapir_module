@@ -1,17 +1,16 @@
 <?php
 
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Category;
+use App\Exports\ProductImportWorkbookExport;
 use App\Models\Brand;
-use App\Models\Unit;
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\ProductStoreStock;
-use App\Models\ProductVariant;
-use App\Models\StockHistory;
-use App\Models\ActivityLog;
+use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
 
 test('guest users are redirected to login for products module pages', function () {
     $this->get(route('products.index'))->assertRedirect(route('login'));
@@ -22,7 +21,7 @@ test('guest users are redirected to login for products module pages', function (
 
 test('unauthorized users without permissions are blocked from products pages', function () {
     $user = User::factory()->create();
-    
+
     $this->actingAs($user)->get(route('products.index'))->assertStatus(403);
     $this->actingAs($user)->get(route('categories.index'))->assertStatus(403);
     $this->actingAs($user)->get(route('brands.index'))->assertStatus(403);
@@ -31,7 +30,7 @@ test('unauthorized users without permissions are blocked from products pages', f
 
 test('super admin can access all products module index pages', function () {
     $user = createUserWithRole('Super Admin');
-    
+
     $this->actingAs($user)->get(route('products.index'))->assertOk();
     $this->actingAs($user)->get(route('categories.index'))->assertOk();
     $this->actingAs($user)->get(route('brands.index'))->assertOk();
@@ -75,8 +74,8 @@ test('can create a product with IMEIs and variants', function () {
                 'retail_price' => 180000.00,
                 'wholesale_price' => 170000.00,
                 'stock_quantity' => 1,
-            ]
-        ]
+            ],
+        ],
     ]);
 
     $response->assertSessionHasNoErrors();
@@ -131,7 +130,7 @@ test('can create a product with IMEIs and variants', function () {
 
 test('can update a product details', function () {
     $admin = createUserWithRole('Super Admin');
-    
+
     $product = Product::create([
         'name' => 'Original Name',
         'sku' => 'SKU-ORIGINAL',
@@ -171,7 +170,7 @@ test('can update a product details', function () {
 
 test('can delete a product (soft delete)', function () {
     $admin = createUserWithRole('Super Admin');
-    
+
     $product = Product::create([
         'name' => 'Product to Delete',
         'sku' => 'SKU-DEL',
@@ -301,7 +300,7 @@ test('can manage units (CRUD)', function () {
 
 test('can export products to CSV and import from CSV', function () {
     $admin = createUserWithRole('Super Admin');
-    
+
     // Create product to export
     $product = Product::create([
         'name' => 'Export Product',
@@ -353,4 +352,36 @@ test('can export products to CSV and import from CSV', function () {
         'store_id' => 1,
         'quantity' => 15,
     ]);
+});
+
+test('excel import template exposes products and category reference sheets', function () {
+    $admin = createUserWithRole('Super Admin');
+    $category = Category::create(['name' => 'Visible Phones', 'slug' => 'visible-phones']);
+    Product::create([
+        'category_id' => $category->id,
+        'name' => 'Visible Product',
+        'sku' => 'VISIBLE-001',
+        'barcode' => 'VISIBLE-BC-001',
+        'cost_price' => 100,
+        'retail_price' => 150,
+        'wholesale_price' => 125,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('products.import-template'))
+        ->assertOk()
+        ->assertDownload('product_import_template.xlsx');
+
+    $sheets = (new ProductImportWorkbookExport)->sheets();
+    expect(collect($sheets)->map->title()->all())->toBe(['Instructions', 'Products', 'Categories', 'Brands', 'Units']);
+    expect($sheets[1]->collection()->pluck(1)->all())->toContain('Visible Product');
+    expect($sheets[2]->collection()->pluck(1)->all())->toContain('Visible Phones');
+
+    $workbook = ExcelFacade::raw(new ProductImportWorkbookExport, ExcelFormat::XLSX);
+    $upload = UploadedFile::fake()->createWithContent('product_import_template.xlsx', $workbook);
+    $this->actingAs($admin)->post(route('products.import'), ['file' => $upload])
+        ->assertRedirect(route('products.index'))
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('products', ['sku' => 'VISIBLE-001', 'category_id' => $category->id]);
 });
