@@ -80,9 +80,9 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-right">{{ (float) $item->quantity }}</td>
-                                <td class="px-5 py-4 text-right">Rs. {{ number_format((float) ($item->unit_price ?: $item->selling_price), 2) }}</td>
+                                <td class="px-5 py-4 text-right">Rs. {{ number_format((float) ((float) $item->unit_price > 0 ? $item->unit_price : $item->selling_price), 2) }}</td>
                                 <td class="px-5 py-4 text-right">Rs. {{ number_format((float) $item->discount_amount, 2) }}</td>
-                                <td class="px-5 py-4 text-right font-bold">Rs. {{ number_format((float) ($item->line_total ?: $item->subtotal), 2) }}</td>
+                                <td class="px-5 py-4 text-right font-bold">Rs. {{ number_format((float) ((float) $item->line_total > 0 ? $item->line_total : $item->subtotal), 2) }}</td>
                             </tr>
                             @empty
                             <tr>
@@ -158,6 +158,12 @@
                     </select>
                     <input name="amount" type="number" step="any" max="{{ $sale->due_amount }}" value="{{ $sale->due_amount }}" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
                     <input name="reference_no" placeholder="Reference no" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">
+                    @if(!$sale->stock_deducted_at)
+                    <label class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[10px] font-semibold text-amber-900">
+                        <input type="checkbox" name="deduct_stock_now" value="1" class="mt-0.5 rounded border-amber-400 text-amber-600 focus:ring-amber-500">
+                        <span><strong class="block text-xs">Deduct stock with this payment</strong>Use this only when releasing goods before the invoice is fully paid. The remaining balance will stay due.</span>
+                    </label>
+                    @endif
                     <button class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold">Save Payment</button>
                 </form>
                 @endif

@@ -5,7 +5,7 @@
     @include('partials.head', ['title' => $isLorryMode ? __('Lorry POS') : __('Wholesale POS')])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="h-screen max-h-screen overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
+<body class="pos-shell h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
 
     <!-- SCREEN 7: Hamburger Menu Drawer (Overlay) -->
     <div x-show="showMenuDrawer" 
@@ -15,7 +15,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="translate-x-0"
          x-transition:leave-end="-translate-x-full"
-         class="fixed inset-y-0 left-0 w-80 bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl" 
+         class="fixed inset-y-0 left-0 w-[min(88vw,20rem)] bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl"
          x-cloak>
         
         <div>
@@ -92,13 +92,13 @@
          x-cloak></div>
 
     <!-- SCREEN 1: Desktop Full Screen POS -->
-    <div class="flex-1 flex flex-col w-full h-screen overflow-hidden">
+    <div class="flex-1 flex flex-col w-full h-[100dvh] overflow-hidden">
         
         <!-- Top Header Bar -->
-        <header class="bg-[#0c1630] border-b border-[#182647] text-white h-16 px-4 flex items-center justify-between shrink-0 z-30">
+        <header class="bg-[#0c1630] border-b border-[#182647] text-white min-h-16 h-auto px-3 sm:px-4 py-2 sm:py-0 flex flex-wrap items-center justify-between gap-2 shrink-0 z-30">
             <!-- Left Header brand details -->
-            <div class="flex items-center gap-4">
-                <button @click="showMenuDrawer = true" class="text-slate-350 hover:text-white cursor-pointer" title="Toggle Navigation">
+            <div class="flex min-w-0 items-center gap-2 sm:gap-4">
+                <button @click="showMenuDrawer = true" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-350 hover:text-white cursor-pointer" title="Toggle Navigation" aria-label="Open navigation">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
                     </svg>
@@ -110,12 +110,12 @@
                             <path d="M12 15v4" />
                         </svg>
                     </div>
-                    <div class="hidden sm:block">
+                    <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <h1 class="text-sm font-black tracking-wide leading-none">{{ $isLorryMode ? 'Lorry POS' : 'Wholesale POS' }}</h1>
-                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">{{ $isLorryMode ? 'Assigned Lorry' : 'Wholesale Mode' }}</span>
+                            <span class="hidden sm:inline-flex px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">{{ $isLorryMode ? 'Assigned Lorry' : 'Wholesale Mode' }}</span>
                         </div>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
+                        <p class="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
                     </div>
                 </div>
             </div>
@@ -143,7 +143,7 @@
             </div>
 
             <!-- Right header action items -->
-            <div class="flex items-center gap-3">
+            <div class="flex w-full sm:w-auto min-w-0 items-center justify-end gap-1.5 sm:gap-3 overflow-x-auto scrollbar-hide">
                 <!-- Notifications button -->
                 <div class="relative">
                     <button class="p-1.5 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800 cursor-pointer">
@@ -154,7 +154,7 @@
                     <span class="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-[#0c1630]"></span>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex min-w-0 items-center gap-1.5 sm:gap-3">
                     @if($enableMultiStore)
                     <div class="flex items-center gap-2 mr-2">
                         <select onchange="window.location.href='{{ route('pos.wholesale') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-purple-500">
@@ -188,11 +188,11 @@
                         @endif
                     </div>
                     @endif
-                    <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <button @click="showHoldSalesModal = true" class="min-h-11 shrink-0 px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                         </svg>
-                        <span>Hold Invoices (F6)</span>
+                        <span>Hold Invoices <span class="hidden sm:inline">(F6)</span></span>
                     </button>
                     <div class="text-right hidden md:block">
                         <p class="text-xs font-bold leading-none">{{ auth()->user()->name }}</p>
@@ -210,8 +210,8 @@
         </header>
 
         <!-- Dynamic Category Header Selector (Horizontal scroll bar) -->
-        <div class="bg-white border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between shrink-0 gap-3">
-            <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
+        <div class="bg-white border-b border-slate-200/80 px-3 sm:px-4 py-2 flex items-center justify-between shrink-0 gap-2 sm:gap-3">
+            <div class="flex min-w-0 items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
                 <!-- All Products Category -->
                 <button @click="selectedCategory = 'all'" 
                         class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
@@ -228,9 +228,9 @@
             </div>
             
             <!-- Mobile Toggle Tabs (Only visible on mobile layout viewports) -->
-            <div class="flex items-center gap-1.5 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
-                <button @click="mobileTab = 'products'" class="px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
-                <button @click="mobileTab = 'cart'" class="px-3 py-1 rounded-md relative" :class="mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : ''">
+            <div class="flex shrink-0 items-center gap-1 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
+                <button @click="mobileTab = 'products'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
+                <button @click="mobileTab = 'cart'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md relative" :class="mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : ''">
                     <span>Cart</span>
                     <span x-show="cart.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] h-4.5 w-4.5 rounded-full flex items-center justify-center font-black" x-text="cart.length"></span>
                 </button>
@@ -240,9 +240,9 @@
         <!-- POS Master Grid: Product display on left; Cart layout on right -->
         <div class="flex-1 flex overflow-hidden">
             <!-- Left Side: Product Grid Section -->
-            <div class="flex-1 overflow-y-auto p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
+            <div class="flex-1 overflow-y-auto p-3 sm:p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
                 <!-- Products Card Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
                     <template x-for="product in filteredProducts()" :key="product.id">
                         <div @click="openProductFlow(product)" 
                              class="bg-white border border-slate-250/70 rounded-xl p-2 flex flex-col justify-between hover:shadow-md cursor-pointer transition select-none hover:border-blue-400 group">
@@ -278,7 +278,7 @@
             </div>
 
             <!-- Right Side: Cart & Checkout Section -->
-            <div class="w-full lg:w-96 border-l border-slate-200/80 bg-white p-4 flex flex-col overflow-hidden shrink-0 select-none"
+            <div class="w-full lg:w-96 border-l border-slate-200/80 bg-white p-3 sm:p-4 flex flex-col overflow-hidden shrink-0 select-none"
                  :class="mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'">
                 
                 <!-- Customer Selection Header -->
@@ -409,34 +409,41 @@
 
                     <div class="space-y-2.5">
                         <div class="flex items-center justify-between"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Method</span><button @click="openMultiplePayments()" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100">+ Multiple Payment</button></div>
-                        <div class="grid grid-cols-5 gap-2 text-[10px] font-bold">
+                        <div class="grid grid-cols-3 gap-2 text-[10px] font-bold">
                             <template x-for="method in ['Cash','Bank Transfer','Cheque']"><button @click="selectSinglePayment(method)" class="min-h-11 rounded-lg border px-1 transition" :class="!useMultiplePayments && paymentMethod === method ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 bg-slate-50 text-slate-600'" x-text="method === 'Bank Transfer' ? 'Bank' : method === 'QR Payment' ? 'QR' : method"></button></template>
                         </div>
                         <div x-show="useMultiplePayments" class="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs"><span class="font-bold text-blue-700"><span x-text="paymentRows.length"></span> payment allocations selected</span><button @click="openMultiplePayments()" class="font-bold text-blue-600">Edit</button></div>
-                        <div x-show="!useMultiplePayments" class="grid grid-cols-2 gap-3 text-xs font-bold">
+                        <div x-show="!useMultiplePayments" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-bold">
                             <div><label class="mb-1 block text-[10px] text-slate-500">Paid Amount</label><input type="number" min="0" step="0.01" x-model.number="paidAmount" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"></div>
                             <div><label class="mb-1 block text-[10px] text-slate-500">Change Amount</label><div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-100 px-3 py-2"><span x-text="currencySymbol"></span><span x-text="formatMoney(calculateChangeAmount())"></span></div></div>
                         </div>
-                        <div x-show="!useMultiplePayments && paymentMethod === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2">
+                        <div x-show="!useMultiplePayments && paymentMethod === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2">
                             <input x-model="chequeDetails.cheque_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Cheque number *"><input type="date" x-model="chequeDetails.cheque_date" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs"><input x-model="chequeDetails.bank_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Bank *"><input x-model="chequeDetails.branch_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Branch"><input x-model="chequeDetails.account_holder_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account holder *"><input x-model="chequeDetails.account_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account number">
                         </div>
                     </div>
 
+                    <button @click="printDueInvoice()"
+                            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-xs font-black text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            :disabled="cart.length === 0">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Due &amp; Print <span class="font-semibold">(No Payment)</span></span>
+                    </button>
+
                     <!-- Checkout Bottom Action Buttons -->
-                    <div class="grid grid-cols-4 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold pt-2.5 border-t border-slate-100">
                         <button @click="clearCart()" class="py-3 bg-red-150 hover:bg-red-200 text-red-650 border border-red-200 rounded-xl transition cursor-pointer">Clear</button>
-                        <button @click="holdCurrentSale()" class="py-3 bg-amber-100 hover:bg-amber-200 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer">Hold (F2)</button>
+                        <button @click="holdCurrentSale()" class="py-3 bg-amber-100 hover:bg-amber-200 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer">Hold <span class="hidden sm:inline">(F2)</span></button>
                         <button @click="quickPay()" 
                                 class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
                                 :disabled="cart.length === 0"
                                 :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
-                            <span>Quick Pay (F10)</span>
+                            <span>Quick Pay <span class="hidden sm:inline">(F10)</span></span>
                         </button>
                         <button @click="openMultiplePayments()" 
                                 class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
                                 :disabled="cart.length === 0"
                                 :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
-                            <span>Pay (F12)</span>
+                            <span>Pay <span class="hidden sm:inline">(F12)</span></span>
                         </button>
                     </div>
                 </div>
@@ -445,13 +452,13 @@
     </div>
 
     <!-- Multiple payment allocations are kept in a popup so the standard POS stays compact. -->
-    <div x-show="showMultiplePaymentModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-        <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl" @click.away="closeMultiplePayments(false)">
-            <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4"><div><h3 class="text-lg font-black text-slate-900">Multiple Payments</h3><p class="text-xs text-slate-500">Add every payment used for this invoice. Cheques are tracked separately.</p></div><button @click="closeMultiplePayments(false)" class="text-2xl text-slate-400">×</button></div>
-            <div class="overflow-y-auto p-6">
-                <div class="mb-4 grid grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="min-h-10 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold hover:border-blue-400 hover:text-blue-600" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+    <div x-show="showMultiplePaymentModal" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-sm">
+        <div class="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-2xl" @click.away="closeMultiplePayments(false)">
+            <div class="flex items-center justify-between border-b border-slate-200 px-4 sm:px-6 py-4"><div><h3 class="text-base sm:text-lg font-black text-slate-900">Multiple Payments</h3><p class="text-xs text-slate-500">Add every payment used for this invoice. Cheques are tracked separately.</p></div><button @click="closeMultiplePayments(false)" class="min-h-11 min-w-11 text-2xl text-slate-400" aria-label="Close payments">×</button></div>
+            <div class="overflow-y-auto p-4 sm:p-6">
+                <div class="mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] font-bold hover:border-blue-400 hover:text-blue-600" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
                 <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div class="grid grid-cols-[1fr_130px_28px] gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_130px_44px] gap-2">
                         <select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
@@ -459,13 +466,13 @@
                             <option value="Cheque">Cheque</option>
                             <option value="Customer Credit / Due">Customer Credit / Due</option>
                         </select>
-                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="min-h-11 rounded-lg border border-red-200 bg-red-50 text-xl text-red-500" aria-label="Remove payment">×</button></div>
                     <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
-                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs flex-col col-span-2" placeholder="Account holder *"></div>
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs sm:col-span-2" placeholder="Account holder *"></div>
                 </div></template></div>
-                <div class="mt-4 grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-bold"><div>Allocated<br><span class="text-lg" x-text="currencySymbol + formatMoney(allocatedTotal())"></span></div><div class="text-amber-600">Cheque hold<br><span class="text-lg" x-text="currencySymbol + formatMoney(chequeHoldTotal())"></span></div><div :class="Math.abs(remainingToAllocate()) < .01 ? 'text-emerald-600' : 'text-red-600'">Remaining<br><span class="text-lg" x-text="currencySymbol + formatMoney(remainingToAllocate())"></span></div></div>
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-bold"><div>Allocated<br><span class="text-lg" x-text="currencySymbol + formatMoney(allocatedTotal())"></span></div><div class="text-amber-600">Cheque hold<br><span class="text-lg" x-text="currencySymbol + formatMoney(chequeHoldTotal())"></span></div><div :class="Math.abs(remainingToAllocate()) < .01 ? 'text-emerald-600' : 'text-red-600'">Remaining<br><span class="text-lg" x-text="currencySymbol + formatMoney(remainingToAllocate())"></span></div></div>
             </div>
-            <div class="grid grid-cols-2 gap-3 border-t border-slate-200 px-6 py-4"><button @click="closeMultiplePayments(false)" class="rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700">Cancel</button><button @click="submitFromModal()" :disabled="!paymentsValid()" :class="!paymentsValid() ? 'opacity-50' : ''" class="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white">Complete Checkout (Enter)</button></div>
+            <div class="grid grid-cols-2 gap-3 border-t border-slate-200 px-4 sm:px-6 py-4"><button @click="closeMultiplePayments(false)" class="rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700">Cancel</button><button @click="submitFromModal()" :disabled="!paymentsValid()" :class="!paymentsValid() ? 'opacity-50' : ''" class="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white">Complete Checkout <span class="hidden sm:inline">(Enter)</span></button></div>
         </div>
     </div>
 
@@ -473,7 +480,7 @@
     <!-- AND SCREEN 6: Mobile Bottom Sheet Product Popup (Mobile Viewports) -->
     <div x-show="showProductModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <!-- Modal Card Container -->
-        <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl flex flex-col md:flex-row gap-6 border border-slate-200 transform scale-100 transition duration-300"
+        <div class="bg-white rounded-2xl sm:rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col md:flex-row gap-4 sm:gap-6 border border-slate-200 transform scale-100 transition duration-300"
              @click.away="closeProductModal()">
             
             <!-- Left Panel: Product visual -->
@@ -737,7 +744,7 @@
                             <template x-for="(row, index) in checkoutSuccessData.payment_rows" :key="index">
                                 <div>
                                     <div class="flex justify-between font-semibold">
-                                        <span x-text="'Paid (' + row.method + '):'"></span>
+                                        <span x-text="row.method === 'Customer Credit / Due' ? 'Balance Due:' : (row.method === 'Cheque' ? 'Cheque Pending:' : 'Paid (' + row.method + '):')"></span>
                                         <span x-text="'Rs. ' + formatMoney(row.amount)"></span>
                                     </div>
                                     <template x-if="row.method === 'Cheque'">
@@ -777,9 +784,9 @@
             <!-- Print Actions -->
             <div class="space-y-2.5">
                 <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-                    <button onclick="window.print()" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
+                    <button @click="printA4Invoice(checkoutSuccessData)" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2m-2-9v10H8V9"/></svg>
-                        <span>58mm / 80mm</span>
+                        <span>Print A4 Invoice</span>
                     </button>
                     <button @click="showSuccessModal = false" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer">
                         Close Preview
@@ -1284,22 +1291,69 @@
                     });
                 },
 
+                printDueInvoice() {
+                    if (this.cart.length === 0) {
+                        Swal.fire({ text: 'Please add products to the cart before creating a due invoice.', icon: 'warning' });
+                        return;
+                    }
+
+                    const customer = this.customers.find(c => c.id == this.selectedCustomerId);
+                    if (!customer || customer.name.toLowerCase().includes('walk-in')) {
+                        const customerOptions = {};
+                        this.customers.forEach(c => {
+                            if (!c.name.toLowerCase().includes('walk-in')) {
+                                customerOptions[c.id] = c.name + (c.phone ? ' - ' + c.phone : '');
+                            }
+                        });
+
+                        Swal.fire({
+                            title: 'Customer Required',
+                            text: 'Select a registered customer so this due invoice can be tracked until payment is completed.',
+                            icon: 'warning',
+                            input: 'select',
+                            inputOptions: customerOptions,
+                            inputPlaceholder: 'Select a customer',
+                            showCancelButton: true,
+                            showDenyButton: true,
+                            confirmButtonText: 'Select & Continue',
+                            denyButtonText: 'Add New',
+                            confirmButtonColor: '#d97706',
+                            denyButtonColor: '#10b981',
+                        }).then(result => {
+                            if (result.isConfirmed && result.value) {
+                                this.selectedCustomerId = result.value;
+                                this.printDueInvoice();
+                            } else if (result.isDenied) {
+                                setTimeout(() => { this.showAddCustomerModal = true; }, 300);
+                            }
+                        });
+                        return;
+                    }
+
+                    const printWindow = window.open('about:blank', '_blank');
+                    this.submitPOSCheckout({ duePrint: true, printWindow });
+                },
+
                 // Submits checkout details to Laravel backend controller
-                submitPOSCheckout() {
+                submitPOSCheckout(options = {}) {
                     if (this.cart.length === 0) {
                         Swal.fire({ text: 'Please add products to the cart before checking out.', icon: 'warning' });
                         return;
                     }
 
-                    const checkoutRows = this.useMultiplePayments ? this.paymentRows : [this.singlePaymentRow()];
-                    if (!this.useMultiplePayments && Number(this.paidAmount) < this.calculateGrandTotal() - .009) checkoutRows.push({ method: 'Customer Credit / Due', amount: this.calculateGrandTotal() - Number(this.paidAmount) });
+                    const checkoutRows = options.duePrint
+                        ? [{ method: 'Customer Credit / Due', amount: this.calculateGrandTotal() }]
+                        : (this.useMultiplePayments ? this.paymentRows : [this.singlePaymentRow()]);
+                    if (!options.duePrint && !this.useMultiplePayments && Number(this.paidAmount) < this.calculateGrandTotal() - .009) checkoutRows.push({ method: 'Customer Credit / Due', amount: this.calculateGrandTotal() - Number(this.paidAmount) });
 
                     let hasCheque = checkoutRows.some(row => row.method === 'Cheque');
                     let customer = this.customers.find(c => c.id == this.selectedCustomerId);
-                    if (hasCheque && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
+                    if ((hasCheque || options.duePrint) && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
                         Swal.fire({
                             title: 'Customer Required',
-                            text: 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
+                            text: options.duePrint
+                                ? 'Please select a registered customer to create a due invoice.'
+                                : 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
                             icon: 'warning',
                             confirmButtonColor: '#f59e0b'
                         });
@@ -1317,6 +1371,7 @@
                         paid_amount: checkoutRows.filter(row => !['Cheque','Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
                         payment_method: this.useMultiplePayments ? 'Mixed' : this.paymentMethod,
                         payment_rows: checkoutRows,
+                        checkout_mode: options.duePrint ? 'due_print' : 'standard',
                         hold_id: this.currentHoldId,
                         store_id: {{ $activeStoreId ?? 1 }},
                         source_type: this.sourceType,
@@ -1346,21 +1401,34 @@
                         if (data.success) {
                             this.checkoutSuccessData = {
                                 invoice_no: data.invoice_no,
+                                print_url: data.print_url,
                                 date: new Date().toLocaleString(),
                                 customer: this.customers.find(c => c.id == this.selectedCustomerId)?.name || 'Walk-in Customer',
                                 items: JSON.parse(JSON.stringify(this.cart)),
                                 subtotal: this.calculateSubtotal(),
                                 discount: this.calculateDiscountAmount(),
                                 payable: this.calculateGrandTotal(),
-                                paid_amount: checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
-                                payment_rows: JSON.parse(JSON.stringify(checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)))),
+                                paid_amount: options.duePrint ? 0 : checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+                                payment_rows: JSON.parse(JSON.stringify(options.duePrint ? checkoutRows : checkoutRows.filter(row => !['Customer Credit / Due'].includes(row.method)))),
                                 change: data.change
                             };
+                            if (options.duePrint && data.print_url) {
+                                if (options.printWindow && !options.printWindow.closed) {
+                                    options.printWindow.location.replace(data.print_url);
+                                } else {
+                                    window.open(data.print_url, '_blank');
+                                }
+                            }
                             this.showSuccessModal = true;
                             this.currentHoldId = null;
                         } else {
+                            if (options.printWindow && !options.printWindow.closed) options.printWindow.close();
                             Swal.fire({ text: 'Checkout error: ' + data.message, icon: 'error' });
                         }
+                    })
+                    .catch(error => {
+                        if (options.printWindow && !options.printWindow.closed) options.printWindow.close();
+                        Swal.fire({ text: 'Checkout failed: ' + error.message, icon: 'error' });
                     });
                 },
 
@@ -1393,8 +1461,12 @@
                     this.syncSinglePayment();
                 },
 
-                printReceipt(format) {
-                    Swal.fire({ text: 'Sending print signal for ' + format + ' size thermal receipt.', icon: 'info' });
+                printA4Invoice(invoice) {
+                    if (!invoice || !invoice.print_url) {
+                        Swal.fire({ text: 'The A4 invoice link is not available. Please open the invoice from Sales.', icon: 'warning' });
+                        return;
+                    }
+                    window.open(invoice.print_url, '_blank');
                 },
 
                 shareWhatsApp() {

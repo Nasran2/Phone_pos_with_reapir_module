@@ -17,10 +17,28 @@ class SaleInventoryService
      */
     public function finalizeIfPaid(Sale $sale): bool
     {
-        return DB::transaction(function () use ($sale) {
+        return $this->finalize($sale, false, 'Stock deducted automatically after full payment cleared.');
+    }
+
+    /**
+     * Deduct inventory before full payment when an authorized operator explicitly
+     * releases the order. The stock_deducted_at guard still prevents duplicates.
+     */
+    public function finalizeNow(Sale $sale, string $reason): bool
+    {
+        return $this->finalize($sale, true, $reason);
+    }
+
+    private function finalize(Sale $sale, bool $force, string $reason): bool
+    {
+        return DB::transaction(function () use ($sale, $force, $reason) {
             $sale = Sale::query()->lockForUpdate()->findOrFail($sale->id);
 
-            if ($sale->stock_deducted_at || ! $sale->isPaymentComplete() || $sale->status === 'cancelled') {
+            if ($sale->stock_deducted_at || $sale->status === 'cancelled') {
+                return false;
+            }
+
+            if (! $force && ! $sale->isPaymentComplete()) {
                 return false;
             }
 
@@ -53,7 +71,7 @@ class SaleInventoryService
                         $sale->invoice_no,
                     );
                 } else {
-                    $this->deductStoreItem($sale, $item, $quantity);
+                    $this->deductStoreItem($sale, $item, $quantity, $reason);
                 }
 
                 if ($item->product_serial_id) {
@@ -120,7 +138,7 @@ class SaleInventoryService
         });
     }
 
-    private function deductStoreItem(Sale $sale, object $item, float $quantity): void
+    private function deductStoreItem(Sale $sale, object $item, float $quantity, string $reason): void
     {
         $storeId = (int) ($sale->store_id ?: Setting::get('default_store_id', 1));
 
@@ -159,8 +177,8 @@ class SaleInventoryService
             'reference_type' => Sale::class,
             'reference_id' => $sale->id,
             'reference_no' => $sale->invoice_no,
-            'note' => ucfirst($sale->pos_type).' sale - payment completed',
-            'description' => 'Stock deducted automatically after full payment cleared.',
+            'note' => ucfirst($sale->pos_type).' sale - inventory finalized',
+            'description' => $reason,
             'created_by' => auth()->id() ?: $sale->created_by,
             'created_at' => now(),
         ]);

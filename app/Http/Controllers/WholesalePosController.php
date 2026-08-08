@@ -8,6 +8,7 @@ use App\Models\CustomerTransaction;
 use App\Models\Sale;
 use App\Models\Setting;
 use App\Services\JournalService;
+use App\Services\InvoiceNumberService;
 use App\Services\LorryAccessService;
 use App\Services\MixedPaymentService;
 use App\Services\SaleInventoryService;
@@ -15,6 +16,7 @@ use App\Services\TaxCalculationService;
 use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
 class WholesalePosController extends Controller
@@ -156,7 +158,7 @@ class WholesalePosController extends Controller
     /**
      * Store a completed sale from the POS.
      */
-    public function store(Request $request, LorryAccessService $access, MixedPaymentService $mixedPayments, JournalService $journalService)
+    public function store(Request $request, LorryAccessService $access, MixedPaymentService $mixedPayments, JournalService $journalService, InvoiceNumberService $invoiceNumbers)
     {
         if ($access->isLorryUser($request->user()) && ! $access->isUnrestricted($request->user())) {
             $assignment = $access->currentAssignment($request->user(), $request->integer('lorry_id') ?: null);
@@ -180,6 +182,7 @@ class WholesalePosController extends Controller
             'paid_amount' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
             'payment_rows' => 'nullable|array',
+            'checkout_mode' => 'nullable|in:standard,due_print',
             'cheque.cheque_number' => 'nullable|string|max:100',
             'cheque.cheque_date' => 'nullable|date',
             'cheque.bank_name' => 'nullable|string|max:150',
@@ -196,7 +199,7 @@ class WholesalePosController extends Controller
 
         try {
             $today = date('Y-m-d');
-            $invoiceNo = SystemSettings::get('wholesale_invoice_prefix', 'WSL', 'invoice_settings').'-'.strtoupper(uniqid());
+            $invoiceNo = $invoiceNumbers->next('wholesale');
 
             // --- TAX CALCULATION BEGIN ---
             $taxService = app(TaxCalculationService::class);
@@ -297,6 +300,32 @@ class WholesalePosController extends Controller
             }
 
             $paymentRows = $mixedPayments->rowsFromRequest($request->all(), (float) $calculatedPayableTotal);
+
+            if ($request->input('checkout_mode') === 'due_print') {
+                $customer = DB::table('customers')
+                    ->where('id', $request->customer_id)
+                    ->whereNull('deleted_at')
+                    ->first();
+
+                if (! $customer || str_contains(strtolower((string) $customer->name), 'walk-in')) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Select a registered customer before creating a due invoice.',
+                        'errors' => [
+                            'customer_id' => ['Select a registered customer before creating a due invoice.'],
+                        ],
+                    ], 422);
+                }
+
+                // The dedicated due action is authoritative: no submitted payment
+                // values can clear the invoice or trigger inventory deduction.
+                $paymentRows = [[
+                    'method' => 'Customer Credit / Due',
+                    'amount' => round((float) $calculatedPayableTotal, 2),
+                ]];
+            }
 
             $sourceType = $request->input('source_type') === 'lorry' ? 'lorry' : 'store';
             if ($sourceType === 'lorry' && ! $request->filled('lorry_id')) {
@@ -453,13 +482,22 @@ class WholesalePosController extends Controller
 
             DB::commit();
 
+            $completedSale = $sale->fresh();
+
             return response()->json([
                 'success' => true,
                 'invoice_no' => $invoiceNo,
                 'sale_id' => $saleId,
                 'change' => max(0, collect($paymentRows)->where('method', 'Cash')->sum('amount') - $request->payable_amount),
                 'cheque_hold_amount' => $allocation['hold'],
-                'inventory_status' => $sale->fresh()->inventoryStatus(),
+                'inventory_status' => $completedSale->inventoryStatus(),
+                'payment_status' => $completedSale->payment_status,
+                'due_amount' => (float) $completedSale->due_amount,
+                'print_url' => URL::signedRoute('sales.shared', [
+                    'sale' => $saleId,
+                    'print' => 1,
+                    'return_to_pos' => 1,
+                ]),
             ]);
 
         } catch (ValidationException $e) {

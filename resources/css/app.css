@@ -56,6 +56,14 @@
     textarea {
         @apply px-3 py-2.5 min-h-[42px] leading-relaxed;
     }
+
+    button,
+    [role="button"],
+    input,
+    select,
+    textarea {
+        touch-action: manipulation;
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
@@ -85,6 +93,163 @@ select:focus[data-flux-control] {
     }
     .scrollbar-hide::-webkit-scrollbar {
         display: none;
+    }
+}
+
+/* Shared responsive behavior for the authenticated ERP shell. */
+.app-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.app-main,
+.app-content {
+    min-width: 0;
+}
+
+.mobile-touch-button {
+    display: inline-flex;
+    min-height: 44px;
+    min-width: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: .75rem;
+}
+
+.mobile-drawer-panel {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+body.mobile-menu-open {
+    overflow: hidden;
+}
+
+.app-main .overflow-x-auto {
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    select,
+    textarea {
+        min-height: 44px;
+        font-size: 16px !important;
+    }
+
+    .mobile-topbar {
+        padding-top: max(.625rem, env(safe-area-inset-top));
+    }
+
+    .app-main .h-16.sticky,
+    .app-main > .h-16,
+    .app-content > div > .h-16 {
+        height: auto;
+        min-height: 4rem;
+        flex-wrap: wrap;
+        gap: .75rem;
+        padding: .75rem 1rem;
+    }
+
+    .app-main .p-8,
+    .app-main .p-6,
+    .app-content .p-8,
+    .app-content .p-6 {
+        padding: 1rem;
+    }
+
+    .app-main .px-8,
+    .app-main .px-6,
+    .app-content .px-8,
+    .app-content .px-6 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .app-main .gap-8,
+    .app-main .gap-6 {
+        gap: 1rem;
+    }
+
+    .app-main .overflow-x-auto {
+        margin-right: -.25rem;
+        padding-bottom: .35rem;
+    }
+
+    .app-main .overflow-x-auto > table {
+        min-width: 42rem;
+    }
+
+    .app-main .fixed.inset-0 {
+        padding: .75rem;
+    }
+
+    .app-main .fixed.inset-0 > div {
+        max-height: calc(100dvh - 1.5rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .app-main button,
+    .app-main a.rounded-lg,
+    .app-main a.rounded-xl {
+        min-height: 42px;
+    }
+
+    .swal2-popup {
+        width: calc(100vw - 1.5rem) !important;
+        max-width: 28rem;
+        padding: 1rem !important;
+    }
+}
+
+@media (max-width: 639px) {
+    .pos-shell {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .pos-shell input[type="text"],
+    .pos-shell input[type="number"],
+    .pos-shell input[type="date"],
+    .pos-shell input[type="email"],
+    .pos-shell input[type="search"],
+    .pos-shell select,
+    .pos-shell textarea {
+        min-height: 44px;
+        font-size: 16px !important;
+    }
+
+    .pos-shell .fixed.inset-0 {
+        padding: .75rem;
+    }
+
+    .pos-shell .fixed.inset-0 > .bg-white {
+        max-height: calc(100dvh - 1.5rem);
+        overflow-y: auto;
+        border-radius: 1rem;
+        padding: 1rem;
+        overscroll-behavior: contain;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
     }
 }
 

@@ -9,7 +9,7 @@
     </script>
     <!-- Alpine.js (standard Laravel helper or lightweight CDN if needed, but simple vanilla JS is loaded easily) -->
 </head>
-<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased font-sans flex flex-col lg:flex-row">
+<body class="app-shell min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased font-sans flex flex-col lg:flex-row overflow-x-hidden">
     @php
         $reportPermissions = [
             'reports.view',
@@ -540,22 +540,27 @@
     </aside>
 
     <!-- Mobile Navigation Top Bar (Hidden on desktop) -->
-    <header class="w-full bg-[#0c1630] border-b border-[#182647] flex items-center justify-between px-4 py-3 text-white lg:hidden z-40 sticky top-0 shrink-0">
-        <div class="flex items-center gap-3">
-            <button onclick="toggleMobileSidebar()" class="text-slate-300 hover:text-white focus:outline-none cursor-pointer">
+    <header class="mobile-topbar w-full bg-[#0c1630] border-b border-[#182647] flex items-center justify-between px-3 py-2.5 text-white lg:hidden z-40 sticky top-0 shrink-0">
+        <div class="flex min-w-0 items-center gap-2.5">
+            <button id="mobile-menu-button" type="button" onclick="toggleMobileSidebar(true)" class="mobile-touch-button text-slate-300 hover:text-white focus:outline-none cursor-pointer" aria-label="Open navigation menu" aria-controls="mobile-sidebar" aria-expanded="false">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
-            <span class="text-sm font-bold tracking-wide">{{ $systemName }}</span>
+            <div class="min-w-0">
+                <span class="block truncate text-sm font-bold tracking-wide">{{ $title ?: $systemName }}</span>
+                @if($title)
+                <span class="block truncate text-[9px] font-semibold uppercase tracking-wider text-slate-400">{{ $systemName }}</span>
+                @endif
+            </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex shrink-0 items-center gap-1.5">
             <div class="h-8 w-8 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center text-xs">
                 {{ auth()->user()->initials() }}
             </div>
             <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
-                <button type="submit" class="text-red-400 hover:text-red-500 cursor-pointer">
+                <button type="submit" class="mobile-touch-button text-red-400 hover:text-red-300 cursor-pointer" aria-label="Log out">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
                     </svg>
@@ -565,9 +570,9 @@
     </header>
 
     <!-- Mobile Off-Canvas Sidebar Menu overlay -->
-    <div id="mobile-sidebar" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden lg:hidden">
-        <div class="w-64 bg-[#0c1630] h-full flex flex-col shadow-2xl relative border-r border-[#182647]">
-            <button onclick="toggleMobileSidebar()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer z-50">
+    <div id="mobile-sidebar" class="mobile-drawer fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation menu" onclick="if (event.target === this) toggleMobileSidebar(false)">
+        <div class="mobile-drawer-panel w-[min(88vw,20rem)] bg-[#0c1630] h-full flex flex-col shadow-2xl relative border-r border-[#182647]" onclick="event.stopPropagation()">
+            <button type="button" onclick="toggleMobileSidebar(false)" class="mobile-touch-button absolute top-2.5 right-2.5 text-slate-400 hover:text-white cursor-pointer z-50" aria-label="Close navigation menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -729,7 +734,7 @@
     @endif
 
     <!-- Main Content Area Wrapper -->
-    <main class="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 overflow-x-hidden">
+    <main class="app-main flex-1 flex flex-col min-h-screen min-w-0 w-full bg-slate-50 dark:bg-slate-900 overflow-x-hidden">
         {{ $slot }}
     </main>
 
@@ -764,10 +769,34 @@
         });
 
         // Toggle mobile menu drawer
-        function toggleMobileSidebar() {
+        function toggleMobileSidebar(open = null) {
             const mobileSidebar = document.getElementById('mobile-sidebar');
-            mobileSidebar.classList.toggle('hidden');
+            const menuButton = document.getElementById('mobile-menu-button');
+            if (!mobileSidebar) return;
+
+            const shouldOpen = open === null ? mobileSidebar.classList.contains('hidden') : open;
+            mobileSidebar.classList.toggle('hidden', !shouldOpen);
+            document.body.classList.toggle('mobile-menu-open', shouldOpen);
+            menuButton?.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+
+            if (shouldOpen) {
+                mobileSidebar.querySelector('button')?.focus();
+            } else {
+                menuButton?.focus();
+            }
         }
+
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !document.getElementById('mobile-sidebar')?.classList.contains('hidden')) {
+                toggleMobileSidebar(false);
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 1024 && !document.getElementById('mobile-sidebar')?.classList.contains('hidden')) {
+                toggleMobileSidebar(false);
+            }
+        });
     </script>
     
     @persist('toast')

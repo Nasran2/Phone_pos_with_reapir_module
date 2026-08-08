@@ -56,6 +56,11 @@ class SaleItem extends Model
         return $this->belongsTo(ProductVariant::class);
     }
 
+    public function productSerial()
+    {
+        return $this->belongsTo(ProductSerial::class);
+    }
+
     public function returnedItems()
     {
         return $this->hasMany(SaleReturnItem::class);

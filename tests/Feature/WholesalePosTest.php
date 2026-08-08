@@ -8,7 +8,14 @@ test('wholesale pos screen can be rendered for authenticated users', function ()
 
     $response = $this->actingAs($user)->get(route('pos.wholesale'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee('name="viewport" content="width=device-width, initial-scale=1.0"', false)
+        ->assertSee('h-[100dvh]', false)
+        ->assertSee("mobileTab = 'products'", false)
+        ->assertSee("mobileTab = 'cart'", false)
+        ->assertSee('Due &amp; Print', false)
+        ->assertSee('Print A4 Invoice')
+        ->assertSee('printDueInvoice()', false);
 });
 
 test('pos can create a customer quickly', function () {
@@ -23,7 +30,6 @@ test('pos can create a customer quickly', function () {
     $response->assertJson([
         'success' => true
     ]);
-
     $this->assertDatabaseHas('customers', [
         'name' => 'POS Test Customer',
         'phone' => '0779999999'
@@ -92,6 +98,7 @@ test('pos can process a successful sales checkout', function () {
     $response->assertJson([
         'success' => true
     ]);
+    expect($response->json('invoice_no'))->toMatch('/^[A-Z0-9]+-\d{12}$/');
 
     // Check if sales records are stored
     $this->assertDatabaseHas('sales', [

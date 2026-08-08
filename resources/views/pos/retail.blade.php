@@ -4,7 +4,7 @@
     @include('partials.head', ['title' => __('Retail POS')])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="h-screen max-h-screen overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="retailPosApp()">
+<body class="pos-shell h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="retailPosApp()">
 
     <!-- SCREEN 7: Hamburger Menu Drawer (Overlay) -->
     <div x-show="showMenuDrawer" 
@@ -14,7 +14,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="translate-x-0"
          x-transition:leave-end="-translate-x-full"
-         class="fixed inset-y-0 left-0 w-80 bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl" 
+         class="fixed inset-y-0 left-0 w-[min(88vw,20rem)] bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl"
          x-cloak>
         
         <div>
@@ -87,12 +87,12 @@
          x-cloak></div>
 
     <!-- MAIN GRID CONTAINER -->
-    <div class="flex-1 flex flex-col w-full h-screen overflow-hidden">
+    <div class="flex-1 flex flex-col w-full h-[100dvh] overflow-hidden">
         
         <!-- TOP HEADER BAR -->
-        <header class="bg-[#0c1630] border-b border-[#182647] text-white h-16 px-4 flex items-center justify-between shrink-0 z-30">
-            <div class="flex items-center gap-4">
-                <button @click="showMenuDrawer = true" class="text-slate-350 hover:text-white cursor-pointer" title="Toggle Navigation">
+        <header class="bg-[#0c1630] border-b border-[#182647] text-white min-h-16 h-auto px-3 sm:px-4 py-2 sm:py-0 flex flex-wrap items-center justify-between gap-2 shrink-0 z-30">
+            <div class="flex min-w-0 items-center gap-2 sm:gap-4">
+                <button @click="showMenuDrawer = true" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-350 hover:text-white cursor-pointer" title="Toggle Navigation" aria-label="Open navigation">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
                     </svg>
@@ -106,9 +106,9 @@
                     <div>
                         <div class="flex items-center gap-1.5">
                             <h1 class="text-sm font-black tracking-wide leading-none">Retail POS</h1>
-                            <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Retail Mode</span>
+                            <span class="hidden sm:inline-flex px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Retail Mode</span>
                         </div>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
+                        <p class="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
                     </div>
                 </div>
             </div>
@@ -119,7 +119,7 @@
                 <span class="text-xs font-bold text-slate-300 font-mono" x-text="liveTime"></span>
             </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex w-full sm:w-auto min-w-0 items-center justify-end gap-1.5 sm:gap-3 overflow-x-auto scrollbar-hide">
                     @if($enableMultiStore)
                     <div class="flex items-center gap-2 mr-2">
                         <select onchange="window.location.href='{{ route('pos.retail') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500">
@@ -153,11 +153,11 @@
                         @endif
                     </div>
                     @endif
-                    <button @click="showHoldSalesModal = true" class="px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <button @click="showHoldSalesModal = true" class="min-h-11 shrink-0 px-3 py-1.5 bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 hover:text-amber-400 border border-amber-500/20 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                         </svg>
-                        <span>Hold Invoices (F6)</span>
+                        <span>Hold Invoices <span class="hidden sm:inline">(F6)</span></span>
                     </button>
                     <div class="text-right hidden md:block">
                         <p class="text-xs font-bold leading-none">{{ auth()->user()->name }}</p>
@@ -167,8 +167,8 @@
         </header>
 
         <!-- Dynamic Category Header Selector (Horizontal scroll bar) -->
-        <div class="bg-white border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between shrink-0 gap-3">
-            <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
+        <div class="bg-white border-b border-slate-200/80 px-3 sm:px-4 py-2 flex items-center justify-between shrink-0 gap-2 sm:gap-3">
+            <div class="flex min-w-0 items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
                 <button @click="selectedCategory = 'all'" 
                         class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
                         :class="selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
@@ -184,9 +184,9 @@
             </div>
             
             <!-- Mobile Toggle Tabs -->
-            <div class="flex items-center gap-1.5 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
-                <button @click="mobileTab = 'products'" class="px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
-                <button @click="mobileTab = 'cart'" class="px-3 py-1 rounded-md relative" :class="mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : ''">
+            <div class="flex shrink-0 items-center gap-1 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
+                <button @click="mobileTab = 'products'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
+                <button @click="mobileTab = 'cart'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md relative" :class="mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : ''">
                     <span>Cart</span>
                     <span x-show="cart.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] h-4.5 w-4.5 rounded-full flex items-center justify-center font-black" x-text="cart.length"></span>
                 </button>
@@ -197,7 +197,7 @@
         <div class="flex-1 flex overflow-hidden">
             
             <!-- LEFT COLUMN: SEARCH + PRODUCT GRID -->
-            <div class="flex-1 overflow-y-auto p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
+            <div class="flex-1 overflow-y-auto p-3 sm:p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
                 <div class="space-y-4">
                     <!-- Global search input -->
                     <div class="relative w-full">
@@ -223,7 +223,7 @@
                     </div>
 
                     <!-- Products Grid -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
                         <template x-for="product in filteredProducts()" :key="product.id">
                             <div @click="addToCart(product)" 
                                  class="bg-white border border-slate-250/70 rounded-xl p-2.5 flex flex-col justify-between hover:shadow-md cursor-pointer transition select-none hover:border-blue-400 group relative"
@@ -259,7 +259,7 @@
             </div>
 
             <!-- RIGHT COLUMN: CART & CUSTOMER DETAILS -->
-            <div class="w-full lg:w-96 border-l border-slate-200/80 bg-white p-4 flex flex-col overflow-hidden shrink-0 select-none"
+            <div class="w-full lg:w-96 border-l border-slate-200/80 bg-white p-3 sm:p-4 flex flex-col overflow-hidden shrink-0 select-none"
                  :class="mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'">
                 
                 <!-- Customer info header -->
@@ -414,22 +414,27 @@
                         </div>
                     </div>
 
-                    <!-- Checkout button -->
-                    <!-- Checkout button -->
-                    <div class="grid grid-cols-4 gap-2.5 text-xs font-bold pt-2.5 border-t border-slate-100">
+                    <button @click="printDueInvoice()"
+                            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-xs font-black text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            :disabled="cart.length === 0">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Due &amp; Print <span class="font-semibold">(No Payment)</span></span>
+                    </button>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold pt-2.5 border-t border-slate-100">
                         <button @click="clearCart()" class="py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl transition cursor-pointer hover:bg-red-100">Clear</button>
-                        <button @click="holdCurrentSale()" class="py-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer hover:bg-amber-100">Hold (F6)</button>
+                        <button @click="holdCurrentSale()" class="py-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer hover:bg-amber-100">Hold <span class="hidden sm:inline">(F6)</span></button>
                         <button @click="quickPay()" 
                                 class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
                                 :disabled="cart.length === 0"
                                 :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
-                            <span>Quick (F10)</span>
+                            <span>Quick <span class="hidden sm:inline">(F10)</span></span>
                         </button>
                         <button @click="openPaymentPopup()" 
                                 class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
                                 :disabled="cart.length === 0"
                                 :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
-                            <span>Pay (F4)</span>
+                            <span>Pay <span class="hidden sm:inline">(F4)</span></span>
                         </button>
                     </div>
                 </div>
@@ -534,8 +539,8 @@
     </div>
 
     <!-- PAYMENT / MIXED SPLIT POPUP MODAL (F4) -->
-    <div x-show="showPaymentPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 transform scale-100 transition duration-300"
+    <div x-show="showPaymentPopup" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
+        <div class="max-h-[calc(100dvh-1.5rem)] overflow-y-auto bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 transform scale-100 transition duration-300"
              @click.away="showPaymentPopup = false">
             
             <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
@@ -556,9 +561,9 @@
 
             <div class="space-y-3">
                 <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
-                <div class="grid grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
                 <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div class="grid grid-cols-[1fr_130px_28px] gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_130px_44px] gap-2">
                         <select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
@@ -566,14 +571,14 @@
                             <option value="Cheque">Cheque</option>
                             <option value="Customer Credit / Due">Customer Credit / Due</option>
                         </select>
-                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="text-xl text-red-500">×</button></div>
+                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="min-h-11 rounded-lg border border-red-200 bg-red-50 text-xl text-red-500" aria-label="Remove payment">×</button></div>
                     <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
-                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs flex-col col-span-2" placeholder="Account holder *"></div>
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs sm:col-span-2" placeholder="Account holder *"></div>
                 </div></template></div>
             </div>
 
             <!-- Total Paid, Balance and Change calculation summaries -->
-            <div class="grid grid-cols-3 gap-3 text-xs font-bold mt-5 pt-4 border-t border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs font-bold mt-5 pt-4 border-t border-slate-100">
                 <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-2.5 text-center">
                     <span class="block text-[8px] text-slate-400 uppercase tracking-wider mb-1">Total Paid</span>
                     <span class="text-xs font-black text-slate-800">Rs. <span x-text="formatMoney(calculateSplitTotalPaid())"></span></span>
@@ -596,7 +601,7 @@
                         class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center justify-center gap-1.5"
                         :disabled="!paymentsValid()"
                         :class="!paymentsValid() ? 'opacity-50 cursor-not-allowed' : ''">
-                    <span>Complete Sale (F8)</span>
+                    <span>Complete Sale <span class="hidden sm:inline">(F8)</span></span>
                 </button>
             </div>
         </div>
@@ -755,7 +760,7 @@
                             <template x-for="(row, index) in successData.payment_rows" :key="index">
                                 <div>
                                     <div class="flex justify-between font-semibold">
-                                        <span x-text="'Paid (' + row.method + '):'"></span>
+                                        <span x-text="row.method === 'Customer Credit / Due' ? 'Balance Due:' : (row.method === 'Cheque' ? 'Cheque Pending:' : 'Paid (' + row.method + '):')"></span>
                                         <span x-text="'Rs. ' + formatMoney(row.amount)"></span>
                                     </div>
                                     <template x-if="row.method === 'Cheque'">
@@ -800,9 +805,9 @@
             <!-- Print Actions -->
             <div class="space-y-2.5">
                 <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-                    <button onclick="window.print()" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
+                    <button @click="printA4Invoice(successData)" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2m-2-9v10H8V9"/></svg>
-                        <span>58mm / 80mm</span>
+                        <span>Print A4 Invoice</span>
                     </button>
                     <button @click="showSuccessModal = false" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer">
                         Close Preview
@@ -1461,13 +1466,67 @@
                     this.submitPOSCheckout();
                 },
 
+                printDueInvoice() {
+                    if (this.cart.length === 0) {
+                        Swal.fire({ text: 'Please add products to the cart before creating a due invoice.', icon: 'warning' });
+                        return;
+                    }
+
+                    const customer = this.getSelectedCustomer();
+                    if (!customer || customer.name.toLowerCase().includes('walk-in')) {
+                        const customerOptions = {};
+                        this.customers.forEach(c => {
+                            if (!c.name.toLowerCase().includes('walk-in')) {
+                                customerOptions[c.id] = c.name + (c.phone ? ' - ' + c.phone : '');
+                            }
+                        });
+
+                        Swal.fire({
+                            title: 'Customer Required',
+                            text: 'Select a registered customer so this due invoice can be tracked until payment is completed.',
+                            icon: 'warning',
+                            input: 'select',
+                            inputOptions: customerOptions,
+                            inputPlaceholder: 'Select a customer',
+                            showCancelButton: true,
+                            showDenyButton: true,
+                            confirmButtonText: 'Select & Continue',
+                            denyButtonText: 'Add New',
+                            confirmButtonColor: '#d97706',
+                            denyButtonColor: '#10b981',
+                        }).then(result => {
+                            if (result.isConfirmed && result.value) {
+                                this.selectedCustomerId = result.value;
+                                this.printDueInvoice();
+                            } else if (result.isDenied) {
+                                this.showPaymentPopup = false;
+                                setTimeout(() => { this.showAddCustomerModal = true; }, 300);
+                            }
+                        });
+                        return;
+                    }
+
+                    const printWindow = window.open('about:blank', '_blank');
+                    this.submitPOSCheckout({ duePrint: true, printWindow });
+                },
+
                 // Submits checkout details to Laravel backend controller
-                submitPOSCheckout() {
+                submitPOSCheckout(options = {}) {
                     if (this.cart.length === 0) return;
 
-                    let hasCheque = this.paymentRows.some(row => row.method === 'Cheque');
+                    const payable = this.calculateGrandTotal();
+                    const checkoutRows = options.duePrint
+                        ? [{
+                            id: Date.now(),
+                            method: 'Customer Credit / Due',
+                            amount: payable,
+                            reference_no: '',
+                            cheque: { cheque_number: '', cheque_date: '', bank_name: '', branch_name: '', account_holder: '', account_number: '', notes: '' }
+                        }]
+                        : this.paymentRows;
+                    let hasCheque = checkoutRows.some(row => row.method === 'Cheque');
                     let customer = this.customers.find(c => c.id == this.selectedCustomerId);
-                    if (hasCheque && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
+                    if ((hasCheque || options.duePrint) && (!customer || customer.name.toLowerCase().includes('walk-in'))) {
                         let customerOptions = {};
                         this.customers.forEach(c => {
                             if (!c.name.toLowerCase().includes('walk-in')) {
@@ -1477,7 +1536,9 @@
                         
                         Swal.fire({
                             title: 'Customer Required',
-                            text: 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
+                            text: options.duePrint
+                                ? 'Please select a registered customer to create a due invoice.'
+                                : 'Please select a valid customer (not Walk-in) to process a Cheque payment.',
                             icon: 'warning',
                             input: 'select',
                             inputOptions: customerOptions,
@@ -1491,7 +1552,7 @@
                         }).then((result) => {
                             if (result.isConfirmed && result.value) {
                                 this.selectedCustomerId = result.value;
-                                this.submitPOSCheckout();
+                                this.submitPOSCheckout(options);
                             } else if (result.isDenied) {
                                 this.showPaymentPopup = false;
                                 setTimeout(() => { this.showAddCustomerModal = true; }, 300);
@@ -1500,8 +1561,7 @@
                         return;
                     }
 
-                    let payable = this.calculateGrandTotal();
-                    let totalPaid = this.calculateSplitTotalPaid();
+                    let totalPaid = options.duePrint ? 0 : this.calculateSplitTotalPaid();
 
                     fetch('{{ route("pos.retail.store") }}', {
                         method: 'POST',
@@ -1518,8 +1578,9 @@
                             discount_amount: this.calculateDiscountAmount(),
                             tax_amount: this.calculateTaxAmount(),
                             payable_amount: payable,
-                            payment_rows: this.paymentRows,
+                            payment_rows: checkoutRows,
                             paid_amount: totalPaid,
+                            checkout_mode: options.duePrint ? 'due_print' : 'standard',
                             hold_id: this.currentHoldId,
                             store_id: {{ $activeStoreId ?? 1 }},
                             source_type: this.sourceType,
@@ -1541,6 +1602,7 @@
                             const now = new Date();
                             this.successData = {
                                 invoice_no: data.invoice_no,
+                                print_url: data.print_url,
                                 date: now.toLocaleString(),
                                 customer: this.getSelectedCustomer().name,
                                 items: JSON.parse(JSON.stringify(this.cart)),
@@ -1548,7 +1610,7 @@
                                 discount: this.calculateDiscountAmount(),
                                 payable: payable,
                                 paid: totalPaid,
-                                payment_rows: JSON.parse(JSON.stringify(this.paymentRows)),
+                                payment_rows: JSON.parse(JSON.stringify(checkoutRows)),
                                 change: data.change,
                                 points_earned: data.points_earned
                             };
@@ -1565,11 +1627,24 @@
                             // Reload updated products list (with modified stock levels and available serials)
                             this.fetchProductsList();
 
+                            if (options.duePrint && data.print_url) {
+                                if (options.printWindow && !options.printWindow.closed) {
+                                    options.printWindow.location.replace(data.print_url);
+                                } else {
+                                    window.open(data.print_url, '_blank');
+                                }
+                            }
+
                             // Open success screen
                             this.showSuccessModal = true;
                         } else {
+                            if (options.printWindow && !options.printWindow.closed) options.printWindow.close();
                             Swal.fire({ text: 'Checkout failed: ' + data.message, icon: 'error' });
                         }
+                    })
+                    .catch(error => {
+                        if (options.printWindow && !options.printWindow.closed) options.printWindow.close();
+                        Swal.fire({ text: 'Checkout failed: ' + error.message, icon: 'error' });
                     });
                 },
 
@@ -1583,6 +1658,14 @@
                             this.products = data.products;
                         }
                     });
+                },
+
+                printA4Invoice(invoice) {
+                    if (!invoice || !invoice.print_url) {
+                        Swal.fire({ text: 'The A4 invoice link is not available. Please open the invoice from Sales.', icon: 'warning' });
+                        return;
+                    }
+                    window.open(invoice.print_url, '_blank');
                 },
 
                 formatMoney(amount) {

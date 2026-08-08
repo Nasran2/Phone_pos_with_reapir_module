@@ -8,7 +8,14 @@ test('retail pos screen can be rendered for authenticated users', function () {
 
     $response = $this->actingAs($user)->get(route('pos.retail'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee('name="viewport" content="width=device-width, initial-scale=1.0"', false)
+        ->assertSee('h-[100dvh]', false)
+        ->assertSee("mobileTab = 'products'", false)
+        ->assertSee("mobileTab = 'cart'", false)
+        ->assertSee('Due &amp; Print', false)
+        ->assertSee('Print A4 Invoice')
+        ->assertSee('printDueInvoice()', false);
 });
 
 test('retail pos can create a customer quickly', function () {
@@ -23,7 +30,6 @@ test('retail pos can create a customer quickly', function () {
     $response->assertJson([
         'success' => true
     ]);
-
     $this->assertDatabaseHas('customers', [
         'name' => 'Retail Customer Test',
         'phone' => '0778888888'
@@ -111,6 +117,7 @@ test('retail pos can process a successful checkout with split payments and imei 
     $response->assertJson([
         'success' => true
     ]);
+    expect($response->json('invoice_no'))->toMatch('/^[A-Z0-9]+-\d{12}$/');
 
     // Check if sales records are stored
     $this->assertDatabaseHas('sales', [

@@ -10,7 +10,6 @@ use App\Models\Sale;
 use App\Models\SalePayment;
 use App\Models\Setting;
 use App\Models\StockHistory;
-use App\Models\User;
 use App\Services\LorryAccessService;
 use App\Services\SaleInventoryService;
 use App\Support\SystemSettings;
@@ -24,7 +23,7 @@ class SaleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Sale::with(['customer', 'cashier'])->withCount('items');
+        $query = Sale::with('customer')->withCount('items');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -62,10 +61,9 @@ class SaleController extends Controller
         }
 
         $sales = $query->latest('created_at')->paginate(12)->withQueryString();
-        $cashiers = User::whereIn('id', Sale::query()->whereNotNull('created_by')->select('created_by'))->orderBy('name')->get();
         $summary = $this->summary();
 
-        return view('sales.index', compact('sales', 'cashiers', 'summary'));
+        return view('sales.index', compact('sales', 'summary'));
     }
 
     public function show(Sale $sale)
@@ -85,7 +83,7 @@ class SaleController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'items.productSerial', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
 
         return view('sales.print', compact('sale'));
     }
@@ -94,7 +92,7 @@ class SaleController extends Controller
     {
         abort_unless($request->hasValidSignature(), 403, 'This invoice link is invalid or has expired.');
 
-        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'items.productSerial', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
 
         return view('sales.print', ['sale' => $sale, 'shared' => true]);
     }
@@ -143,6 +141,7 @@ class SaleController extends Controller
             'reference_no' => ['nullable', 'string', 'max:255'],
             'payment_date' => ['required', 'date'],
             'note' => ['nullable', 'string'],
+            'deduct_stock_now' => ['nullable', 'boolean'],
         ]);
 
         DB::transaction(function () use ($sale, $validated) {
@@ -177,8 +176,19 @@ class SaleController extends Controller
             $sale->payment_status = $this->paymentStatus($sale);
             $sale->save();
 
+            $deductStockNow = (bool) ($validated['deduct_stock_now'] ?? false);
+            $inventoryFinalized = false;
+
             try {
-                app(SaleInventoryService::class)->finalizeIfPaid($sale);
+                $inventory = app(SaleInventoryService::class);
+                if ($deductStockNow) {
+                    $inventoryFinalized = $inventory->finalizeNow(
+                        $sale,
+                        'Stock deducted manually while '.SystemSettings::money((float) $sale->due_amount).' remained due.',
+                    );
+                } else {
+                    $inventoryFinalized = $inventory->finalizeIfPaid($sale);
+                }
             } catch (\RuntimeException $e) {
                 throw ValidationException::withMessages(['amount' => $e->getMessage()]);
             }
@@ -187,10 +197,14 @@ class SaleController extends Controller
                 $this->adjustCustomerBalance($sale->customer, -min($amount, $oldDue), 'sale_due_payment', $sale, $sale->invoice_no);
             }
 
-            ActivityLog::log('Payment', 'Sales Module', "Recorded payment for invoice {$sale->invoice_no}");
+            $activity = "Recorded payment for invoice {$sale->invoice_no}";
+            if ($deductStockNow && $inventoryFinalized) {
+                $activity .= ' and manually finalized inventory before full payment';
+            }
+            ActivityLog::log('Payment', 'Sales Module', $activity);
         });
 
-        return back()->with('success', 'Payment recorded successfully.');
+        return back()->with('success', 'Payment recorded successfully. Inventory was updated when required.');
     }
 
     public function destroy(Sale $sale)
