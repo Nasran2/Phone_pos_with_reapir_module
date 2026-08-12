@@ -1234,4 +1234,12 @@
             }
         }
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('import')) {
+                openModal('importModal');
+            }
+        });
+    </script>
 </x-layouts::app>

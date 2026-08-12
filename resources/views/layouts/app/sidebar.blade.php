@@ -196,6 +196,7 @@
                         <a href="{{ route('brands.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('brands.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Brands</a>
                         <a href="{{ route('units.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('units.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Units</a>
                         <a href="{{ route('hs-codes.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('hs-codes.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">HS Codes</a>
+                        <a href="{{ route('products.index') }}?import=true" class="block py-2 text-xs font-bold text-red-500 hover:text-red-400 transition">Import Products</a>
                     </div>
                 </div>
                 @endif
