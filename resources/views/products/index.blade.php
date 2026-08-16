@@ -746,7 +746,7 @@
                     <a href="{{ route('products.import-template') }}" class="inline-flex rounded-lg bg-emerald-600 px-3 py-2 font-bold text-white hover:bg-emerald-700">Download Excel Template</a>
                     <div class="font-bold">Columns structure:</div>
                     <div class="font-mono bg-slate-50 border border-slate-100 p-1.5 rounded select-all break-words">
-                        ID, Name, SKU, Barcode, Category, Brand, Unit, Cost Price, Retail Price, Wholesale Price, Stock Alert Qty, Status, Opening Stock
+                        Name, SKU, Barcode, Category, Brand, Unit, Cost Price, Retail Price, Wholesale Price, Stock Alert Qty, Opening Stock
                     </div>
                 </div>
                 <div>

@@ -687,6 +687,15 @@ class ProductController extends Controller
                     }
 
                     $storeId = (int) Setting::get('default_store_id', 1);
+                    $storeExists = \App\Models\Store::where('id', $storeId)->exists();
+                    if (!$storeExists) {
+                        $store = \App\Models\Store::first();
+                        if (!$store) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['file' => 'No stores found in the system. Please create a store first before importing products.']);
+                        }
+                        $storeId = $store->id;
+                    }
+
                     $stock = ProductStoreStock::firstOrNew(['product_id' => $product->id, 'store_id' => $storeId]);
                     $previousStock = (float) ($stock->quantity ?? 0);
                     $stock->quantity = $openingStock;

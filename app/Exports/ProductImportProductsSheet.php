@@ -25,7 +25,6 @@ class ProductImportProductsSheet implements FromCollection, ShouldAutoSize, With
     public function collection(): Collection
     {
         return $this->products->map(fn (Product $product) => [
-            $product->id,
             $product->name,
             $product->sku,
             $product->barcode,
@@ -36,7 +35,6 @@ class ProductImportProductsSheet implements FromCollection, ShouldAutoSize, With
             (float) $product->retail_price,
             (float) $product->wholesale_price,
             (int) $product->stock_alert_quantity,
-            $product->is_active ? 'Active' : 'Inactive',
             (float) ($product->stock ? $product->stock->quantity : 0),
         ]);
     }
@@ -44,19 +42,19 @@ class ProductImportProductsSheet implements FromCollection, ShouldAutoSize, With
     /** @return array<int, string> */
     public function headings(): array
     {
-        return ['ID', 'Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Cost Price', 'Retail Price', 'Wholesale Price', 'Stock Alert Qty', 'Status', 'Opening Stock'];
+        return ['Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Cost Price', 'Retail Price', 'Wholesale Price', 'Stock Alert Qty', 'Opening Stock'];
     }
 
     /** @return array<string, string> */
     public function columnFormats(): array
     {
         return [
+            'B' => NumberFormat::FORMAT_TEXT,
             'C' => NumberFormat::FORMAT_TEXT,
-            'D' => NumberFormat::FORMAT_TEXT,
+            'G' => '#,##0.00',
             'H' => '#,##0.00',
             'I' => '#,##0.00',
-            'J' => '#,##0.00',
-            'M' => '#,##0.00',
+            'K' => '#,##0.00',
         ];
     }
 
@@ -64,9 +62,9 @@ class ProductImportProductsSheet implements FromCollection, ShouldAutoSize, With
     public function styles(Worksheet $sheet): array
     {
         $sheet->freezePane('A2');
-        $sheet->setAutoFilter('A1:M1');
-        $sheet->getStyle('A1:M1')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
-        $sheet->getStyle('A1:M1')->getFill()->setFillType('solid')->getStartColor()->setARGB('FF2563EB');
+        $sheet->setAutoFilter('A1:K1');
+        $sheet->getStyle('A1:K1')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('A1:K1')->getFill()->setFillType('solid')->getStartColor()->setARGB('FF2563EB');
 
         return [];
     }
@@ -83,8 +81,8 @@ class ProductImportProductsSheet implements FromCollection, ShouldAutoSize, With
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 
-                // Categories Dropdown (Column E)
-                $validation = $sheet->getCell('E2')->getDataValidation();
+                // Categories Dropdown (Column D)
+                $validation = $sheet->getCell('D2')->getDataValidation();
                 $validation->setType(DataValidation::TYPE_LIST);
                 $validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
                 $validation->setAllowBlank(true);
@@ -97,21 +95,21 @@ class ProductImportProductsSheet implements FromCollection, ShouldAutoSize, With
                 $validation->setPrompt('Please pick a category from the drop-down list.');
                 $validation->setFormula1('\'Categories\'!$B$2:$B$1000'); 
                 
-                // Brands Dropdown (Column F)
+                // Brands Dropdown (Column E)
                 $brandValidation = clone $validation;
                 $brandValidation->setPrompt('Please pick a brand from the drop-down list.');
                 $brandValidation->setFormula1('\'Brands\'!$B$2:$B$1000');
                 
-                // Units Dropdown (Column G)
+                // Units Dropdown (Column F)
                 $unitValidation = clone $validation;
                 $unitValidation->setPrompt('Please pick a unit from the drop-down list.');
                 $unitValidation->setFormula1('\'Units\'!$B$2:$B$1000');
 
                 // Apply validations to rows 2 to 500
                 for ($i = 2; $i <= 500; $i++) {
-                    $sheet->getCell("E{$i}")->setDataValidation(clone $validation);
-                    $sheet->getCell("F{$i}")->setDataValidation(clone $brandValidation);
-                    $sheet->getCell("G{$i}")->setDataValidation(clone $unitValidation);
+                    $sheet->getCell("D{$i}")->setDataValidation(clone $validation);
+                    $sheet->getCell("E{$i}")->setDataValidation(clone $brandValidation);
+                    $sheet->getCell("F{$i}")->setDataValidation(clone $unitValidation);
                 }
             },
         ];
