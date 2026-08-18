@@ -16,7 +16,7 @@ class ProductImportInstructionsSheet implements FromArray, ShouldAutoSize, WithS
         return [
             ['Product Import Instructions'],
             ['1', 'Edit or add rows only on the Products sheet.'],
-            ['2', 'Name and SKU are required. SKU must be unique.'],
+            ['2', 'Name is required. SKU and Barcode will be auto-generated if left blank. SKU must be unique if provided.'],
             ['3', 'Use the Categories, Brands, and Units sheets to copy valid names. New names will be created automatically.'],
             ['4', 'Opening Stock sets the stock quantity in the default store.'],
             ['5', 'Status must be Active or Inactive.'],

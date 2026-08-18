@@ -150,7 +150,7 @@ class ProductController extends Controller
             // Barcode Auto Generate
             $barcode = $validated['barcode'] ?? null;
             if (empty($barcode)) {
-                $barcode = 'BC-'.time().rand(100, 999);
+                $barcode = 'ING-'.time().rand(100, 999);
             }
 
             $logoPath = null;
@@ -595,7 +595,7 @@ class ProductController extends Controller
             $columns[$this->normalizeImportHeading((string) $heading)] = $index;
         }
 
-        foreach (['name', 'sku'] as $requiredColumn) {
+        foreach (['name'] as $requiredColumn) {
             if (! array_key_exists($requiredColumn, $columns)) {
                 throw ValidationException::withMessages(['file' => "The Products sheet is missing the {$requiredColumn} column."]);
             }
@@ -630,12 +630,27 @@ class ProductController extends Controller
                         continue;
                     }
 
-                    if ($name === '' || $sku === '') {
+                    if ($name === '') {
                         $excelRow = $rowOffset + 2;
-                        throw ValidationException::withMessages(['file' => "Row {$excelRow} must contain both Name and SKU."]);
+                        throw ValidationException::withMessages(['file' => "Row {$excelRow} must contain a Name."]);
                     }
 
                     $barcode = trim((string) $value($row, $columns, 'barcode'));
+
+                    $product = null;
+                    if ($sku !== '') {
+                        $product = Product::withTrashed()->where('sku', $sku)->first();
+                    } elseif ($barcode !== '') {
+                        $product = Product::withTrashed()->where('barcode', $barcode)->first();
+                        if ($product) {
+                            $sku = $product->sku;
+                        }
+                    }
+
+                    if ($sku === '') {
+                        $sku = 'PROD-'.strtoupper(Str::random(8));
+                    }
+
                     $categoryName = trim((string) $value($row, $columns, 'category'));
                     $brandName = trim((string) $value($row, $columns, 'brand'));
                     $unitName = trim((string) $value($row, $columns, 'unit'));
@@ -663,13 +678,23 @@ class ProductController extends Controller
                         ? Unit::firstOrCreate(['name' => $unitName], ['short_name' => Str::lower(substr($unitName, 0, 10))])
                         : null;
 
-                    $product = Product::withTrashed()->where('sku', $sku)->first();
                     if ($product?->trashed()) {
                         $product->restore();
                     }
+
+                    $barcodeToSave = $barcode !== '' ? $barcode : ($product?->barcode ?: 'ING-'.Str::upper(Str::random(12)));
+                    
+                    if ($barcodeToSave !== '') {
+                        $existingBarcode = Product::withTrashed()->where('barcode', $barcodeToSave)->where('sku', '!=', $sku)->first();
+                        if ($existingBarcode) {
+                            $excelRow = $rowOffset + 2;
+                            throw ValidationException::withMessages(['file' => "Row {$excelRow} has a Barcode ({$barcodeToSave}) that is already used by another product."]);
+                        }
+                    }
+
                     $productData = [
                         'name' => $name,
-                        'barcode' => $barcode !== '' ? $barcode : ($product?->barcode ?: 'BC-'.Str::upper(Str::random(12))),
+                        'barcode' => $barcodeToSave,
                         'category_id' => $category?->id,
                         'brand_id' => $brand?->id,
                         'unit_id' => $unit?->id,
@@ -742,12 +767,12 @@ class ProductController extends Controller
             $sheets = Excel::toArray(new \stdClass, $file);
             foreach ($sheets as $sheet) {
                 $headings = array_map(fn ($heading) => $this->normalizeImportHeading((string) $heading), $sheet[0] ?? []);
-                if (in_array('name', $headings, true) && in_array('sku', $headings, true)) {
+                if (in_array('name', $headings, true)) {
                     return $sheet;
                 }
             }
 
-            throw ValidationException::withMessages(['file' => 'The workbook does not contain a Products sheet with Name and SKU columns.']);
+            throw ValidationException::withMessages(['file' => 'The workbook does not contain a Products sheet with a Name column.']);
         }
 
         $handle = fopen($file->getRealPath(), 'r');
