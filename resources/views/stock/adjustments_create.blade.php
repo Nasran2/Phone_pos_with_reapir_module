@@ -1,22 +1,19 @@
 <x-layouts::app :title="__('Create Stock Adjustment')">
-    <!-- Top Navbar / Header -->
-    <div class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('stock-adjustments.index') }}" class="p-2 hover:bg-slate-100 rounded-lg transition" title="Back to Adjustments">
-                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-            </a>
-            <h2 class="text-lg font-bold text-slate-800">New Stock Adjustment</h2>
-        </div>
-        <div></div>
+    <!-- Header Section -->
+    <div class="p-6 md:p-8 pb-0">
+        <a href="{{ route('stock-adjustments.index') }}" class="inline-flex items-center text-xs text-slate-500 hover:text-teal-600 font-medium mb-2 transition">
+            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Adjustments History
+        </a>
+        <h1 class="text-2xl font-serif text-slate-800 tracking-tight">New Stock Adjustment</h1>
+        <p class="text-sm text-slate-500 mt-1">Add multiple products to adjust their stock levels simultaneously.</p>
     </div>
 
     <!-- Main Content Panel -->
-    <div class="p-6 md:p-8 space-y-6 flex-1 w-full overflow-y-auto bg-slate-50">
+    <div class="p-6 md:p-8 pt-6 flex-1 w-full overflow-y-auto">
         
         @if ($errors->any())
-        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl text-amber-800 text-xs font-medium space-y-1">
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-800 text-xs font-medium space-y-1">
             <span class="font-bold block">Please fix the following validation errors:</span>
             <ul class="list-disc pl-5">
                 @foreach ($errors->all() as $error)
@@ -26,119 +23,80 @@
         </div>
         @endif
 
-        <form method="POST" action="{{ route('stock-adjustments.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <form method="POST" action="{{ route('stock-adjustments.store') }}" enctype="multipart/form-data">
             @csrf
-
-            <!-- Left Form Configuration (1 column width) -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-4 text-slate-800">
-                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Adjustment Information</h3>
+            
+            <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 md:p-8">
                 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Adjustment Type *</label>
-                    <select 
-                        name="adjustment_type" 
-                        id="adjustment_type" 
-                        required 
-                        onchange="recalculateAllRows()"
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
-                    >
-                        <option value="increase">Stock Increase</option>
-                        <option value="decrease">Stock Decrease</option>
-                        <option value="correction">Stock Correction (Qty can be +/-)</option>
-                        <option value="opening_stock">Opening Stock Update (Sets exact qty)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Date *</label>
-                    <input 
-                        type="date" 
-                        name="adjustment_date" 
-                        required 
-                        value="{{ now()->toDateString() }}" 
-                        class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-850"
-                    >
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Reason *</label>
-                    <input 
-                        type="text" 
-                        name="reason" 
-                        required 
-                        placeholder="e.g. Stock count audit discrepancy" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850"
-                    >
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Attach Document (Optional)</label>
-                    <input 
-                        type="file" 
-                        name="document" 
-                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5.5 file:px-3.5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-                    >
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
-                    <textarea 
-                        name="notes" 
-                        rows="3" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850"
-                        placeholder="Extra notes about this adjustment..."
-                    ></textarea>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100">
-                    <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition duration-150 shadow-md cursor-pointer text-center">
-                        Submit & Approve Stock
-                    </button>
-                </div>
-            </div>
-
-            <!-- Right Adjusted Items Table (2 columns width) -->
-            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden flex flex-col">
-                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Products List</h3>
-                    
-                    <!-- Searchable selector to add products -->
-                    <div class="w-full md:w-80 relative">
-                        <select 
-                            id="productSelector" 
-                            onchange="addProductRow(this)"
-                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white"
-                        >
-                            <option value="">-- Add Product to Adjust --</option>
-                            @foreach($products as $prod)
-                                <option value="{{ $prod['id'] }}" data-sku="{{ $prod['sku'] }}" data-stock="{{ $prod['current_stock'] }}">
-                                    {{ $prod['sku'] }} - {{ $prod['name'] }}
-                                </option>
-                            @endforeach
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="md:col-span-1">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Adjustment Type *</label>
+                        <select name="adjustment_type" id="adjustment_type" required onchange="recalculateAllRows()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white">
+                            <option value="correction">Stock Correction (+/-)</option>
+                            <option value="increase">Stock Increase</option>
+                            <option value="decrease">Stock Decrease</option>
+                            <option value="opening_stock">Opening Stock Update</option>
                         </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Date *</label>
+                        <input type="date" name="adjustment_date" required value="{{ now()->toDateString() }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Reference / Reason</label>
+                        <input type="text" name="reason" placeholder="e.g. Stock count discrepancy" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
                 </div>
 
-                <div class="overflow-x-auto min-h-60">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 font-bold uppercase text-[9px] tracking-wider">
-                                <th class="px-6 py-3">Product details</th>
-                                <th class="px-6 py-3 text-right">Current Stock</th>
-                                <th class="px-6 py-3 text-right">Adjustment Qty *</th>
-                                <th class="px-6 py-3 text-right">New Stock</th>
-                                <th class="px-6 py-3 text-right w-16">Remove</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adjustmentTableBody" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Items added dynamically -->
-                            <tr id="emptyRowPlaceholder">
-                                <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-semibold">
-                                    No products selected. Select a product from the top-right menu to adjust stock.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mb-8">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Transaction Notes (Optional)</label>
+                    <textarea name="notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500" placeholder="Overall reason or reference for this adjustment..."></textarea>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Add Product</label>
+                    <div class="relative" id="productSearchContainer">
+                        <input 
+                            type="text" 
+                            id="productSearchInput" 
+                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white" 
+                            placeholder="Search by SKU or product name..."
+                            autocomplete="off"
+                        >
+                        <div id="productSuggestions" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                            <!-- JS will populate suggestions here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-200/60 rounded-xl overflow-hidden mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50/50 border-b border-slate-200/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                    <th class="px-6 py-3">Product</th>
+                                    <th class="px-6 py-3">Store & Inventory</th>
+                                    <th class="px-6 py-3 text-right">Unit & Qty</th>
+                                    <th class="px-6 py-3 text-right">New Stock</th>
+                                    <th class="px-6 py-3 text-right w-16">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adjustmentTableBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Items added dynamically -->
+                                <tr id="emptyRowPlaceholder">
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
+                                        No products added yet. Search and select a product above.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="px-6 py-2.5 bg-[#84A9A6] hover:bg-[#729794] text-white font-medium rounded-lg text-sm transition shadow-sm cursor-pointer">
+                        Post Adjustments
+                    </button>
                 </div>
             </div>
         </form>
@@ -146,16 +104,122 @@
 
     <!-- JS Handling Dynamic Products Addition -->
     <script>
+        const allProducts = @json($products);
         let rowIndex = 0;
 
-        function addProductRow(selectElement) {
-            const productId = selectElement.value;
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('productSearchInput');
+            const suggestionsBox = document.getElementById('productSuggestions');
+            let highlightIndex = -1;
+            let currentSuggestions = [];
+
+            // Prevent form submit on Enter in search box
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (highlightIndex > -1 && highlightIndex < currentSuggestions.length) {
+                        selectProduct(currentSuggestions[highlightIndex]);
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (highlightIndex < currentSuggestions.length - 1) {
+                        highlightIndex++;
+                        updateHighlight();
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (highlightIndex > 0) {
+                        highlightIndex--;
+                        updateHighlight();
+                    }
+                } else if (e.key === 'Escape') {
+                    closeSuggestions();
+                }
+            });
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                if (query.length === 0) {
+                    closeSuggestions();
+                    return;
+                }
+
+                currentSuggestions = allProducts.filter(p => 
+                    (p.sku && p.sku.toLowerCase().includes(query)) || 
+                    (p.name && p.name.toLowerCase().includes(query))
+                ).slice(0, 10); // Limit to 10 results
+
+                renderSuggestions();
+            });
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!document.getElementById('productSearchContainer').contains(e.target)) {
+                    closeSuggestions();
+                }
+            });
+
+            function renderSuggestions() {
+                if (currentSuggestions.length === 0) {
+                    suggestionsBox.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">No products found</div>';
+                    suggestionsBox.classList.remove('hidden');
+                    return;
+                }
+
+                highlightIndex = -1;
+                suggestionsBox.innerHTML = '';
+                currentSuggestions.forEach((prod, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'px-4 py-2 cursor-pointer text-sm border-b border-slate-50 last:border-0 suggestion-item';
+                    div.innerHTML = `<span class="font-bold text-slate-700">${prod.sku}</span> - <span class="text-slate-600">${prod.name}</span> <span class="text-xs text-slate-400 ml-2">(Stock: ${prod.current_stock})</span>`;
+                    
+                    div.addEventListener('mouseenter', () => {
+                        highlightIndex = index;
+                        updateHighlight();
+                    });
+                    
+                    div.addEventListener('click', () => {
+                        selectProduct(prod);
+                    });
+                    
+                    suggestionsBox.appendChild(div);
+                });
+
+                suggestionsBox.classList.remove('hidden');
+            }
+
+            function updateHighlight() {
+                const items = suggestionsBox.querySelectorAll('.suggestion-item');
+                items.forEach((item, index) => {
+                    if (index === highlightIndex) {
+                        item.classList.add('bg-teal-50', 'text-teal-700');
+                        item.classList.remove('text-slate-700');
+                    } else {
+                        item.classList.remove('bg-teal-50', 'text-teal-700');
+                    }
+                });
+            }
+
+            function closeSuggestions() {
+                suggestionsBox.classList.add('hidden');
+                highlightIndex = -1;
+            }
+
+            function selectProduct(prod) {
+                addProductRow(prod);
+                searchInput.value = '';
+                closeSuggestions();
+                searchInput.focus();
+            }
+        });
+
+        function addProductRow(prod) {
+            const productId = prod.id;
             if (!productId) return;
 
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const sku = selectedOption.getAttribute('data-sku');
-            const name = selectedOption.text;
-            const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
+            const sku = prod.sku;
+            const name = prod.name;
+            const currentStock = parseFloat(prod.current_stock);
 
             // Check if already added
             if (document.getElementById(`row-${productId}`)) {
@@ -163,9 +227,8 @@
                     title: 'Already Added',
                     text: 'This product is already in the adjustment list.',
                     icon: 'info',
-                    confirmButtonColor: '#3b82f6'
+                    confirmButtonColor: '#0d9488'
                 });
-                selectElement.value = '';
                 return;
             }
 
@@ -183,19 +246,18 @@
             tr.innerHTML = `
                 <td class="px-6 py-4">
                     <input type="hidden" name="items[${rowIndex}][product_id]" value="${productId}">
-                    <div class="font-bold text-slate-800">${name}</div>
-                    <div class="text-[10px] text-slate-400 font-mono">${sku}</div>
+                    <div class="font-medium text-slate-800">${name}</div>
+                    <div class="text-[10px] text-slate-400">SKU: ${sku}</div>
                 </td>
-                <td class="px-6 py-4 text-right font-medium text-slate-500">
-                    ${currentStock.toFixed(0)}
+                <td class="px-6 py-4 text-slate-600 text-sm">
+                    Main Store<br><span class="text-[10px] text-slate-400">Current: ${currentStock.toFixed(0)}</span>
                 </td>
                 <td class="px-6 py-4 text-right">
                     <input 
                         type="number" 
                         step="any" 
-                        min="0.01"
                         name="items[${rowIndex}][quantity]" 
-                        class="qty-input w-24 px-2.5 py-2.5.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold"
+                        class="qty-input w-24 px-2 py-1.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium"
                         value="1" 
                         oninput="calculateRow(this.closest('tr'))"
                         required
@@ -204,7 +266,7 @@
                 <td class="px-6 py-4 text-right">
                     <input 
                         type="text" 
-                        class="new-stock-display w-24 px-2.5 py-2.5.5 bg-slate-50 border border-slate-150 rounded text-right font-bold text-slate-800 focus:outline-none"
+                        class="new-stock-display w-24 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded text-right font-medium text-slate-800 focus:outline-none"
                         value="${(currentStock + 1).toFixed(0)}"
                         readonly
                     >
@@ -213,9 +275,9 @@
                     <button 
                         type="button" 
                         onclick="removeRow(this, ${productId})"
-                        class="p-1.5 text-slate-450 hover:text-red-600 hover:bg-red-50 rounded transition duration-150 cursor-pointer"
+                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition duration-150 cursor-pointer"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
                     </button>
@@ -227,9 +289,6 @@
 
             // Recalculate row just added
             calculateRow(tr);
-
-            // Reset select
-            selectElement.value = '';
         }
 
         function removeRow(btn, productId) {
@@ -241,8 +300,8 @@
                 const tr = document.createElement('tr');
                 tr.id = 'emptyRowPlaceholder';
                 tr.innerHTML = `
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-semibold">
-                        No products selected. Select a product from the top-right menu to adjust stock.
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
+                        No products added yet. Search and select a product above.
                     </td>
                 `;
                 tbody.appendChild(tr);

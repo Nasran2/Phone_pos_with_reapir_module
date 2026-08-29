@@ -415,6 +415,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('stock-adjustments', [StockAdjustmentController::class, 'store'])
         ->name('stock-adjustments.store')
         ->middleware('permission:stock.adjustment.create');
+    Route::get('stock-adjustments/report', [StockAdjustmentController::class, 'report'])
+        ->name('stock-adjustments.report')
+        ->middleware('permission:reports.view');
     Route::get('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'show'])
         ->name('stock-adjustments.show')
         ->middleware('permission:stock.adjustment.view');
