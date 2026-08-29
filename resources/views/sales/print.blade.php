@@ -304,13 +304,21 @@
                     <tr>
                         <th>#</th>
                         <th>Phone / Product Description</th>
-                        <th class="text-center">Qty</th>
                         <th class="text-right">Unit Price</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-right">Unit Discount</th>
+                        <th class="text-right">Final Unit Price</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Final Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($sale->items as $item)
+                        @php
+                            $itemGross = (float) $item->quantity * (float) $item->selling_price;
+                            $itemDiscount = $itemGross - (float) $item->subtotal;
+                            $unitDiscount = $item->quantity > 0 ? $itemDiscount / (float) $item->quantity : 0;
+                            $finalUnitPrice = (float) $item->selling_price - $unitDiscount;
+                        @endphp
                         <tr>
                             <td class="item-index">{{ $loop->iteration }}</td>
                             <td>
@@ -321,9 +329,11 @@
                                     @if($item->productSerial){{ ($item->product?->sku || $item->variantLabel()) ? ' • ' : '' }}IMEI / Serial: {{ $item->productSerial->serial_number }}@endif
                                 </div>
                             </td>
+                            <td class="text-right">{{ SystemSettings::money((float) $item->selling_price) }}</td>
+                            <td class="text-right">{{ $unitDiscount > 0 ? SystemSettings::money($unitDiscount) : '-' }}</td>
+                            <td class="text-right">{{ SystemSettings::money($finalUnitPrice) }}</td>
                             <td class="text-center">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
-                            <td class="text-right">{{ SystemSettings::money((float) ((float) $item->unit_price > 0 ? $item->unit_price : $item->selling_price)) }}</td>
-                            <td class="text-right"><strong>{{ SystemSettings::money((float) ((float) $item->line_total > 0 ? $item->line_total : $item->subtotal)) }}</strong></td>
+                            <td class="text-right"><strong>{{ SystemSettings::money((float) $item->subtotal) }}</strong></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -346,14 +356,17 @@
                 @endif
             </div>
             <div class="totals">
-                <div class="total-row"><span>Subtotal</span><span>{{ SystemSettings::money((float) $sale->total_amount) }}</span></div>
-                @if((float) $sale->discount_amount > 0)
-                    <div class="total-row"><span>Discount</span><span>- {{ SystemSettings::money((float) $sale->discount_amount) }}</span></div>
+                @php
+                    $totalDiscount = (float) $sale->total_amount - ((float) $sale->payable_amount - (float) $sale->tax_amount);
+                @endphp
+                <div class="total-row"><span>Total Amount (Before Discount)</span><span>{{ SystemSettings::money((float) $sale->total_amount) }}</span></div>
+                @if($totalDiscount > 0)
+                    <div class="total-row"><span>Discount Total</span><span>- {{ SystemSettings::money($totalDiscount) }}</span></div>
                 @endif
                 @if((float) $sale->tax_amount > 0)
                     <div class="total-row"><span>Tax</span><span>{{ SystemSettings::money((float) $sale->tax_amount) }}</span></div>
                 @endif
-                <div class="total-row grand-total"><span>Grand Total</span><span>{{ SystemSettings::money((float) $sale->payable_amount) }}</span></div>
+                <div class="total-row grand-total"><span>Final Total Price</span><span>{{ SystemSettings::money((float) $sale->payable_amount) }}</span></div>
                 <div class="total-row paid-total"><span>Amount Paid</span><span>{{ SystemSettings::money((float) $sale->paid_amount) }}</span></div>
                 @if($hasChequeHold)
                     <div class="total-row"><span>Cheque Pending</span><span>{{ SystemSettings::money((float) $sale->cheque_hold_amount) }}</span></div>

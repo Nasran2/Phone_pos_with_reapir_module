@@ -71,7 +71,9 @@ class TaxCalculationService
         $itemDiscountAmount = 0;
         if ($discountType === 'percentage' && $discountValue > 0) {
             $itemDiscountAmount = $grossAmount * ($discountValue / 100);
-        } elseif ($discountType === 'fixed' && $discountValue > 0) {
+        } elseif ($discountType === 'fixed_unit' && $discountValue > 0) {
+            $itemDiscountAmount = $discountValue * $quantity;
+        } elseif (($discountType === 'fixed' || $discountType === 'fixed_total') && $discountValue > 0) {
             $itemDiscountAmount = $discountValue;
         }
         
