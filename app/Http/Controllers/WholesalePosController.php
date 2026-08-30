@@ -139,6 +139,7 @@ class WholesalePosController extends Controller
             ->orderBy('hold_sales.id', 'desc')
             ->get();
         $resumeHold = request()->filled('hold_id') ? $this->resumeHoldPayload((int) request('hold_id'), 'wholesale') : null;
+        $editSale = request()->filled('edit_sale_id') ? $this->editSalePayload((int) request('edit_sale_id')) : null;
 
         // Fetch Payment Methods
         $paymentMethods = $this->enabledPaymentMethods();
@@ -152,7 +153,7 @@ class WholesalePosController extends Controller
         $activeStoreId = $storeId;
         $posSettings = SystemSettings::posPayload();
 
-        return view('pos.wholesale', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'enableMultiStore', 'stores', 'activeStoreId', 'posSettings', 'distributionEnabled', 'sourceType', 'lorries', 'activeLorryId', 'distributionTrips', 'activeTripId'));
+        return view('pos.wholesale', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'editSale', 'enableMultiStore', 'stores', 'activeStoreId', 'posSettings', 'distributionEnabled', 'sourceType', 'lorries', 'activeLorryId', 'distributionTrips', 'activeTripId'));
     }
 
     /**
@@ -193,13 +194,41 @@ class WholesalePosController extends Controller
             'source_type' => 'nullable|in:store,lorry',
             'lorry_id' => 'nullable|integer|exists:lorries,id',
             'trip_id' => 'nullable|integer|exists:distribution_trips,id',
+            'edit_sale_id' => 'nullable|integer|exists:sales,id',
         ]);
 
         DB::beginTransaction();
 
         try {
+            $isEditing = $request->filled('edit_sale_id');
+            $editSale = null;
+            $invoiceNo = null;
+
+            if ($isEditing) {
+                $editSale = Sale::with('customer')->findOrFail($request->edit_sale_id);
+                $invoiceNo = $editSale->invoice_no;
+                
+                // Revert existing stock
+                app(\App\Services\SaleInventoryService::class)->restore($editSale, 'Sale edited');
+                
+                // Delete previous items
+                $editSale->items()->delete();
+                
+                // Delete previous tax transactions
+                DB::table('tax_transactions')->where('reference_type', Sale::class)->where('reference_id', $editSale->id)->delete();
+                
+                // Delete previous journal entries
+                $journalService = app(\App\Services\JournalService::class);
+                $journalEntry = \App\Models\JournalEntry::where('reference_type', 'Sale')->where('reference_id', $editSale->id)->first();
+                if ($journalEntry) {
+                    $journalEntry->items()->delete();
+                    $journalEntry->delete();
+                }
+            } else {
+                $invoiceNo = $invoiceNumbers->next('wholesale');
+            }
+            
             $today = date('Y-m-d');
-            $invoiceNo = $invoiceNumbers->next('wholesale');
 
             // --- TAX CALCULATION BEGIN ---
             $taxService = app(TaxCalculationService::class);
@@ -332,10 +361,9 @@ class WholesalePosController extends Controller
                 throw new \Exception('Please select a lorry before completing a lorry sale.');
             }
 
-            // 1. Insert Sales Record
-            $saleId = DB::table('sales')->insertGetId([
+            // 1. Insert or Update Sales Record
+            $saleData = [
                 'customer_id' => $request->customer_id,
-                'invoice_no' => $invoiceNo,
                 'sale_date' => $today,
                 'pos_type' => $request->pos_type,
                 'total_amount' => $calculatedTotalAmount,
@@ -344,21 +372,30 @@ class WholesalePosController extends Controller
                 'tax_amount' => $calculatedAddedTaxTotal,
                 'total_tax_amount' => $calculatedTaxTotal,
                 'payable_amount' => $calculatedPayableTotal,
-                'paid_amount' => 0,
-                'cheque_hold_amount' => 0,
-                'due_amount' => $calculatedPayableTotal,
-                'payment_status' => 'Due',
+                'paid_amount' => $isEditing ? (float) $editSale->paid_amount : 0,
+                'cheque_hold_amount' => $isEditing ? (float) $editSale->cheque_hold_amount : 0,
+                'due_amount' => max(0, $calculatedPayableTotal - ($isEditing ? (float) $editSale->paid_amount : 0)),
+                'payment_status' => $isEditing ? ($calculatedPayableTotal <= (float) $editSale->paid_amount ? 'Paid' : 'Due') : 'Due',
                 'total_cost_amount' => $totalCostAmount,
                 'total_profit_amount' => $totalProfitAmount,
                 'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
                 'source_type' => $sourceType,
                 'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,
                 'trip_id' => $sourceType === 'lorry' ? $request->trip_id : null,
-                'status' => 'final',
                 'created_by' => auth()->id(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                'status' => 'completed',
+            ];
+
+            if ($isEditing) {
+                $saleData['updated_at'] = now();
+                DB::table('sales')->where('id', $editSale->id)->update($saleData);
+                $saleId = $editSale->id;
+            } else {
+                $saleData['invoice_no'] = $invoiceNo;
+                $saleData['created_at'] = now();
+                $saleData['updated_at'] = now();
+                $saleId = DB::table('sales')->insertGetId($saleData);
+            }
 
             // 2. Insert Items & Update Stock
             $taxRatesData = DB::table('tax_rates')->get()->keyBy('id');
@@ -441,20 +478,25 @@ class WholesalePosController extends Controller
             }
 
             // 4. Handle Mixed Payments
-            DB::table('customers')->where('id', $request->customer_id)->increment('balance', $request->payable_amount);
-            $cBalance = DB::table('customers')->where('id', $request->customer_id)->value('balance');
-            if ($request->payable_amount > 0) {
+            $balanceAdjustment = $calculatedPayableTotal;
+            if ($isEditing && $editSale) {
+                $balanceAdjustment = $calculatedPayableTotal - (float) $editSale->payable_amount;
+            }
+
+            if (abs($balanceAdjustment) >= 0.01) {
+                DB::table('customers')->where('id', $request->customer_id)->increment('balance', $balanceAdjustment);
+                $cBalance = DB::table('customers')->where('id', $request->customer_id)->value('balance');
                 CustomerTransaction::create([
                     'customer_id' => $request->customer_id,
                     'transactionable_type' => Sale::class,
                     'transactionable_id' => $saleId,
                     'transaction_date' => $today,
                     'type' => 'sale',
-                    'debit' => $request->payable_amount,
-                    'credit' => 0,
+                    'debit' => $balanceAdjustment > 0 ? $balanceAdjustment : 0,
+                    'credit' => $balanceAdjustment < 0 ? abs($balanceAdjustment) : 0,
                     'balance_after' => $cBalance,
                     'reference_no' => $invoiceNo,
-                    'note' => 'Wholesale Sale Invoice',
+                    'note' => $isEditing ? 'Invoice Edited: Amount Adjusted' : 'Wholesale Sale Invoice',
                     'created_by' => auth()->id(),
                 ]);
             }
@@ -637,5 +679,48 @@ class WholesalePosController extends Controller
             ->where('is_active', true)
             ->whereIn('name', $enabledNames)
             ->get();
+    }
+
+    private function editSalePayload(int $saleId): ?array
+    {
+        $sale = \App\Models\Sale::with(['customer', 'items.product', 'items.variant', 'items.productSerial'])->find($saleId);
+
+        if (! $sale) {
+            return null;
+        }
+
+        $items = $sale->items->map(function ($item) {
+            $variantLabel = $item->variant ? collect([$item->variant->color, $item->variant->storage, $item->variant->ram])->filter()->implode(' / ') : null;
+
+            return [
+                'product_id' => $item->product_id,
+                'variant_id' => $item->variant_id,
+                'variant_label' => $variantLabel,
+                'name' => $item->product->name,
+                'quantity' => (float) $item->quantity,
+                'cost_price' => (float) $item->cost_price,
+                'selling_price' => (float) $item->selling_price,
+                'discount_amount' => (float) $item->discount_amount,
+                'discount_type' => $item->discount_type ?? 'percentage',
+                'line_total' => (float) $item->subtotal,
+                'tax_mode' => $item->tax_mode,
+                'tax_status' => $item->tax_status,
+                'tax_rate' => (float) ($item->tax_rate ?? 0),
+                'note' => '',
+                'stock' => 999, // We don't strictly need stock validation when editing because we'll just restore anyway, but keeping a fallback
+                'serial_no' => $item->productSerial ? $item->productSerial->serial_number : null,
+            ];
+        })->values();
+
+        return [
+            'id' => $sale->id,
+            'customer_id' => $sale->customer_id,
+            'customer_name' => $sale->customer ? $sale->customer->name : null,
+            'discountAmount' => (float) $sale->discount_amount,
+            'discountType' => $sale->discount_type ?? 'percentage',
+            'taxPercentage' => (float) SystemSettings::number('default_sale_tax', 15, 'tax_settings'),
+            'shippingCost' => 0,
+            'items' => $items,
+        ];
     }
 }

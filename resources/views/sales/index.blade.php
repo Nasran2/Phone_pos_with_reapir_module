@@ -19,6 +19,25 @@
         },
         money(value) {
             return Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        editSale(id, status, posType) {
+            if (status === 'Paid') {
+                Swal.fire({
+                    title: 'Edit Paid Bill?',
+                    text: 'This bill is already paid. Existing payments will be preserved, but stock deductions will be reversed and re-applied based on your new edits.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f59e0b',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, edit it'
+                }).then((result) => {
+                    if(result.isConfirmed) {
+                        window.location.href = posType === 'wholesale' ? `/pos/wholesale?edit_sale_id=${id}` : `/pos/retail?edit_sale_id=${id}`;
+                    }
+                });
+            } else {
+                window.location.href = posType === 'wholesale' ? `/pos/wholesale?edit_sale_id=${id}` : `/pos/retail?edit_sale_id=${id}`;
+            }
         }
     }" @keydown.escape.window="closePayment()">
     <div class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
@@ -93,19 +112,19 @@
                 <table class="w-full text-left">
                     <thead class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-600">
                         <tr>
-                            <th class="px-4 py-4">Invoice No</th>
-                            <th class="px-4 py-4">Date & Time</th>
+                            <th class="px-4 py-4 whitespace-nowrap">Invoice No</th>
+                            <th class="px-4 py-4 whitespace-nowrap">Date</th>
                             <th class="px-4 py-4">Customer</th>
-                            <th class="px-4 py-4">Type</th>
-                            <th class="w-14 px-2 py-4 text-center">Items</th>
-                            <th class="px-4 py-4 text-right">Subtotal</th>
-                            <th class="w-20 px-2 py-4 text-right">Discount</th>
-                            <th class="px-4 py-4 text-right">Grand Total</th>
-                            <th class="px-4 py-4 text-right">Paid</th>
-                            <th class="px-4 py-4 text-right">Due</th>
-                            <th class="px-4 py-4">Payment</th>
-                            <th class="px-4 py-4">Inventory</th>
-                            <th class="px-4 py-4 text-right">Action</th>
+                            <th class="px-2 py-4 whitespace-nowrap">Type</th>
+                            <th class="w-12 px-2 py-4 text-center whitespace-nowrap">Items</th>
+                            <th class="px-4 py-4 text-right whitespace-nowrap">Subtotal</th>
+                            <th class="w-20 px-2 py-4 text-right whitespace-nowrap">Discount</th>
+                            <th class="px-4 py-4 text-right whitespace-nowrap">Grand Total</th>
+                            <th class="px-4 py-4 text-right whitespace-nowrap">Paid</th>
+                            <th class="px-4 py-4 text-right whitespace-nowrap">Due</th>
+                            <th class="px-2 py-4 whitespace-nowrap">Payment</th>
+                            <th class="px-2 py-4 whitespace-nowrap">Inventory</th>
+                            <th class="px-4 py-4 text-right whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
@@ -123,21 +142,21 @@
                         @endphp
                         <tr class="hover:bg-slate-50">
                             <td class="whitespace-nowrap px-4 py-4 font-bold text-slate-850">{{ $sale->invoice_no }}</td>
-                            <td class="px-4 py-4">{{ $sale->created_at->format('Y-m-d h:i A') }}</td>
-                            <td class="px-4 py-4">
+                            <td class="whitespace-nowrap px-4 py-4">{{ $sale->created_at->format('Y-m-d') }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="font-semibold">{{ $sale->customer->name ?? 'Walk-in Customer' }}</div>
                                 <div class="text-[10px] text-slate-400">{{ $sale->customer->phone ?? '' }}</div>
                             </td>
-                            <td class="px-4 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $typeClass }}">{{ ucfirst($sale->pos_type) }}</span></td>
-                            <td class="w-14 px-2 py-4 text-center font-semibold">{{ $sale->items_count }}</td>
-                            <td class="px-4 py-4 text-right">Rs. {{ number_format((float) $sale->total_amount, 2) }}</td>
-                            <td class="w-20 px-2 py-4 text-right">Rs. {{ number_format((float) $sale->discount_amount, 2) }}</td>
-                            <td class="px-4 py-4 text-right font-black text-slate-850">Rs. {{ number_format((float) $sale->payable_amount, 2) }}</td>
-                            <td class="px-4 py-4 text-right text-emerald-700 font-bold">Rs. {{ number_format((float) $sale->paid_amount, 2) }}</td>
-                            <td class="px-4 py-4 text-right text-red-600 font-bold">Rs. {{ number_format((float) $sale->due_amount, 2) }}</td>
-                            <td class="px-4 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">{{ $status }}</span></td>
-                            <td class="px-4 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $sale->stock_deducted_at ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">{{ $sale->inventoryStatus() }}</span></td>
-                            <td class="px-4 py-4">
+                            <td class="whitespace-nowrap px-2 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $typeClass }}">{{ ucfirst($sale->pos_type) }}</span></td>
+                            <td class="w-12 whitespace-nowrap px-2 py-4 text-center font-semibold">{{ $sale->items_count }}</td>
+                            <td class="whitespace-nowrap px-4 py-4 text-right">Rs. {{ number_format((float) $sale->total_amount, 2) }}</td>
+                            <td class="w-20 whitespace-nowrap px-2 py-4 text-right">Rs. {{ number_format((float) $sale->discount_amount, 2) }}</td>
+                            <td class="whitespace-nowrap px-4 py-4 text-right font-black text-slate-850">Rs. {{ number_format((float) $sale->payable_amount, 2) }}</td>
+                            <td class="whitespace-nowrap px-4 py-4 text-right text-emerald-700 font-bold">Rs. {{ number_format((float) $sale->paid_amount, 2) }}</td>
+                            <td class="whitespace-nowrap px-4 py-4 text-right text-red-600 font-bold">Rs. {{ number_format((float) $sale->due_amount, 2) }}</td>
+                            <td class="whitespace-nowrap px-2 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">{{ $status }}</span></td>
+                            <td class="whitespace-nowrap px-2 py-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $sale->stock_deducted_at ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">{{ $sale->inventoryStatus() }}</span></td>
+                            <td class="whitespace-nowrap px-4 py-4">
                                 <div class="flex justify-end gap-1.5">
                                     @if(auth()->user()->hasPermission('sales.edit_payment') && (float) $sale->due_amount > 0.009 && $sale->status !== 'cancelled')
                                     <button type="button"
@@ -154,6 +173,13 @@
                                             title="Receive payment for {{ $sale->invoice_no }}">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 10h18M7 15h3"/></svg>
                                         <span class="sr-only">Receive Payment</span>
+                                    </button>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('sales.edit') && $sale->status !== 'cancelled')
+                                    <button type="button"
+                                            @click="editSale({{ $sale->id }}, '{{ $sale->payment_status }}', '{{ $sale->pos_type }}')"
+                                            class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50" title="Edit Bill">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.12l-3.122.921.921-3.122a4.5 4.5 0 011.12-1.89l13.001-13z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125L16.862 4.487" /></svg>
                                     </button>
                                     @endif
                                     @if(auth()->user()->hasPermission('sales.invoice_view'))

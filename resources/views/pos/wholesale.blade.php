@@ -113,7 +113,14 @@
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <h1 class="text-sm font-black tracking-wide leading-none">{{ $isLorryMode ? 'Lorry POS' : 'Wholesale POS' }}</h1>
-                            <span class="hidden sm:inline-flex px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">{{ $isLorryMode ? 'Assigned Lorry' : 'Wholesale Mode' }}</span>
+                            <span class="hidden sm:inline-flex px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">
+                                <template x-if="editSale">
+                                    <span>Updating Invoice #<span x-text="editSale.id"></span></span>
+                                </template>
+                                <template x-if="!editSale">
+                                    <span>{{ $isLorryMode ? 'Assigned Lorry' : 'Wholesale Mode' }}</span>
+                                </template>
+                            </span>
                         </div>
                         <p class="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
                     </div>
@@ -829,6 +836,7 @@
                 paymentMethods: @json($paymentMethods),
                 holdSales: @json($holdSales),
                 resumeHold: @json($resumeHold),
+                editSale: @json($editSale),
                 settings: @json($posSettings),
                 sourceType: @json($sourceType ?? 'store'),
                 activeLorryId: @json($activeLorryId),
@@ -902,6 +910,8 @@
                 init() {
                     if (this.resumeHold) {
                         this.recallHeldSale(this.resumeHold, true);
+                    } else if (this.editSale) {
+                        this.recallHeldSale(this.editSale, false);
                     }
 
                     // Register keyboard shortcuts
@@ -1409,7 +1419,8 @@
                         store_id: {{ $activeStoreId ?? 1 }},
                         source_type: this.sourceType,
                         lorry_id: this.activeLorryId,
-                        trip_id: this.activeTripId
+                        trip_id: this.activeTripId,
+                        edit_sale_id: this.editSale?.id
                     };
 
                     fetch('{{ route("pos.wholesale.store") }}', {

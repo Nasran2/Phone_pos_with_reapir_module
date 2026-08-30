@@ -31,7 +31,14 @@
                     <div>
                         <div class="flex items-center gap-1.5">
                             <h2 class="text-sm font-bold text-white leading-tight">Retail POS</h2>
-                            <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Retail</span>
+                            <span class="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">
+                                <template x-if="editSale">
+                                    <span>Updating Invoice #<span x-text="editSale.id"></span></span>
+                                </template>
+                                <template x-if="!editSale">
+                                    <span>{{ $isLorryMode ?? false ? 'Assigned Lorry' : 'Retail Mode' }}</span>
+                                </template>
+                            </span>
                         </div>
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">Navigation Menu</p>
                     </div>
@@ -120,33 +127,33 @@
             </div>
 
                 <div class="flex w-full sm:w-auto min-w-0 items-center justify-end gap-1.5 sm:gap-3 overflow-x-auto scrollbar-hide">
-                    @if($enableMultiStore)
+                    @if($enableMultiStore ?? false)
                     <div class="flex items-center gap-2 mr-2">
                         <select onchange="window.location.href='{{ route('pos.retail') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500">
                             @foreach($stores as $s)
-                                <option value="{{ $s->id }}" {{ $activeStoreId == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                                <option value="{{ $s->id }}" {{ ($activeStoreId ?? 1) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     @endif
-                    @if($distributionEnabled && $lorries->isNotEmpty())
+                    @if($distributionEnabled ?? false && ($lorries ?? collect())->isNotEmpty())
                     <div class="flex items-center gap-2 mr-2">
                         <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Retail stock source">
-                            <option value="store" {{ $sourceType === 'store' ? 'selected' : '' }}>Store Stock</option>
-                            <option value="lorry" {{ $sourceType === 'lorry' ? 'selected' : '' }}>Lorry Stock</option>
+                            <option value="store" {{ ($sourceType ?? 'store') === 'store' ? 'selected' : '' }}>Store Stock</option>
+                            <option value="lorry" {{ ($sourceType ?? 'store') === 'lorry' ? 'selected' : '' }}>Lorry Stock</option>
                         </select>
-                        @if($sourceType === 'lorry')
+                        @if(($sourceType ?? 'store') === 'lorry')
                         <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select lorry">
                             <option value="">Select Lorry</option>
                             @foreach($lorries as $lorry)
-                                <option value="{{ $lorry->id }}" {{ (string) $activeLorryId === (string) $lorry->id ? 'selected' : '' }}>{{ $lorry->lorry_no }}</option>
+                                <option value="{{ $lorry->id }}" {{ (string) ($activeLorryId ?? '') === (string) $lorry->id ? 'selected' : '' }}>{{ $lorry->lorry_no }}</option>
                             @endforeach
                         </select>
-                        @if($distributionTrips->isNotEmpty())
-                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id={{ $activeLorryId }}&trip_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select trip">
+                        @if(($distributionTrips ?? collect())->isNotEmpty())
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id={{ $activeLorryId ?? '' }}&trip_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select trip">
                             <option value="">No Trip</option>
                             @foreach($distributionTrips as $trip)
-                                <option value="{{ $trip->id }}" {{ (string) $activeTripId === (string) $trip->id ? 'selected' : '' }}>{{ $trip->trip_no }}</option>
+                                <option value="{{ $trip->id }}" {{ (string) ($activeTripId ?? '') === (string) $trip->id ? 'selected' : '' }}>{{ $trip->trip_no }}</option>
                             @endforeach
                         </select>
                         @endif
@@ -837,6 +844,7 @@
                 paymentMethods: @json($paymentMethods),
                 holdSales: @json($holdSales),
                 resumeHold: @json($resumeHold),
+                editSale: @json($editSale ?? null),
                 settings: @json($posSettings),
                 
                 // Selectors
@@ -928,6 +936,8 @@
 
                     if (this.resumeHold) {
                         this.recallHeldSale(this.resumeHold, true);
+                    } else if (this.editSale) {
+                        this.recallHeldSale(this.editSale, false);
                     }
 
                     // Focus search field
@@ -1586,6 +1596,7 @@
                             source_type: this.sourceType,
                             lorry_id: this.lorryId,
                             trip_id: this.tripId,
+                            edit_sale_id: this.editSale?.id
                         })
                     })
                     .then(async res => {
