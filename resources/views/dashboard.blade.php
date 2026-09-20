@@ -10,6 +10,9 @@
             <h2 class="text-lg font-bold text-slate-850 dark:text-white">Dashboard</h2>
             @if($enableMultiStore)
                 <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 ml-4">
+                    @if(request('date'))
+                        <input type="hidden" name="date" value="{{ request('date') }}">
+                    @endif
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Store:</label>
                     <select name="store_id" onchange="this.form.submit()" class="rounded-xl border-slate-300 text-sm font-semibold shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white py-1">
                         <option value="">All Stores</option>
@@ -54,15 +57,15 @@
             </div>
 
             <!-- Date Picker Card -->
-            <div class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <form id="date-filter-form" method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300">
+                @if(request('store_id'))
+                    <input type="hidden" name="store_id" value="{{ request('store_id') }}">
+                @endif
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                <span>{{ now(\App\Support\SystemSettings::get('timezone', config('app.timezone'), 'business_settings'))->format(\App\Support\SystemSettings::get('date_format', 'Y-m-d', 'business_settings')) }}</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <polyline points="6 9 12 15 18 9"/>
-                </svg>
-            </div>
+                <input type="date" name="date" value="{{ $today }}" max="{{ date('Y-m-d') }}" onchange="document.getElementById('date-filter-form').submit()" class="bg-transparent border-none p-0 text-xs font-semibold focus:ring-0 cursor-pointer text-slate-700 dark:text-slate-300" style="width: auto;">
+            </form>
         </div>
     </div>
 
@@ -272,10 +275,10 @@
                     </div>
                     <!-- Chart Toggles -->
                     <div class="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                        <button class="px-2.5 py-1 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs">Today</button>
-                        <button class="px-2.5 py-1">This Week</button>
-                        <button class="px-2.5 py-1">This Month</button>
-                        <button class="px-2.5 py-1">This Year</button>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'today']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'today' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">Today</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'week']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'week' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">This Week</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'month']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'month' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">This Month</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'year']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'year' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">This Year</a>
                     </div>
                 </div>
                 <!-- Line Chart Mount Div -->
@@ -464,7 +467,7 @@
                     </div>
                     <a href="#" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
                 </div>
-                <div class="flex-1 space-y-3.5 flex flex-col justify-center min-h-64">
+                <div class="flex-1 space-y-3.5 flex flex-col justify-start min-h-64">
                     @forelse($lowStockAlerts as $alert)
                         <div class="flex items-center justify-between pb-3.5 border-b border-slate-100/50 dark:border-slate-700/30 last:border-0 last:pb-0">
                             <div class="flex items-center gap-3">
@@ -535,7 +538,6 @@
                     </svg>
                 </div>
                 <div>
-                <div>
                     <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Due Invoices</p>
                     <h4 class="text-sm font-black text-slate-800 dark:text-white mt-1">{{ $dueInvoices }}</h4>
                 </div>
@@ -561,25 +563,26 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dashboardCurrency = @json($currencySymbol);
-            // A. Hourly Sales overview line chart
+            // A. Sales overview line chart
             const salesLineOptions = {
                 series: [
                     {
                         name: 'Retail Sales',
-                        data: @json($retailSalesHourly)
+                        data: @json($retailSalesChart)
                     },
                     {
                         name: 'Wholesale Sales',
-                        data: @json($wholesaleSalesHourly)
+                        data: @json($wholesaleSalesChart)
                     }
                 ],
                 chart: {
-                    type: 'area',
                     height: 280,
+                    type: 'area',
+                    fontFamily: 'Instrument Sans, sans-serif',
                     toolbar: { show: false },
                     zoom: { enabled: false }
                 },
-                colors: ['#2563eb', '#10b981'],
+                colors: ['#3b82f6', '#10b981'],
                 dataLabels: { enabled: false },
                 stroke: {
                     curve: 'smooth',

@@ -28,16 +28,8 @@
             
             <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 md:p-8">
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="md:col-span-1">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Adjustment Type *</label>
-                        <select name="adjustment_type" id="adjustment_type" required onchange="recalculateAllRows()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white">
-                            <option value="correction">Stock Correction (+/-)</option>
-                            <option value="increase">Stock Increase</option>
-                            <option value="decrease">Stock Decrease</option>
-                            <option value="opening_stock">Opening Stock Update</option>
-                        </select>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <input type="hidden" name="adjustment_type" id="adjustment_type" value="correction">
                     <div class="md:col-span-1">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Date *</label>
                         <input type="date" name="adjustment_date" required value="{{ now()->toDateString() }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500">
@@ -253,15 +245,23 @@
                     Main Store<br><span class="text-[10px] text-slate-400">Current: ${currentStock.toFixed(0)}</span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                    <input 
-                        type="number" 
-                        step="any" 
-                        name="items[${rowIndex}][quantity]" 
-                        class="qty-input w-24 px-2 py-1.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium"
-                        value="1" 
-                        oninput="calculateRow(this.closest('tr'))"
-                        required
-                    >
+                    <div class="flex items-center justify-end gap-1.5">
+                        <div class="flex items-center bg-slate-100 rounded p-0.5">
+                            <button type="button" onclick="toggleSign(this, '+')" class="sign-btn-plus px-2 py-1 rounded shadow-sm bg-white text-teal-600 font-black text-xs transition cursor-pointer">+</button>
+                            <button type="button" onclick="toggleSign(this, '-')" class="sign-btn-minus px-2 py-1 rounded text-slate-400 font-black text-xs hover:text-red-500 transition cursor-pointer">-</button>
+                            <input type="hidden" class="row-sign" value="+">
+                        </div>
+                        <input type="hidden" name="items[${rowIndex}][quantity]" class="qty-input" value="1">
+                        <input 
+                            type="number" 
+                            min="0"
+                            step="any" 
+                            class="display-qty w-20 px-2 py-1.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium"
+                            value="1" 
+                            oninput="calculateRow(this.closest('tr'))"
+                            required
+                        >
+                    </div>
                 </td>
                 <td class="px-6 py-4 text-right">
                     <input 
@@ -308,21 +308,33 @@
             }
         }
 
+        function toggleSign(btn, sign) {
+            const tr = btn.closest('tr');
+            const signInput = tr.querySelector('.row-sign');
+            signInput.value = sign;
+            
+            const btnPlus = tr.querySelector('.sign-btn-plus');
+            const btnMinus = tr.querySelector('.sign-btn-minus');
+            
+            if (sign === '+') {
+                btnPlus.className = "sign-btn-plus px-2 py-1 rounded shadow-sm bg-white text-teal-600 font-black text-xs transition cursor-pointer";
+                btnMinus.className = "sign-btn-minus px-2 py-1 rounded text-slate-400 font-black text-xs hover:text-red-500 transition cursor-pointer";
+            } else {
+                btnMinus.className = "sign-btn-minus px-2 py-1 rounded shadow-sm bg-white text-red-600 font-black text-xs transition cursor-pointer";
+                btnPlus.className = "sign-btn-plus px-2 py-1 rounded text-slate-400 font-black text-xs hover:text-teal-500 transition cursor-pointer";
+            }
+            calculateRow(tr);
+        }
+
         function calculateRow(row) {
             const currentStock = parseFloat(row.dataset.currentStock);
-            const inputQty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const typeSelect = document.getElementById('adjustment_type').value;
-
-            let newStock = currentStock;
-            if (typeSelect === 'increase') {
-                newStock = currentStock + inputQty;
-            } else if (typeSelect === 'decrease') {
-                newStock = currentStock - inputQty;
-            } else if (typeSelect === 'correction') {
-                newStock = currentStock + inputQty; // corrected quantity can be + or -
-            } else if (typeSelect === 'opening_stock') {
-                newStock = inputQty;
-            }
+            const displayQty = Math.abs(parseFloat(row.querySelector('.display-qty').value) || 0);
+            const sign = row.querySelector('.row-sign').value;
+            
+            const actualQty = sign === '+' ? displayQty : -displayQty;
+            row.querySelector('.qty-input').value = actualQty;
+            
+            let newStock = currentStock + actualQty;
 
             row.querySelector('.new-stock-display').value = newStock.toFixed(0);
         }

@@ -23,7 +23,7 @@ class DashboardController extends Controller
             abort(403, 'Unauthorized action. You do not have permission to view the dashboard.');
         }
 
-        $today = date('Y-m-d');
+        $today = $request->input('date', date('Y-m-d'));
         $enableMultiStore = Setting::get('enable_multi_store', false);
         $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : collect();
         $storeId = $request->input('store_id');
@@ -114,33 +114,103 @@ class DashboardController extends Controller
         }
         $lowStockAlerts = $lsQuery->take(5)->get();
 
-        // 7. Sales Overview Line Chart (Dynamic Hourly Sales)
-        $chartHours = ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'];
-        $retailSalesHourly = array_fill(0, 8, 0);
-        $wholesaleSalesHourly = array_fill(0, 8, 0);
-
-        $hourExpression = DB::connection()->getDriverName() === 'sqlite'
-            ? "CAST(strftime('%H', created_at) AS INTEGER)"
-            : 'HOUR(created_at)';
-
-        $hourlySalesQuery = DB::table('sales')
-            ->select('pos_type', DB::raw("FLOOR(($hourExpression) / 3) as hour_group"), DB::raw('SUM(payable_amount) as total'))
-            ->where('sale_date', $today)
-            ->groupBy('pos_type', 'hour_group');
-
-        if ($enableMultiStore && $storeId) {
-            $hourlySalesQuery->where('store_id', $storeId);
+        // 7. Sales Overview Line Chart (Dynamic Sales)
+        $chartPeriod = $request->input('chart_period', 'today'); // today, week, month, year
+        
+        if ($chartPeriod === 'today') {
+            $chartLabels = ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'];
+            $retailSalesChart = array_fill(0, 8, 0);
+            $wholesaleSalesChart = array_fill(0, 8, 0);
+            
+            $hourExpression = DB::connection()->getDriverName() === 'sqlite'
+                ? "CAST(strftime('%H', created_at) AS INTEGER)"
+                : 'HOUR(created_at)';
+            
+            $chartQuery = DB::table('sales')
+                ->select('pos_type', DB::raw("FLOOR(($hourExpression) / 3) as group_index"), DB::raw('SUM(payable_amount) as total'))
+                ->where('sale_date', $today)
+                ->groupBy('pos_type', 'group_index');
+        } elseif ($chartPeriod === 'week') {
+            $chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            $retailSalesChart = array_fill(0, 7, 0);
+            $wholesaleSalesChart = array_fill(0, 7, 0);
+            
+            $startOfWeek = \Carbon\Carbon::parse($today)->startOfWeek()->format('Y-m-d');
+            $endOfWeek = \Carbon\Carbon::parse($today)->endOfWeek()->format('Y-m-d');
+            
+            $dayOfWeekExpression = DB::connection()->getDriverName() === 'sqlite'
+                ? "CAST(strftime('%w', sale_date) AS INTEGER)" // 0 = Sunday
+                : "DAYOFWEEK(sale_date)"; // 1 = Sunday
+                
+            $chartQuery = DB::table('sales')
+                ->select('pos_type', DB::raw("$dayOfWeekExpression as group_index"), DB::raw('SUM(payable_amount) as total'))
+                ->whereBetween('sale_date', [$startOfWeek, $endOfWeek])
+                ->groupBy('pos_type', 'group_index');
+        } elseif ($chartPeriod === 'month') {
+            $daysInMonth = \Carbon\Carbon::parse($today)->daysInMonth;
+            $chartLabels = [];
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $chartLabels[] = (string) $i;
+            }
+            $retailSalesChart = array_fill(0, $daysInMonth, 0);
+            $wholesaleSalesChart = array_fill(0, $daysInMonth, 0);
+            
+            $startOfMonth = \Carbon\Carbon::parse($today)->startOfMonth()->format('Y-m-d');
+            $endOfMonth = \Carbon\Carbon::parse($today)->endOfMonth()->format('Y-m-d');
+            
+            $dayExpression = DB::connection()->getDriverName() === 'sqlite'
+                ? "CAST(strftime('%d', sale_date) AS INTEGER)"
+                : "DAY(sale_date)";
+                
+            $chartQuery = DB::table('sales')
+                ->select('pos_type', DB::raw("$dayExpression as group_index"), DB::raw('SUM(payable_amount) as total'))
+                ->whereBetween('sale_date', [$startOfMonth, $endOfMonth])
+                ->groupBy('pos_type', 'group_index');
+        } elseif ($chartPeriod === 'year') {
+            $chartLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            $retailSalesChart = array_fill(0, 12, 0);
+            $wholesaleSalesChart = array_fill(0, 12, 0);
+            
+            $startOfYear = \Carbon\Carbon::parse($today)->startOfYear()->format('Y-m-d');
+            $endOfYear = \Carbon\Carbon::parse($today)->endOfYear()->format('Y-m-d');
+            
+            $monthExpression = DB::connection()->getDriverName() === 'sqlite'
+                ? "CAST(strftime('%m', sale_date) AS INTEGER)"
+                : "MONTH(sale_date)";
+                
+            $chartQuery = DB::table('sales')
+                ->select('pos_type', DB::raw("$monthExpression as group_index"), DB::raw('SUM(payable_amount) as total'))
+                ->whereBetween('sale_date', [$startOfYear, $endOfYear])
+                ->groupBy('pos_type', 'group_index');
         }
 
-        $hourlySales = $hourlySalesQuery->get();
+        if ($enableMultiStore && $storeId) {
+            $chartQuery->where('store_id', $storeId);
+        }
 
-        foreach ($hourlySales as $sale) {
-            $index = (int) $sale->hour_group;
-            if ($index >= 0 && $index <= 7) {
-                if ($sale->pos_type === 'retail') {
-                    $retailSalesHourly[$index] += (float) $sale->total;
+        $chartData = $chartQuery->get();
+
+        foreach ($chartData as $sale) {
+            $index = (int) $sale->group_index;
+            
+            if ($chartPeriod === 'week') {
+                $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+                if ($isSqlite) {
+                    $index = $index === 0 ? 6 : $index - 1;
                 } else {
-                    $wholesaleSalesHourly[$index] += (float) $sale->total;
+                    $index = $index === 1 ? 6 : $index - 2;
+                }
+            } elseif ($chartPeriod === 'month') {
+                $index = $index - 1; 
+            } elseif ($chartPeriod === 'year') {
+                $index = $index - 1;
+            }
+            
+            if (isset($chartLabels[$index])) {
+                if ($sale->pos_type === 'retail') {
+                    $retailSalesChart[$index] += (float) $sale->total;
+                } else {
+                    $wholesaleSalesChart[$index] += (float) $sale->total;
                 }
             }
         }
@@ -211,14 +281,16 @@ class DashboardController extends Controller
             'recentSales',
             'recentPurchases',
             'lowStockAlerts',
-            'chartHours',
-            'retailSalesHourly',
-            'wholesaleSalesHourly',
+            'chartLabels',
+            'retailSalesChart',
+            'wholesaleSalesChart',
+            'chartPeriod',
             'paymentsSummary',
             'enableMultiStore',
             'stores',
             'storeId',
-            'upcomingCheques'
+            'upcomingCheques',
+            'today'
         ));
     }
 }

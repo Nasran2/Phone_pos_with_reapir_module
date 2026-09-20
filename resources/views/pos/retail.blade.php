@@ -934,6 +934,17 @@
                         this.holdSales = JSON.parse(storedHolds);
                     }
 
+                    // Load saved cart items
+                    const storedCart = localStorage.getItem('retail_cart_items');
+                    if (storedCart) {
+                        try {
+                            this.cart = JSON.parse(storedCart);
+                            this.recalculateCartTotals();
+                        } catch (e) {
+                            console.error('Failed to load cart from local storage', e);
+                        }
+                    }
+
                     if (this.resumeHold) {
                         this.recallHeldSale(this.resumeHold, true);
                     } else if (this.editSale) {
@@ -1324,6 +1335,9 @@
                     this.totals.grandTotal = Math.max(0, this.roundMoney(subTotal - globalDiscount + addedTax + this.toNumber(this.shippingCost)));
                     
                     this.paidAmount = this.totals.grandTotal;
+                    
+                    // Save cart to local storage
+                    localStorage.setItem('retail_cart_items', JSON.stringify(this.cart));
                 },
 
                 calculateSubtotal() { return this.totals.subTotal; },

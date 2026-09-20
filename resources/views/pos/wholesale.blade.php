@@ -4,6 +4,8 @@
 <head>
     @include('partials.head', ['title' => $isLorryMode ? __('Lorry POS') : __('Wholesale POS')])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body class="pos-shell h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="posApp()">
 
@@ -438,7 +440,7 @@
                             <div><label class="mb-1 block text-[10px] text-slate-500">Change Amount</label><div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-100 px-3 py-2"><span x-text="currencySymbol"></span><span x-text="formatMoney(calculateChangeAmount())"></span></div></div>
                         </div>
                         <div x-show="!useMultiplePayments && paymentMethod === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2">
-                            <input x-model="chequeDetails.cheque_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Cheque number *"><input type="date" x-model="chequeDetails.cheque_date" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs"><input x-model="chequeDetails.bank_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Bank *"><input x-model="chequeDetails.branch_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Branch"><input x-model="chequeDetails.account_holder_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account holder *"><input x-model="chequeDetails.account_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account number">
+                            <input x-model="chequeDetails.cheque_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Cheque number *"><input type="text" placeholder="YYYY-MM-DD" x-init="flatpickr($el, { allowInput: true, dateFormat: 'Y-m-d' })" x-model="chequeDetails.cheque_date" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs bg-white"><input x-model="chequeDetails.bank_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Bank *"><input x-model="chequeDetails.branch_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Branch"><input x-model="chequeDetails.account_holder_name" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account holder *"><input x-model="chequeDetails.account_number" class="rounded-md border border-amber-300 px-2 py-1.5 text-xs" placeholder="Account number">
                         </div>
                     </div>
 
@@ -488,7 +490,7 @@
                         </select>
                         <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="min-h-11 rounded-lg border border-red-200 bg-red-50 text-xl text-red-500" aria-label="Remove payment">×</button></div>
                     <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
-                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs sm:col-span-2" placeholder="Account holder *"></div>
+                    <div x-show="row.method === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="text" placeholder="YYYY-MM-DD" x-init="flatpickr($el, { allowInput: true, dateFormat: 'Y-m-d' })" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs bg-white"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs sm:col-span-2" placeholder="Account holder *"></div>
                 </div></template></div>
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 rounded-2xl border border-slate-200 p-4 text-xs font-bold"><div>Allocated<br><span class="text-lg" x-text="currencySymbol + formatMoney(allocatedTotal())"></span></div><div class="text-amber-600">Cheque hold<br><span class="text-lg" x-text="currencySymbol + formatMoney(chequeHoldTotal())"></span></div><div :class="Math.abs(remainingToAllocate()) < .01 ? 'text-emerald-600' : 'text-red-600'">Remaining<br><span class="text-lg" x-text="currencySymbol + formatMoney(remainingToAllocate())"></span></div></div>
             </div>
@@ -632,26 +634,29 @@
 
             <!-- Hold sales list -->
             <div class="space-y-3 flex-1 overflow-y-auto max-h-[360px] min-h-60 pr-1">
-                @forelse($holdSales as $hold)
+                <template x-for="hold in holdSales" :key="hold.id">
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-4">
                         <div class="space-y-1">
                             <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                 <span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wide">Held</span>
-                                <span>Ref: {{ $hold->reference_no }}</span>
+                                <span>Ref: <span x-text="hold.reference_no"></span></span>
                             </div>
-                            <p class="text-[10px] text-slate-500 font-semibold">{{ $hold->customer_name }} &bull; {{ date('M d, Y', strtotime($hold->hold_date)) }}</p>
+                            <p class="text-[10px] text-slate-500 font-semibold">
+                                <span x-text="hold.customer_name"></span> &bull; <span x-text="hold.hold_date"></span>
+                            </p>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span class="text-xs font-black text-slate-800">Rs. {{ number_format($hold->total_amount, 2) }}</span>
-                            <button @click="window.location.href='{{ route('pos.wholesale', ['hold_id' => $hold->id]) }}'" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer">Recall</button>
+                            <span class="text-xs font-black text-slate-800">Rs. <span x-text="formatMoney(hold.total_amount)"></span></span>
+                            <button @click="recallHeldSale(hold)" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer">Recall</button>
                         </div>
                     </div>
-                @empty
+                </template>
+                <template x-if="holdSales.length === 0">
                     <div class="py-12 text-center text-slate-400 font-semibold text-xs flex flex-col items-center justify-center gap-2">
                         <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <span>No transactions currently on hold.</span>
                     </div>
-                @endforelse
+                </template>
             </div>
         </div>
     </div>
@@ -908,6 +913,23 @@
                 checkoutSuccessData: {},
 
                 init() {
+                    // Load local storage hold sales queue
+                    const storedHolds = localStorage.getItem('wholesale_held_sales');
+                    if (storedHolds) {
+                        this.holdSales = JSON.parse(storedHolds);
+                    }
+
+                    // Load saved cart items
+                    const storedCart = localStorage.getItem('wholesale_cart_items');
+                    if (storedCart) {
+                        try {
+                            this.cart = JSON.parse(storedCart);
+                            this.recalculateCartTotals();
+                        } catch (e) {
+                            console.error('Failed to load cart from local storage', e);
+                        }
+                    }
+
                     if (this.resumeHold) {
                         this.recallHeldSale(this.resumeHold, true);
                     } else if (this.editSale) {
@@ -1252,6 +1274,9 @@
                     this.totals.grandTotal = Math.max(0, this.roundMoney(subTotal - globalDiscount + addedTax + this.toNumber(this.shippingCost)));
                     
                     this.syncSinglePayment();
+
+                    // Save cart to local storage
+                    localStorage.setItem('wholesale_cart_items', JSON.stringify(this.cart));
                 },
 
                 calculateGrossTotal() { return this.totals.grossTotal; },
@@ -1476,7 +1501,7 @@
                     });
                 },
 
-                // Puts a transaction on hold (Local storage/cookies mapping is standard)
+                // Puts a transaction on hold (Local storage mapping is standard)
                 holdCurrentSale() {
                     if (this.cart.length === 0) {
                         Swal.fire({ text: 'No products in cart to hold.', icon: 'warning' });
@@ -1484,11 +1509,36 @@
                     }
 
                     const holdRef = 'HOLD-' + Math.floor(1000 + Math.random() * 9000);
+                    const now = new Date();
                     
-                    // Simple AJAX or prompt save (we can insert directly or use local state, let's insert standard hold)
+                    const customer = this.customers.find(c => c.id == this.selectedCustomerId);
+                    const customerName = customer ? customer.name : 'Walk-in Customer';
+
+                    const newHold = {
+                        id: Date.now(),
+                        reference_no: holdRef,
+                        customer_id: this.selectedCustomerId,
+                        customer_name: customerName,
+                        hold_date: now.toLocaleString(),
+                        total_amount: this.calculateGrandTotal(),
+                        subtotal: this.calculateSubtotal(),
+                        discountType: this.globalDiscountType,
+                        discountValue: this.globalDiscountValue,
+                        tax: this.calculateTaxAmount(),
+                        taxPercentage: this.taxPercentage,
+                        items: this.cart,
+                        shippingCost: this.shippingCost
+                    };
+
+                    this.holdSales.push(newHold);
+                    localStorage.setItem('wholesale_held_sales', JSON.stringify(this.holdSales));
+                    
                     Swal.fire({ text: 'Sale placed on hold with Reference: ' + holdRef, icon: 'success' });
                     this.cart = [];
                     this.paidAmount = 0;
+                    this.globalDiscountType = 'fixed';
+                    this.globalDiscountValue = 0;
+                    this.shippingCost = 0;
                 },
 
                 // Recalls a held transaction from the list
@@ -1501,7 +1551,12 @@
                     this.taxPercentage = hold.taxPercentage || this.taxPercentage;
                     this.shippingCost = hold.shippingCost || 0;
                     this.currentHoldId = fromServer ? hold.id : null;
+                    
                     this.holdSales = this.holdSales.filter(h => h.id !== hold.id);
+                    if (!fromServer) {
+                        localStorage.setItem('wholesale_held_sales', JSON.stringify(this.holdSales));
+                    }
+                    
                     this.syncSinglePayment();
                 },
 
