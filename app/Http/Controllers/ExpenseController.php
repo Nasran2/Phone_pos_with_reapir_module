@@ -1,13 +1,16 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\Models\Account;
+use App\Models\ActivityLog;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
-use App\Models\Account;
 use App\Services\JournalService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class ExpenseController extends Controller
 {
@@ -62,9 +65,9 @@ class ExpenseController extends Controller
         }
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('expense_no', 'like', "%{$search}%")
-                  ->orWhere('title', 'like', "%{$search}%");
+                    ->orWhere('title', 'like', "%{$search}%");
             });
         }
 
@@ -97,7 +100,7 @@ class ExpenseController extends Controller
         ]);
 
         $validated['created_by'] = auth()->id();
-        $validated['expense_no'] = 'EXP-' . strtoupper(uniqid());
+        $validated['expense_no'] = 'EXP-'.strtoupper(uniqid());
 
         // Handle attachment if any
         if ($request->hasFile('attachment')) {
@@ -113,20 +116,20 @@ class ExpenseController extends Controller
                 'Expense',
                 $expense->id,
                 $expense->expense_no,
-                'Expense: ' . $expense->title,
+                'Expense: '.$expense->title,
                 [
                     [
                         'account_id' => $request->expense_account_id,
                         'debit' => $expense->amount,
                         'credit' => 0,
-                        'notes' => 'Expense incurred'
+                        'notes' => 'Expense incurred',
                     ],
                     [
                         'account_id' => $expense->paid_from_account_id,
                         'debit' => 0,
                         'credit' => $expense->amount,
-                        'notes' => 'Payment from ' . $expense->payment_method
-                    ]
+                        'notes' => 'Payment from '.$expense->payment_method,
+                    ],
                 ],
                 true,
                 $expense->created_by
@@ -143,6 +146,44 @@ class ExpenseController extends Controller
         });
 
         return redirect()->route('accounting.expenses.index')->with('success', 'Expense created successfully.');
+    }
+
+    public function edit(Expense $expense)
+    {
+        $categories = ExpenseCategory::all();
+        $paymentAccounts = Account::whereIn('account_type', ['Asset', 'Liability'])->get();
+        $expenseAccounts = Account::where('account_type', 'Expense')->get();
+        $expenseAccountId = DB::table('journal_entries')->join('journal_entry_items', 'journal_entry_items.journal_entry_id', '=', 'journal_entries.id')
+            ->where('reference_type', 'Expense')->where('reference_id', $expense->id)->where('debit', '>', 0)->value('account_id');
+
+        return view('accounting.expenses.edit', compact('expense', 'categories', 'paymentAccounts', 'expenseAccounts', 'expenseAccountId'));
+    }
+
+    public function update(Request $request, Expense $expense)
+    {
+        $data = $request->validate([
+            'expense_date' => 'required|date',
+            'expense_category_id' => 'required|exists:expense_categories,id',
+            'expense_account_id' => ['required', Rule::exists('accounts', 'id')->where('account_type', 'Expense')],
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|string|max:100',
+            'paid_from_account_id' => ['required', Rule::exists('accounts', 'id')->whereIn('account_type', ['Asset', 'Liability'])],
+            'reference_no' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+        DB::transaction(function () use ($expense, $data) {
+            $expense = Expense::lockForUpdate()->findOrFail($expense->id);
+            $this->journalService->deleteEntryByReference('Expense', $expense->id);
+            $expense->update(collect($data)->except('expense_account_id')->all());
+            $this->journalService->createEntry($expense->expense_date, 'Expense', $expense->id, $expense->expense_no, 'Expense: '.$expense->title, [
+                ['account_id' => $data['expense_account_id'], 'debit' => $expense->amount, 'credit' => 0],
+                ['account_id' => $expense->paid_from_account_id, 'debit' => 0, 'credit' => $expense->amount],
+            ]);
+            ActivityLog::log('Update', 'Expenses', 'Updated expense '.$expense->expense_no);
+        });
+
+        return redirect()->route('accounting.expenses.index')->with('success', 'Expense updated successfully.');
     }
 
     public function destroy(Expense $expense)

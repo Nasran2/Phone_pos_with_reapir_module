@@ -1,8 +1,9 @@
 <?php
+
 namespace App\Services;
 
-use App\Models\JournalEntry;
 use App\Models\Account;
+use App\Models\JournalEntry;
 use Illuminate\Support\Facades\DB;
 
 class JournalService
@@ -17,14 +18,14 @@ class JournalService
 
         return DB::transaction(function () use ($date, $type, $reference_id, $reference_no, $description, $items, $isAuto, $createdBy) {
             $journal = JournalEntry::create([
-                'journal_no' => 'JRN-' . strtoupper(uniqid()),
+                'journal_no' => 'JRN-'.strtoupper(uniqid()),
                 'journal_date' => $date,
                 'reference_type' => $type,
                 'reference_id' => $reference_id,
                 'reference_no' => $reference_no,
                 'description' => $description,
                 'is_auto_generated' => $isAuto,
-                'created_by' => $createdBy
+                'created_by' => $createdBy,
             ]);
 
             foreach ($items as $item) {
@@ -48,7 +49,9 @@ class JournalService
     private function updateAccountBalance($accountId, $debit, $credit)
     {
         $account = Account::find($accountId);
-        if (!$account) return;
+        if (! $account) {
+            return;
+        }
 
         // Asset & Expense increase with Debit.
         // Liability, Equity, Income increase with Credit.
@@ -64,8 +67,8 @@ class JournalService
 
     public function deleteEntryByReference($type, $reference_id)
     {
-        $journal = JournalEntry::where('reference_type', $type)->where('reference_id', $reference_id)->first();
-        if ($journal) {
+        $journals = JournalEntry::where('reference_type', $type)->where('reference_id', $reference_id)->get();
+        foreach ($journals as $journal) {
             $this->deleteEntry($journal);
         }
     }

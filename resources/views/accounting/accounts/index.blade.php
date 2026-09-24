@@ -108,6 +108,7 @@
                                 @endif
                             </td>
                             <td class="p-4 text-center">
+                                <a class="inline-flex px-3 py-2 text-blue-600" href="{{ route('accounting.accounts.edit', $account) }}">Edit</a>
                                 <form action="{{ route('accounting.accounts.destroy', $account) }}" method="POST" class="inline" onsubmit="return confirmAction(event, 'Are you sure you want to delete this account? Only accounts with no transactions can be deleted.')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-rose-500 hover:text-rose-700 transition">
@@ -170,7 +171,7 @@
                         <textarea name="description" rows="2" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
                     </div>
                     <div class="md:col-span-2 flex items-center mt-2">
-                        <input type="checkbox" name="status" id="status_checkbox" checked class="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="checkbox" name="status" value="1" id="status_checkbox" checked class="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                         <label for="status_checkbox" class="ml-2 text-sm text-slate-700 font-medium">Account is Active</label>
                     </div>
                 </div>

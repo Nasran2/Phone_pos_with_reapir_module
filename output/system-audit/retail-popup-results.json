@@ -1,0 +1,19 @@
+{
+  "checks": [
+    {
+      "width": 375,
+      "add": true,
+      "cancel": true,
+      "invalidQuantityRejected": true,
+      "price": 123456.78
+    },
+    {
+      "width": 1440,
+      "add": true,
+      "cancel": true,
+      "invalidQuantityRejected": true,
+      "price": 123456.78
+    }
+  ],
+  "errors": []
+}

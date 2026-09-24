@@ -226,7 +226,7 @@ class DashboardController extends Controller
         // 8. Sales by Payment Method Chart Data
         $paymentMethodsData = DB::table('sale_payments')
             ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
-            ->whereDate('sales.sale_date', $today)
+            ->whereDate('sale_payments.payment_date', $today)
             ->where('sale_payments.status', 'cleared');
 
         if ($enableMultiStore && $storeId) {
@@ -244,12 +244,20 @@ class DashboardController extends Controller
             'Card' => 0.00,
             'Bank Transfer' => 0.00,
             'QR / Mobile Pay' => 0.00,
+            'Cheque' => 0.00,
             'Other' => 0.00,
         ];
 
         // Reconcile real payments from DB into summary
         foreach ($paymentMethodsData as $payment) {
-            $method = in_array($payment->payment_method, ['QR Payment', 'Mobile Pay', 'QR / Mobile Pay']) ? 'QR / Mobile Pay' : $payment->payment_method;
+            $method = match (strtolower(trim($payment->payment_method))) {
+                'cash' => 'Cash',
+                'card', 'credit card', 'debit card' => 'Card',
+                'bank', 'bank transfer' => 'Bank Transfer',
+                'qr payment', 'mobile pay', 'qr / mobile pay' => 'QR / Mobile Pay',
+                'cheque', 'check' => 'Cheque',
+                default => 'Other',
+            };
             if (array_key_exists($method, $paymentsSummary)) {
                 $paymentsSummary[$method] += (float) $payment->total;
             } else {

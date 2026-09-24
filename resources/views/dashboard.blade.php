@@ -207,14 +207,28 @@
                 <div class="w-full min-w-0 h-72" id="sales-line-chart"></div>
             </div>
 
-            <!-- 2. Sales by Payment Method Chart -->
+            <!-- 2. Payments by Method Chart -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs lg:col-span-3 flex flex-col justify-between">
                 <div class="border-b border-slate-100 dark:border-slate-700/40 pb-4 mb-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white">Sales by Payment Method</h3>
-                    <p class="text-[10px] text-slate-400 font-medium">Cleared payments for selected-date sales</p>
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-white">Payments by Method</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">Cleared payments received on {{ $dateLabel }}</p>
                 </div>
                 <!-- Donut Chart Mount Div -->
-                <div class="w-full h-52 flex items-center justify-center" id="payment-donut-chart"></div>
+                @if(array_sum($paymentsSummary) > 0)
+                    <div class="w-full h-52 flex items-center justify-center" id="payment-donut-chart"></div>
+                @else
+                    <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+                        No cleared payments recorded for {{ $dateLabel }}. Unpaid sales and held cheques are not included.
+                    </div>
+                @endif
+                <dl class="payment-method-totals space-y-2 mt-4">
+                    @foreach($paymentsSummary as $method => $amount)
+                        <div class="flex items-center justify-between gap-3 text-xs">
+                            <dt class="text-slate-500">{{ $method }}</dt>
+                            <dd class="font-bold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $amount) }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
                 
                 <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-700/40 pt-4 flex items-center justify-between mt-2">
                     <span>Total Transactions:</span>
@@ -412,7 +426,7 @@
         </div>
 
         <!-- Very Bottom Widgets Bar (5 Blocks) -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-5 pt-3">
+        <div class="dashboard-bottom-stats grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 pt-3">
             <!-- Total Products -->
             <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center gap-3">
                 <div class="p-2.5 rounded-lg bg-blue-100/70 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 shrink-0">
@@ -466,7 +480,7 @@
             </div>
 
             <!-- Current Cheque Alerts -->
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center gap-3 col-span-2 md:col-span-1">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center gap-3">
                 <div class="p-2.5 rounded-lg bg-indigo-100/70 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400 shrink-0">
                     <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -577,14 +591,15 @@
                     {{ $paymentsSummary['Card'] }},
                     {{ $paymentsSummary['Bank Transfer'] }},
                     {{ $paymentsSummary['QR / Mobile Pay'] }},
+                    {{ $paymentsSummary['Cheque'] }},
                     {{ $paymentsSummary['Other'] }}
                 ],
                 chart: {
                     type: 'donut',
                     height: 220
                 },
-                labels: ['Cash', 'Card', 'Bank Transfer', 'QR / Mobile Pay', 'Other'],
-                colors: ['#2563eb', '#10b981', '#6366f1', '#f59e0b', '#64748b'],
+                labels: ['Cash', 'Card', 'Bank Transfer', 'QR / Mobile Pay', 'Cheque', 'Other'],
+                colors: ['#2563eb', '#10b981', '#6366f1', '#f59e0b', '#a855f7', '#64748b'],
                 dataLabels: { enabled: false },
                 legend: {
                     position: 'bottom',
@@ -623,8 +638,10 @@
                     }
                 }
             };
+            if (document.querySelector("#payment-donut-chart")) {
             const paymentDonutChart = new ApexCharts(document.querySelector("#payment-donut-chart"), paymentDonutOptions);
             paymentDonutChart.render();
+            }
         });
     </script>
 </x-layouts::app>

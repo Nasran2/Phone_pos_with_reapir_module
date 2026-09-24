@@ -409,3 +409,12 @@ button:disabled { cursor: wait; opacity: .55; }
 @media (max-width: 639px) {
     .pos-shell header > div:last-child { width: 100%; }
 }
+
+/* Keep every dashboard summary inside its own grid cell, including long amounts. */
+.dashboard-bottom-stats > div { min-width: 0; }
+.dashboard-bottom-stats > div > :last-child { min-width: 0; overflow-wrap: anywhere; }
+.dashboard-bottom-stats p { line-height: 1.4; }
+.payment-method-totals dd { text-align: right; overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+    .dashboard-content .dashboard-bottom-stats { grid-template-columns: minmax(0, 1fr); }
+}

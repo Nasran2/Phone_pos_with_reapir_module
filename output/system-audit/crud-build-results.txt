@@ -1,0 +1,28 @@
+
+> build
+> vite build
+
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 22 modules transformed.
+rendering chunks...
+computing gzip size...
+public/build/manifest.json                                       2.68 kB │ gzip:  0.45 kB
+public/build/assets/instrument-sans-400-normal-Q_nF8v4l.woff2    6.85 kB
+public/build/assets/instrument-sans-600-normal-BsaQcF38.woff2    6.94 kB
+public/build/assets/instrument-sans-500-normal-CTEe1bJa.woff2    6.98 kB
+public/build/assets/instrument-sans-400-normal-r32jotim.woff     8.96 kB
+public/build/assets/instrument-sans-500-normal-CAxz3nsc.woff     9.06 kB
+public/build/assets/instrument-sans-600-normal-DMks36a2.woff     9.10 kB
+public/build/fonts-manifest.json                                11.19 kB │ gzip:  0.97 kB
+public/build/assets/instrument-sans-400-normal-DRC__1Mx.woff2   16.86 kB
+public/build/assets/instrument-sans-500-normal-Dk9ku72i.woff2   17.23 kB
+public/build/assets/instrument-sans-600-normal-B7fBEWYG.woff2   17.40 kB
+public/build/assets/instrument-sans-400-normal-D1W7dsQl.woff    21.24 kB
+public/build/assets/instrument-sans-500-normal-Z6ESRlEs.woff    21.65 kB
+public/build/assets/instrument-sans-600-normal-B9e8oLYv.woff    21.67 kB
+public/build/assets/fonts-DkuEHybc.css                           4.76 kB │ gzip:  0.55 kB
+public/build/assets/app-BxdpnnBI.css                           348.04 kB │ gzip: 46.12 kB
+public/build/assets/app-C1JBnUd4.js                              3.73 kB │ gzip:  1.64 kB
+public/build/assets/passkeys-ZWACIUjA.js                        12.08 kB │ gzip:  3.90 kB
+
+✓ built in 657ms

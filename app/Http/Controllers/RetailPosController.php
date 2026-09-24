@@ -212,15 +212,20 @@ class RetailPosController extends Controller
             'edit_sale_id' => 'nullable|integer|exists:sales,id',
         ]);
 
+        if ($request->filled('edit_sale_id')) abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
         DB::beginTransaction();
 
         try {
             $isEditing = $request->filled('edit_sale_id');
+
             $editSale = null;
             $invoiceNo = null;
 
             if ($isEditing) {
-                $editSale = Sale::with('customer')->findOrFail($request->edit_sale_id);
+                $editSale = Sale::with('customer')->lockForUpdate()->findOrFail($request->edit_sale_id);
+                if ($editSale->customer_id != $request->customer_id || $editSale->returns()->exists() || $editSale->cheques()->exists()) {
+                    throw ValidationException::withMessages(['edit_sale_id' => 'Keep the original customer. Invoices with returns or cheques cannot be edited; use their reversal workflow.']);
+                }
                 $invoiceNo = $editSale->invoice_no;
                 
                 // Revert existing stock
@@ -234,16 +239,12 @@ class RetailPosController extends Controller
                 
                 // Delete previous journal entries
                 $journalService = app(\App\Services\JournalService::class);
-                $journalEntry = \App\Models\JournalEntry::where('reference_type', 'Sale')->where('reference_id', $editSale->id)->first();
-                if ($journalEntry) {
-                    $journalEntry->items()->delete();
-                    $journalEntry->delete();
-                }
+                $journalService->deleteEntryByReference('Sale', $editSale->id);
             } else {
                 $invoiceNo = $invoiceNumbers->next('retail');
             }
             
-            $today = date('Y-m-d');
+            $today = $isEditing ? $editSale->sale_date->format('Y-m-d') : date('Y-m-d');
 
             // --- TAX CALCULATION BEGIN ---
             $taxService = app(TaxCalculationService::class);
@@ -374,7 +375,7 @@ class RetailPosController extends Controller
             // 1. Insert or Update Sales Record
             $saleData = [
                 'customer_id' => $request->customer_id,
-                'sale_date' => $today,
+                'sale_date' => $isEditing ? $editSale->sale_date : $today,
                 'pos_type' => 'retail',
                 'total_amount' => $calculatedTotalAmount,
                 'discount_type' => $invoiceDiscountType,
@@ -510,14 +511,21 @@ class RetailPosController extends Controller
                     'created_by' => auth()->id(),
                 ]);
             }
+            if ($isEditing) {
+                if ($calculatedPayableTotal + 0.009 < (float) $editSale->paid_amount) {
+                    throw ValidationException::withMessages(['edit_sale_id' => 'The edited total cannot be below the amount already paid. Use a sale return for refunds.']);
+                }
+                $allocation = ['hold' => (float) $editSale->cheque_hold_amount];
+            } else {
             $allocation = $mixedPayments->allocateSale(Sale::findOrFail($saleId), $paymentRows, [
                 'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
             ]);
+            }
             $sale = Sale::findOrFail($saleId);
             app(SaleInventoryService::class)->finalizeIfPaid($sale);
 
             // Loyalty Points: 1 point per Rs. 1,000 spent
-            $pointsEarned = floor($request->payable_amount / 1000);
+            $pointsEarned = $isEditing ? 0 : floor($request->payable_amount / 1000);
             if ($pointsEarned > 0) {
                 DB::table('customers')
                     ->where('id', $request->customer_id)
@@ -549,7 +557,7 @@ class RetailPosController extends Controller
                 'success' => true,
                 'invoice_no' => $invoiceNo,
                 'sale_id' => $saleId,
-                'change' => max(0, collect($paymentRows)->where('method', 'Cash')->sum('amount') - $request->payable_amount),
+                'change' => $isEditing ? 0 : max(0, collect($paymentRows)->where('method', 'Cash')->sum('amount') - $request->payable_amount),
                 'cheque_hold_amount' => $allocation['hold'],
                 'inventory_status' => $completedSale->inventoryStatus(),
                 'payment_status' => $completedSale->payment_status,
@@ -712,6 +720,7 @@ class RetailPosController extends Controller
 
     private function editSalePayload(int $saleId): ?array
     {
+        abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
         $sale = \App\Models\Sale::with(['customer', 'items.product', 'items.variant', 'items.productSerial'])->find($saleId);
 
         if (! $sale) {

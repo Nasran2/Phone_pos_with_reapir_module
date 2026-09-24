@@ -1,15 +1,17 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ChartOfAccountController extends Controller
 {
     public function index(Request $request)
     {
         $query = Account::with('parent')->orderBy('account_code');
-        
+
         if ($request->filled('type')) {
             $query->where('account_type', $request->type);
         }
@@ -17,11 +19,12 @@ class ChartOfAccountController extends Controller
             $query->where('status', $request->status == 'active' ? 1 : 0);
         }
         if ($request->filled('search')) {
-            $query->where(fn ($search) => $search->where('account_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('account_code', 'like', '%' . $request->search . '%'));
+            $query->where(fn ($search) => $search->where('account_name', 'like', '%'.$request->search.'%')
+                ->orWhere('account_code', 'like', '%'.$request->search.'%'));
         }
 
         $accounts = $query->paginate(20)->withQueryString();
+
         return view('accounting.accounts.index', compact('accounts'));
     }
 
@@ -34,14 +37,33 @@ class ChartOfAccountController extends Controller
             'parent_id' => 'nullable|exists:accounts,id',
             'opening_balance' => 'nullable|numeric',
             'description' => 'nullable|string',
-            'status' => 'boolean'
+            'status' => 'boolean',
         ]);
 
         $validated['current_balance'] = $validated['opening_balance'] ?? 0;
         $validated['status'] = $request->has('status');
 
         Account::create($validated);
+
         return redirect()->route('accounting.accounts.index')->with('success', 'Account created successfully.');
+    }
+
+    public function edit(Account $account)
+    {
+        return view('accounting.accounts.edit', compact('account'));
+    }
+
+    public function update(Request $request, Account $account)
+    {
+        $data = $request->validate([
+            'account_code' => ['required', 'string', 'max:100', Rule::unique('accounts')->ignore($account->id)],
+            'account_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|boolean',
+        ]);
+        $account->update($data);
+
+        return redirect()->route('accounting.accounts.index')->with('success', 'Account updated successfully.');
     }
 
     public function destroy(Account $account)
@@ -50,6 +72,7 @@ class ChartOfAccountController extends Controller
             return redirect()->route('accounting.accounts.index')->with('error', 'Cannot delete account with existing transactions.');
         }
         $account->delete();
+
         return redirect()->route('accounting.accounts.index')->with('success', 'Account deleted successfully.');
     }
 }

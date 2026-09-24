@@ -127,6 +127,9 @@ class PurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('purchases.show', $purchase)->with('success', 'Purchase saved successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -158,6 +161,9 @@ class PurchaseController extends Controller
         $this->ensurePurchaseModuleEnabled();
 
         $purchase->load(['items', 'supplier']);
+        if ($purchase->returns()->exists()) {
+            return back()->with('error', 'Reverse related purchase returns before editing this purchase.');
+        }
         $validated = $this->validatePurchase($request, $purchase);
         $validated['status'] = $request->input('save_action') === 'draft' ? 'Draft' : $validated['status'];
 
@@ -223,6 +229,9 @@ class PurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('purchases.show', $purchase)->with('success', 'Purchase updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -237,12 +246,13 @@ class PurchaseController extends Controller
 
         $purchase->load(['items.product', 'supplier']);
 
+        if ($purchase->returns()->exists()) {
+            return back()->with('error', 'Delete the purchase returns before deleting this purchase.');
+        }
+
         DB::beginTransaction();
 
         try {
-            if ($purchase->returns()->exists()) {
-                return back()->with('error', 'Delete the purchase returns before deleting this purchase.');
-            }
 
             if ($purchase->stock_updated) {
                 $this->reverseStock($purchase, 'Purchase deleted');
@@ -263,6 +273,9 @@ class PurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('purchases.index')->with('success', 'Purchase deleted successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -587,7 +600,10 @@ class PurchaseController extends Controller
                 'product_id' => $item->product_id,
                 'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
             ], ['quantity' => 0]);
-            $stock->quantity = max(0, (float) $stock->quantity - (float) $item->quantity);
+            if ((float) $stock->quantity < (float) $item->quantity) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['purchase' => 'This purchase stock has already been used. Reverse the related stock movements before editing or deleting it.']);
+            }
+            $stock->quantity = (float) $stock->quantity - (float) $item->quantity;
             $stock->save();
 
             StockHistory::create([

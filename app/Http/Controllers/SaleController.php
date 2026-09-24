@@ -213,6 +213,10 @@ class SaleController extends Controller
     {
         $sale->load(['items.product', 'items.variant', 'customer', 'returns']);
 
+        if ($sale->cheques()->exists()) {
+            return back()->with('error', 'This sale has cheque records. Reverse the cheque through Cheque Management before cancelling the invoice.');
+        }
+
         if ($sale->returns()->exists()) {
             return back()->with('error', 'Delete related sale returns before deleting this sale.');
         }
@@ -225,7 +229,14 @@ class SaleController extends Controller
             }
 
             $invoiceNo = $sale->invoice_no;
+            $journals = app(\App\Services\JournalService::class);
+            $journals->deleteEntryByReference('Sale', $sale->id);
+            foreach ($sale->invoicePayments as $payment) {
+                $journals->deleteEntryByReference('SalePayment', $payment->id);
+            }
+            $sale->taxTransactions()->delete();
             $sale->payments()->delete();
+            $sale->invoicePayments()->delete();
             $sale->items()->delete();
             $sale->delete();
 

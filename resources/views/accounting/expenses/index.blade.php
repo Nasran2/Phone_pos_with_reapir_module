@@ -123,6 +123,9 @@
                             </td>
                             <td class="p-4 font-bold text-rose-600 text-right text-sm">Rs. {{ number_format($expense->amount, 2) }}</td>
                             <td class="p-4 text-center">
+@if(auth()->user()->hasPermission('expenses.edit'))
+<a href="{{ route('accounting.expenses.edit', $expense) }}" class="inline-flex px-3 py-2 text-blue-600 font-semibold">Edit</a>
+@endif
                                 <form action="{{ route('accounting.expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirmAction(event, 'Are you sure you want to delete this expense? This will also reverse the journal entry.')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-rose-500 hover:text-rose-700 transition">

@@ -267,3 +267,21 @@ Evidence:
 - The native-share branch was mocked for verification; actual sending to another application was not performed. Physical print output was not verified.
 - No remaining failures were observed in the executed checks. These limits must not be interpreted as a guarantee that no other defects exist.
 - Changes are local workspace changes; no deployment or Git commit was performed.
+
+## Follow-up: mobile cart and dashboard (24 September 2026)
+
+The earlier page-overflow checks did not detect content clipped inside individual cards or checkout controls below a non-scrolling panel. Those gaps were reproduced and addressed.
+
+- Retail and wholesale mobile carts use item cards with full-width price inputs, tested with 123456.78. The complete cart scrolls, including totals and checkout controls, rather than only the item list.
+- Dashboard bottom summary cards stack on phones and allow long currency values to wrap inside their own cards.
+- Payments by Method uses payment receipt date instead of invoice date, so payments against older invoices appear on the day received. Cleared cheques have their own category; payment names are normalized. Amounts are shown as text alongside the chart, with an explicit empty state.
+- Payment totals remain restricted to cleared records. An unpaid sale does not imply a payment. No payment amounts or methods were fabricated.
+- Latest backend run: 96 passed, 2 skipped, 855 assertions. Build and Blade compilation passed.
+- The supplied hosted-site console screenshot says “Invalid Sentry Dsn” in content.bundle.js. No Sentry integration was found in the application source/dependencies inspected. A browser extension is a possible source; the origin on the hosted browser has not been verified.
+- These are local code/build changes. The hosted site requires deployment of the updated application files and matching public/build assets before these results apply there.
+
+Follow-up browser results: dashboard passed at 320, 360, 375, 430, 768 and 1440px, including a long stock-value stress check, six visible payment-method amounts and the empty state. No browser console errors were recorded using Laravel's development router. The first test-server setup incorrectly returned 404s for dynamically served Livewire/Flux assets; rerunning through the proper Laravel router resolved those test-environment errors. Both POS carts passed 14 viewport checks, including 375×360, six-digit decimal prices, eight-item cart scrolling and payment-dialog completion-button access. Evidence: dashboard-followup-results.json and mobile-cart-results.json.
+
+## CRUD follow-up
+
+See [CRUD_REPORT.md](CRUD_REPORT.md) for the commercial workflow coverage, new expense/account edit forms, sale-edit/payment/journal fixes, purchase reversal safeguards, complete registered-action inventory and remaining verification limits. Final CRUD run: 102 passed, 2 skipped, 914 assertions. New edit forms passed browser saves at 375px and 1440px.

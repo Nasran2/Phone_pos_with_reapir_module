@@ -476,10 +476,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Accounting & Expenses
     Route::prefix('accounting')->name('accounting.')->group(function () {
-        Route::resource('accounts', ChartOfAccountController::class)->only(['index', 'store', 'destroy'])->middleware('permission:accounting.view');
+        Route::resource('accounts', ChartOfAccountController::class)->only(['index', 'store', 'edit', 'update', 'destroy'])->middleware('permission:accounting.view');
         Route::resource('tax-rates', TaxRateController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:tax_settings.manage');
         Route::resource('expense-categories', ExpenseCategoryController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:expenses.view');
-        Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'destroy'])->middleware('permission:expenses.view')->middlewareFor('store', 'permission:expenses.create')->middlewareFor('destroy', 'permission:expenses.delete');
+        Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'edit', 'update', 'destroy'])->middleware('permission:expenses.view')->middlewareFor(['edit', 'update'], 'permission:expenses.edit')->middlewareFor('store', 'permission:expenses.create')->middlewareFor('destroy', 'permission:expenses.delete');
         Route::resource('journal-entries', JournalEntryController::class)->only(['index', 'store', 'destroy'])->middleware('permission:accounting.view');
         Route::get('ledger', [LedgerBookController::class, 'index'])->name('ledger.index')->middleware('permission:accounting.view');
         Route::resource('capital-drawings', CapitalDrawingController::class)->only(['index', 'store'])->middleware('permission:accounting.view');

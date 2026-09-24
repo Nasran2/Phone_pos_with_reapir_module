@@ -3,6 +3,7 @@
 use App\Models\Account;
 use App\Models\Currency;
 use App\Models\Customer;
+use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\ImportShipment;
 use App\Models\Permission;
@@ -225,7 +226,7 @@ test('dashboard excludes held and returned cheques from cleared collections', fu
         DB::table('sale_payments')->insert(['sale_id' => $sale->id, 'payment_date' => today()->toDateString(), 'payment_method' => 'Cheque', 'status' => $status, 'amount' => 100]);
     }
     $response = $this->get(route('dashboard'))->assertOk();
-    expect($response->viewData('paymentsSummary')['Other'])->toBe(100.0);
+    expect($response->viewData('paymentsSummary')['Cheque'])->toBe(100.0);
 });
 
 test('tax rate create update and delete redirect to the working named index route', function () {
@@ -255,4 +256,99 @@ test('expense viewers cannot create financial entries without create permission'
     DB::table('role_permissions')->insert(['role_id' => $roleId, 'permission_id' => $permission->id]);
     $this->actingAs($viewer)->get(route('accounting.expenses.index'))->assertOk();
     $this->postJson(route('accounting.expenses.store'), [])->assertForbidden();
+});
+
+test('dashboard payment methods follow receipt date even for older invoices', function () {
+    $this->actingAs(createUserWithRole('Super Admin'));
+    $sale = auditSale('OLDER-INVOICE', today()->subDays(3)->toDateString());
+    DB::table('sale_payments')->insert(['sale_id' => $sale->id, 'payment_date' => today()->toDateString(), 'payment_method' => 'cash', 'status' => 'cleared', 'amount' => 123456]);
+    $response = $this->get(route('dashboard'))->assertOk();
+    expect($response->viewData('paymentsSummary')['Cash'])->toBe(123456.0);
+    expect($response->viewData('paymentTransactionCount'))->toBe(1);
+    $this->get(route('dashboard', ['date' => today()->subDay()->toDateString()]))->assertOk()->assertSee('No cleared payments recorded');
+});
+
+test('expense CRUD reverses old postings when edited and deleted', function () {
+    $this->actingAs(createUserWithRole('Super Admin'));
+    $cash = Account::create(['account_code' => 'CRUD-CASH', 'account_name' => 'Cash CRUD', 'account_type' => 'Asset', 'current_balance' => 1000, 'status' => true]);
+    $cost = Account::create(['account_code' => 'CRUD-EXP', 'account_name' => 'Expense CRUD', 'account_type' => 'Expense', 'current_balance' => 0, 'status' => true]);
+    $category = ExpenseCategory::create(['name' => 'CRUD expense']);
+    $data = ['expense_date' => today()->toDateString(), 'expense_category_id' => $category->id, 'expense_account_id' => $cost->id, 'title' => 'CRUD expense', 'amount' => 100, 'payment_method' => 'Cash', 'paid_from_account_id' => $cash->id];
+    $this->post(route('accounting.expenses.store'), $data)->assertSessionHasNoErrors();
+    $expense = Expense::latest('id')->firstOrFail();
+    $this->get(route('accounting.expenses.edit', $expense))->assertOk()->assertSee('CRUD expense');
+    $this->put(route('accounting.expenses.update', $expense), array_replace($data, ['amount' => 250]))->assertSessionHasNoErrors()->assertRedirect();
+    expect((float) $cash->fresh()->current_balance)->toBe(750.0);
+    expect((float) $cost->fresh()->current_balance)->toBe(250.0);
+    $this->delete(route('accounting.expenses.destroy', $expense))->assertRedirect();
+    expect((float) $cash->fresh()->current_balance)->toBe(1000.0);
+    expect((float) $cost->fresh()->current_balance)->toBe(0.0);
+});
+
+test('paid POS invoice edit preserves payment and delete restores accounting and stock', function (string $kind) {
+    $this->actingAs(createUserWithRole('Super Admin'));
+    $customer = Customer::create(['name' => 'CRUD buyer', 'balance' => 0]);
+    $product = Product::create(['name' => 'CRUD Phone', 'sku' => 'CRUD-PHONE', 'cost_price' => 60, 'retail_price' => 100, 'wholesale_price' => 100]);
+    ProductStoreStock::create(['product_id' => $product->id, 'store_id' => 1, 'quantity' => 10]);
+    foreach (['1105' => ['Receivable', 'Asset'], '4001' => ['Sales', 'Income'], 'CRUD-CASH' => ['Cash', 'Asset']] as $code => [$name, $type]) {
+        Account::firstOrCreate(['account_code' => $code], ['account_name' => $name, 'account_type' => $type, 'current_balance' => 0, 'status' => true]);
+    }
+    $data = ['pos_type' => $kind, 'customer_id' => $customer->id, 'items' => [['product_id' => $product->id, 'name' => $product->name, 'quantity' => 1, 'selling_price' => 100, 'line_total' => 100]], 'total_amount' => 100, 'payable_amount' => 100, 'paid_amount' => 100, 'payment_rows' => [['method' => 'Cash', 'amount' => 100]]];
+    $created = $this->postJson(route('pos.'.$kind.'.store'), $data)->assertOk();
+    $sale = Sale::findOrFail($created->json('sale_id'));
+    $before = Account::pluck('current_balance', 'id')->all();
+    $this->postJson(route('pos.'.$kind.'.store'), $data + ['edit_sale_id' => $sale->id])->assertOk();
+    expect((float) $sale->fresh()->paid_amount)->toBe(100.0);
+    expect($sale->payments()->count())->toBe(1);
+    expect(Account::pluck('current_balance', 'id')->all())->toBe($before);
+    expect((float) ProductStoreStock::where('product_id', $product->id)->value('quantity'))->toBe(9.0);
+    $this->delete(route('sales.destroy', $sale))->assertRedirect();
+    expect((float) ProductStoreStock::where('product_id', $product->id)->value('quantity'))->toBe(10.0);
+    expect((float) $customer->fresh()->balance)->toBe(0.0);
+    expect(DB::table('invoice_payments')->where('payable_id', $sale->id)->count())->toBe(0);
+    expect((float) Account::where('account_code', '1105')->value('current_balance'))->toBe(0.0);
+    expect((float) Account::where('account_code', '4001')->value('current_balance'))->toBe(0.0);
+})->with(['retail', 'wholesale']);
+
+test('purchase CRUD updates and reverses stock and supplier balance', function () {
+    $this->actingAs(createUserWithRole('Super Admin'));
+    $supplier = Supplier::create(['name' => 'CRUD supplier', 'balance' => 0]);
+    $product = Product::create(['name' => 'CRUD purchase phone', 'sku' => 'CRUD-PURCHASE', 'cost_price' => 60, 'retail_price' => 100, 'wholesale_price' => 90]);
+    $data = ['supplier_id' => $supplier->id, 'purchase_date' => today()->toDateString(), 'status' => 'Received', 'store_id' => 1, 'discount_type' => 'none', 'shipping_handling' => 'purchase_total', 'payment_method' => 'Cash', 'payment_amount' => 50, 'items' => [['product_id' => $product->id, 'quantity' => 2, 'unit_cost' => 60, 'retail_price' => 100, 'wholesale_price' => 90]]];
+    $this->post(route('purchases.store'), $data)->assertSessionHasNoErrors();
+    $purchase = Purchase::latest('id')->firstOrFail();
+    $this->get(route('purchases.edit', $purchase))->assertOk();
+    $data['items'][0]['quantity'] = 3;
+    $this->put(route('purchases.update', $purchase), $data)->assertSessionHasNoErrors()->assertRedirect();
+    expect((float) $supplier->fresh()->balance)->toBe(130.0);
+    expect((float) ProductStoreStock::where('product_id', $product->id)->value('quantity'))->toBe(3.0);
+    ProductStoreStock::where('product_id', $product->id)->update(['quantity' => 1]);
+    $this->delete(route('purchases.destroy', $purchase))->assertSessionHasErrors('purchase');
+    expect((float) $supplier->fresh()->balance)->toBe(130.0);
+    ProductStoreStock::where('product_id', $product->id)->update(['quantity' => 3]);
+    $this->delete(route('purchases.destroy', $purchase))->assertSessionHasNoErrors()->assertRedirect();
+    expect((float) $supplier->fresh()->balance)->toBe(0.0);
+    expect((float) ProductStoreStock::where('product_id', $product->id)->value('quantity'))->toBe(0.0);
+});
+
+test('account CRUD preserves ledger balances during metadata updates', function () {
+    $this->actingAs(createUserWithRole('Super Admin'));
+    $this->post(route('accounting.accounts.store'), ['account_code' => 'CRUD-ACCOUNT', 'account_name' => 'CRUD account', 'account_type' => 'Asset', 'opening_balance' => 250, 'status' => '1'])->assertSessionHasNoErrors();
+    $account = Account::where('account_code', 'CRUD-ACCOUNT')->firstOrFail();
+    $this->get(route('accounting.accounts.edit', $account))->assertOk();
+    $this->put(route('accounting.accounts.update', $account), ['account_code' => 'CRUD-ACCOUNT', 'account_name' => 'Renamed account', 'status' => 0, 'current_balance' => 9999])->assertSessionHasNoErrors();
+    expect($account->fresh()->account_name)->toBe('Renamed account');
+    expect((float) $account->fresh()->current_balance)->toBe(250.0);
+    $this->delete(route('accounting.accounts.destroy', $account))->assertRedirect();
+    $this->assertDatabaseMissing('accounts', ['id' => $account->id]);
+});
+
+test('expense edits require edit permission', function () {
+    $viewer = createUserWithRole('Expense Read Only');
+    $permission = Permission::firstOrCreate(['name' => 'expenses.view'], ['guard_name' => 'web']);
+    DB::table('role_permissions')->insert(['role_id' => DB::table('roles')->where('name', 'Expense Read Only')->value('id'), 'permission_id' => $permission->id]);
+    $category = ExpenseCategory::create(['name' => 'Permission check']);
+    $account = Account::create(['account_code' => 'PERM-CASH', 'account_name' => 'Cash', 'account_type' => 'Asset']);
+    $expense = Expense::create(['expense_no' => 'PERM-EXP', 'created_by' => $viewer->id, 'expense_date' => today(), 'expense_category_id' => $category->id, 'title' => 'Permission check', 'amount' => 10, 'payment_method' => 'Cash', 'paid_from_account_id' => $account->id]);
+    $this->actingAs($viewer)->putJson(route('accounting.expenses.update', $expense), [])->assertForbidden();
 });

@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "kind": "expenses",
+      "width": 375,
+      "editAndSave": true
+    },
+    {
+      "kind": "accounts",
+      "width": 375,
+      "editAndSave": true
+    },
+    {
+      "kind": "expenses",
+      "width": 1440,
+      "editAndSave": true
+    },
+    {
+      "kind": "accounts",
+      "width": 1440,
+      "editAndSave": true
+    }
+  ],
+  "errors": []
+}

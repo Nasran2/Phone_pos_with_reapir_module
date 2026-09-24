@@ -375,6 +375,7 @@
                 </div>
 
                 <!-- BILL SUMMARY & CHECKOUT ACTIONS -->
+                <p x-show="editSale" class="text-sm p-3 rounded-lg bg-amber-50 text-amber-900 shrink-0">Editing preserves payments already received. Save the corrected invoice, then receive any remaining balance from Sales.</p>
                 <div class="pos-checkout border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
                     <div class="space-y-1.5 text-xs">
                         <div class="flex items-center justify-between text-slate-500">
@@ -488,14 +489,14 @@
     </div>
 
     <!-- EDIT CART ITEM POPUP MODAL -->
-    <div x-show="showEditItemModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
+    <div x-show="showEditItemModal" @keydown.escape.window="showEditItemModal = false" role="dialog" aria-modal="true" aria-label="Retail product details" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 transform scale-100 transition duration-300"
              @click.away="showEditItemModal = false">
 
             <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-850">Edit Cart Item</h3>
-                    <p class="text-[10px] text-slate-400 truncate max-w-[200px]" x-text="activeEditItem ? activeEditItem.name : ''"></p>
+                    <h3 class="text-sm font-bold text-slate-850" x-text="activeEditIndex === -1 ? 'Add Product' : 'Edit Cart Item'"></h3>
+                    <p class="text-[10px] text-slate-500 whitespace-normal" x-text="activeEditItem ? activeEditItem.name : ''"></p>
                 </div>
                 <button @click="showEditItemModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -503,16 +504,20 @@
             </div>
 
             <div class="space-y-4 text-xs font-bold">
+                <div class="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3">
+                    <div><span class="block text-slate-500">Cost price</span><span x-text="'Rs. ' + formatMoney(activeEditItem?.cost_price || 0)"></span></div>
+                    <div><span class="block text-slate-500">Retail price</span><span class="text-blue-600" x-text="'Rs. ' + formatMoney(activeEditItem?.retail_price ?? activeEditItem?.selling_price ?? 0)"></span></div>
+                </div>
                 <!-- Unit Price -->
                 <div>
                     <label class="block text-slate-500 mb-1">Unit Price (Rs.)</label>
-                    <input type="number" x-model.number="editModalPrice" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold" />
+                    <input type="number" aria-label="Selling price" min="0" step="any" inputmode="decimal" x-model.number="editModalPrice" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold" />
                 </div>
 
                 <!-- Quantity -->
                 <div>
                     <label class="block text-slate-500 mb-1">Quantity (Stock: <span x-text="activeEditItem ? parseInt(activeEditItem.stock) : 0"></span>)</label>
-                    <input type="number" x-model.number="editModalQty"
+                    <input type="number" aria-label="Quantity" x-model.number="editModalQty"
                            :max="activeEditItem ? activeEditItem.stock : null"
                            min="1"
                            @input="if (activeEditItem && editModalQty > activeEditItem.stock) { editModalQty = activeEditItem.stock; }"
@@ -529,10 +534,18 @@
                             <option value="percentage">Percentage (%)</option>
                         </select>
                         <!-- Discount Value -->
-                        <input type="number" x-model.number="editModalDiscountAmount" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold" />
+                        <input type="number" x-model.number="editModalDiscountAmount" class="min-w-0 w-full flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold" />
                     </div>
                 </div>
 
+                <label class="block text-slate-500">Note
+                    <input type="text" x-model="editModalNote" class="w-full mt-1 rounded-xl border border-slate-200" placeholder="Optional line note">
+                </label>
+                <template x-if="activeEditItem && activeEditItem.serials.length">
+                    <label class="block">IMEI / Serial<select x-model="activeEditItem.serial_no" class="w-full rounded-xl border">
+                        <template x-for="serial in activeEditItem.serials" :key="serial"><option :value="serial" x-text="serial"></option></template>
+                    </select></label>
+                </template>
                 <!-- Modal Subtotal preview -->
                 <div class="p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between text-xs font-bold">
                     <span class="text-slate-650">Line Total:</span>
@@ -541,7 +554,7 @@
 
                 <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
                     <button @click="showEditItemModal = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
-                    <button @click="saveEditItem()" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg transition cursor-pointer">Save Changes</button>
+                    <button @click="saveEditItem()" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg transition cursor-pointer" x-text="activeEditIndex === -1 ? 'Add to Cart' : 'Save Changes'"></button>
                 </div>
             </div>
         </div>
@@ -924,6 +937,7 @@
                 selectedVariantProduct: null,
                 activeEditItem: null,
                 activeEditIndex: null,
+                editModalNote: '',
                 editModalPrice: 0,
                 editModalQty: 1,
                 editModalDiscountType: 'fixed',
@@ -1088,106 +1102,51 @@
                     });
                 },
 
-                // Add item directly to checkout cart (Retail workflow)
+                // Prepare a draft; the cart changes only after confirmation.
                 addToCart(product) {
                     if (product.stock <= 0) return;
-                    if (product.variants && product.variants.length > 0) {
+                    if (product.variants && product.variants.length) {
                         this.selectedVariantProduct = product;
                         this.showVariantModal = true;
                         return;
                     }
-
-                    this.playBeep();
-
-                    // Accessories can aggregate quantities
-                    if (product.category_slug !== 'smartphones') {
-                        let existing = this.cart.find(item => item.product_id === product.id && !item.variant_id);
-                        if (existing) {
-                            if (existing.quantity < product.stock) {
-                                existing.quantity++;
-                                this.updateLineTotal(existing);
-                            } else {
-                                Swal.fire({ text: 'Cannot add more than available stock quantity!', icon: 'warning' });
-                            }
-                            return;
-                        }
-                    }
-
-                    // Mobile phones require separate cart items to track unique IMEIs
-                    let serialNo = product.serials && product.serials.length > 0 ? product.serials[0] : '';
-                    if (product.category_slug === 'smartphones' && serialNo) {
-                        let isDuplicate = this.cart.some(item => item.product_id === product.id && item.serial_no === serialNo);
-                        if (isDuplicate) {
-                            Swal.fire({ text: 'This specific IMEI is already in the cart!', icon: 'warning' });
-                            return;
-                        }
-                    }
-
-                    this.cart.push({
-                        product_id: product.id,
-                        name: product.name,
-                        quantity: 1,
-                        cost_price: this.toNumber(product.cost_price),
-                        selling_price: this.toNumber(product.retail_price),
-                        discount_amount: 0,
-                        discount_type: 'fixed',
-                        tax_mode: product.tax_mode,
-                        tax_status: product.tax_status,
-                        tax_rate: this.toNumber(product.tax_rate) || 0,
-                        tax_id: product.tax_id || null,
-                        line_total: this.toNumber(product.retail_price),
-                        note: '',
-                        stock: this.toNumber(product.stock),
-                        is_smartphone: product.category_slug === 'smartphones',
-                        serials: product.serials || [],
-                        serial_no: serialNo
-                    });
-
-                    this.recalculateCartTotals();
+                    this.prepareCartItem(product);
                 },
 
                 addVariantToCart(product, variant) {
                     if (variant.stock_quantity <= 0) return;
-
-                    this.playBeep();
-                    const existing = this.cart.find(item => item.product_id === product.id && item.variant_id === variant.id);
-                    if (existing) {
-                        if (existing.quantity < variant.stock_quantity) {
-                            existing.quantity++;
-                            this.updateLineTotal(existing);
-                        } else {
-                            Swal.fire({ text: 'Cannot add more than available stock quantity!', icon: 'warning' });
-                        }
-                    } else {
-                        this.cart.push({
-                            product_id: product.id,
-                            variant_id: variant.id,
-                            variant_label: variant.label,
-                            name: product.name,
-                            quantity: 1,
-                            cost_price: variant.cost_price || product.cost_price,
-                            selling_price: variant.retail_price || product.retail_price,
-                            discount_amount: 0,
-                            discount_type: 'fixed',
-                            tax_rate: product.tax_rate || 0,
-                            tax_id: product.tax_id || null,
-                            line_total: variant.retail_price || product.retail_price,
-                            note: '',
-                            stock: variant.stock_quantity,
-                            is_smartphone: product.category_slug === 'smartphones',
-                            serials: [],
-                            serial_no: ''
-                        });
-                    }
-
                     this.showVariantModal = false;
                     this.selectedVariantProduct = null;
-                    this.recalculateCartTotals();
+                    this.prepareCartItem(product, variant);
+                },
+
+                prepareCartItem(product, variant = null) {
+                    const stock = this.toNumber(variant ? variant.stock_quantity : product.stock);
+                    const reserved = this.cart.filter(i => i.product_id === product.id && (i.variant_id || null) === (variant?.id || null))
+                        .reduce((sum, i) => sum + this.toNumber(i.quantity), 0);
+                    const serials = (product.serials || []).filter(sn => !this.cart.some(i => i.product_id === product.id && i.serial_no === sn));
+                    if (stock - reserved < 1 || (!variant && product.category_slug === 'smartphones' && product.serials?.length && !serials.length)) {
+                        Swal.fire({ text: 'All available stock for this item is already in the cart.', icon: 'warning' });
+                        return;
+                    }
+                    const price = this.toNumber(variant?.retail_price ?? product.retail_price);
+                    const item = {
+                        product_id: product.id, variant_id: variant?.id || null,
+                        variant_label: variant?.label || '', name: product.name,
+                        quantity: 1, cost_price: this.toNumber(variant?.cost_price ?? product.cost_price),
+                        selling_price: price, retail_price: price, discount_amount: 0, discount_type: 'fixed',
+                        tax_mode: product.tax_mode, tax_status: product.tax_status,
+                        tax_rate: this.toNumber(product.tax_rate), tax_id: product.tax_id || null,
+                        line_total: price, note: '', stock, is_smartphone: product.category_slug === 'smartphones',
+                        serials: variant ? [] : serials, serial_no: variant ? '' : (serials[0] || '')
+                    };
+                    this.openEditItemModal(item, -1);
                 },
 
                 openEditItemModal(item, index) {
-                    this.activeEditItem = item;
+                    this.activeEditItem = {...item};
                     this.activeEditIndex = index;
+                    this.editModalNote = item.note || '';
                     this.editModalPrice = item.selling_price;
                     this.editModalQty = item.quantity;
                     this.editModalDiscountType = item.discount_type || 'fixed';
@@ -1205,21 +1164,33 @@
                 },
 
                 saveEditItem() {
-                    if (this.editModalQty > this.activeEditItem.stock) {
-                        Swal.fire({ text: 'Cannot add more than available stock quantity (' + parseInt(this.activeEditItem.stock) + ')!', icon: 'warning' });
+                    const draft = this.activeEditItem;
+                    const qty = Number(this.editModalQty), price = Number(this.editModalPrice), discount = Number(this.editModalDiscountAmount);
+                    const reserved = this.cart.filter((i, index) => index !== this.activeEditIndex && i.product_id === draft.product_id && (i.variant_id || null) === (draft.variant_id || null))
+                        .reduce((sum, i) => sum + this.toNumber(i.quantity), 0);
+                    if (!Number.isFinite(qty) || qty < 1 || qty + reserved > draft.stock || (draft.serial_no && qty !== 1)) {
+                        Swal.fire({ text: draft.serial_no ? 'Each IMEI must have quantity 1.' : 'Enter a quantity within the remaining stock (' + Math.max(0, draft.stock - reserved) + ').', icon: 'warning' });
                         return;
                     }
-                    if (this.editModalQty < 1 || isNaN(this.editModalQty)) {
-                        Swal.fire({ text: 'Quantity must be at least 1!', icon: 'warning' });
+                    if (!Number.isFinite(price) || price < 0 || !Number.isFinite(discount) || discount < 0 || (this.editModalDiscountType === 'percentage' ? discount > 100 : discount > price * qty)) {
+                        Swal.fire({ text: 'Enter a valid price and discount within the line value.', icon: 'warning' });
                         return;
                     }
-
-                    let item = this.cart[this.activeEditIndex];
-                    item.selling_price = this.editModalPrice;
-                    item.quantity = this.editModalQty;
+                    if (draft.serial_no && this.cart.some((i, index) => index !== this.activeEditIndex && i.product_id === draft.product_id && i.serial_no === draft.serial_no)) {
+                        Swal.fire({ text: 'This IMEI is already in the cart.', icon: 'warning' });
+                        return;
+                    }
+                    const item = this.activeEditIndex === -1 ? {...draft} : this.cart[this.activeEditIndex];
+                    item.selling_price = price;
+                    item.quantity = qty;
                     item.discount_type = this.editModalDiscountType;
-                    item.discount_amount = this.editModalDiscountAmount;
-
+                    item.discount_amount = discount;
+                    item.note = this.editModalNote;
+                    item.serial_no = draft.serial_no;
+                    if (this.activeEditIndex === -1) {
+                        this.cart.push(item);
+                        this.playBeep();
+                    }
                     this.updateLineTotal(item);
                     this.showEditItemModal = false;
                 },

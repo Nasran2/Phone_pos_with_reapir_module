@@ -368,6 +368,7 @@
                 </div>
 
                 <!-- Totals Checkout Panel & Payment Screen Actions -->
+                <p x-show="editSale" class="text-sm p-3 rounded-lg bg-amber-50 text-amber-900 shrink-0">Editing preserves payments already received. Save the corrected invoice, then receive any remaining balance from Sales.</p>
                 <div class="pos-checkout border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
                     <div class="space-y-1.5 text-xs">
                         <div class="flex items-center justify-between text-slate-500">

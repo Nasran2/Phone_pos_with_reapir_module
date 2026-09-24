@@ -173,8 +173,7 @@ class CustomerController extends Controller
         $name = $customer->name;
         
         DB::transaction(function () use ($customer) {
-            // Delete associated transactions
-            $customer->transactions()->delete();
+            // Keep the transaction history when soft-deleting a party.
             $customer->delete();
         });
 

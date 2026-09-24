@@ -166,8 +166,7 @@ class SupplierController extends Controller
         $name = $supplier->name;
         
         DB::transaction(function () use ($supplier) {
-            // Delete associated transactions
-            $supplier->transactions()->delete();
+            // Keep the transaction history when soft-deleting a party.
             $supplier->delete();
         });
 
