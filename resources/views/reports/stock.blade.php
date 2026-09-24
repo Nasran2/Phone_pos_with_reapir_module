@@ -23,8 +23,8 @@
                 <tr class="hover:bg-slate-50 transition">
                     <td class="p-4 font-medium text-slate-900">{{ $product->name }}</td>
                     <td class="p-4">{{ $product->category->name ?? '-' }}</td>
-                    <td class="p-4 text-center font-bold {{ ($product->stock->quantity ?? 0) <= $product->stock_alert_quantity ? 'text-rose-600' : 'text-emerald-600' }}">
-                        {{ $product->stock->quantity ?? 0 }}
+                    <td class="p-4 text-center font-bold {{ ($product->report_stock_quantity ?? 0) <= $product->stock_alert_quantity ? 'text-rose-600' : 'text-emerald-600' }}">
+                        {{ $product->report_stock_quantity ?? 0 }}
                     </td>
                     <td class="p-4 text-right">Rs. {{ number_format($product->cost_price, 2) }}</td>
                     <td class="p-4 text-right">Rs. {{ number_format($product->retail_price, 2) }}</td>

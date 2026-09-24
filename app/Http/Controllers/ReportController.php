@@ -304,7 +304,7 @@ class ReportController extends Controller
             $totalProfit
         );
 
-        if ($export = $this->handleExport($request, 'Sales Report', ['Invoice No', 'Date', 'Customer', 'Type', 'Subtotal', 'Discount', 'Tax', 'Grand Total', 'Paid', 'Due', 'Profit', 'Cashier'], (clone $query)->get()->map(function ($sale) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Sales Report', ['Invoice No', 'Date', 'Customer', 'Type', 'Subtotal', 'Discount', 'Tax', 'Grand Total', 'Paid', 'Due', 'Profit', 'Cashier'], (clone $query)->get()->map(function ($sale) {
             return [
                 $sale->invoice_no,
                 optional($this->value($sale, ['sale_date', 'created_at']))->format('Y-m-d'),
@@ -364,7 +364,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Sales Return Trend', 'Return Mix', 'Return Health');
 
-        if ($export = $this->handleExport($request, 'Sales Return Report', ['Return No', 'Date', 'Customer', 'Amount', 'Reason'], (clone $query)->get()->map(function ($return) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Sales Return Report', ['Return No', 'Date', 'Customer', 'Amount', 'Reason'], (clone $query)->get()->map(function ($return) {
             return [
                 $return->return_no,
                 optional($this->value($return, ['return_date', 'created_at']))->format('Y-m-d'),
@@ -403,7 +403,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Purchase Totals', 'Purchase Mix', 'Payment Health');
 
-        if ($export = $this->handleExport($request, 'Purchase Report', ['Purchase No', 'Date', 'Supplier', 'Total', 'Paid', 'Due'], (clone $query)->get()->map(function ($purchase) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Purchase Report', ['Purchase No', 'Date', 'Supplier', 'Total', 'Paid', 'Due'], (clone $query)->get()->map(function ($purchase) {
             return [
                 $this->value($purchase, ['purchase_no', 'invoice_no'], '-'),
                 optional($this->value($purchase, ['purchase_date', 'created_at']))->format('Y-m-d'),
@@ -442,7 +442,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Purchase Return Totals', 'Return Mix', 'Return Health');
 
-        if ($export = $this->handleExport($request, 'Purchase Return Report', ['Return No', 'Date', 'Supplier', 'Amount', 'Reason'], (clone $query)->get()->map(function ($return) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Purchase Return Report', ['Return No', 'Date', 'Supplier', 'Amount', 'Reason'], (clone $query)->get()->map(function ($return) {
             return [
                 $return->return_no,
                 optional($this->value($return, ['return_date', 'created_at']))->format('Y-m-d'),
@@ -459,7 +459,8 @@ class ReportController extends Controller
 
     public function stock(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'stock']);
+        $stockStore = $request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false) ? $request->integer('store_id') : (int) \App\Models\Setting::get('default_store_id', 1);
+        $query = Product::with(['category', 'brand'])->withSum(['storeStocks as report_stock_quantity' => fn ($stock) => $stock->where('store_id', $stockStore)], 'quantity');
         
         if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
             $query->with(['storeStocks' => function($q) use ($request) {
@@ -480,19 +481,19 @@ class ReportController extends Controller
         $products = (clone $query)->paginate(20)->withQueryString();
 
         $summary = [
-            'Total Products' => Product::count(),
-            'Low Stock Items' => Product::whereHas('stock', function (Builder $stockQuery) {
-                $stockQuery->whereColumn('quantity', '<=', 'products.stock_alert_quantity')->where('quantity', '>', 0);
+            'Total Products' => (clone $query)->count(),
+            'Low Stock Items' => (clone $query)->whereHas('storeStocks', function (Builder $stockQuery) use ($stockStore) {
+                $stockQuery->where('store_id', $stockStore)->whereColumn('quantity', '<=', 'products.stock_alert_quantity')->where('quantity', '>', 0);
             })->count(),
-            'Out of Stock' => Product::whereHas('stock', fn (Builder $stockQuery) => $stockQuery->where('quantity', '<=', 0))->orWhereDoesntHave('stock')->count(),
+            'Out of Stock' => (clone $query)->whereDoesntHave('storeStocks', fn (Builder $stockQuery) => $stockQuery->where('store_id', $stockStore)->where('quantity', '>', 0))->count(),
         ];
         $chartData = $this->summaryChartData($summary, 'Stock Position', 'Stock Mix', 'Inventory Health');
 
-        if ($export = $this->handleExport($request, 'Stock Report', ['Product', 'Category', 'Stock', 'Cost', 'Retail', 'Wholesale'], (clone $query)->get()->map(function ($product) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Stock Report', ['Product', 'Category', 'Stock', 'Cost', 'Retail', 'Wholesale'], (clone $query)->get()->map(function ($product) {
             return [
                 $product->name,
                 $product->category->name ?? '-',
-                $product->stock->quantity ?? 0,
+                $product->report_stock_quantity ?? 0,
                 $product->cost_price,
                 $product->retail_price,
                 $product->wholesale_price,
@@ -506,7 +507,8 @@ class ReportController extends Controller
 
     public function lowStock(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'stock']);
+        $stockStore = $request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false) ? $request->integer('store_id') : (int) \App\Models\Setting::get('default_store_id', 1);
+        $query = Product::with(['category', 'brand'])->withSum(['storeStocks as report_stock_quantity' => fn ($stock) => $stock->where('store_id', $stockStore)], 'quantity');
         
         if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
             $query->with(['storeStocks' => function($q) use ($request) {
@@ -528,8 +530,8 @@ class ReportController extends Controller
         $summary = ['Low Stock Items' => $products->total()];
         $chartData = $this->summaryChartData($summary, 'Low Stock Items', 'Low Stock Mix', 'Reorder Health');
 
-        if ($export = $this->handleExport($request, 'Low Stock Report', ['Product', 'Stock', 'Alert Qty'], (clone $query)->get()->map(function ($product) {
-            return [$product->name, $product->stock->quantity ?? 0, $product->stock_alert_quantity];
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Low Stock Report', ['Product', 'Stock', 'Alert Qty'], (clone $query)->get()->map(function ($product) {
+            return [$product->name, $product->report_stock_quantity ?? 0, $product->stock_alert_quantity];
         }))) {
             return $export;
         }
@@ -547,7 +549,7 @@ class ReportController extends Controller
         $summary = ['Total Movements' => $movements->total()];
         $chartData = $this->summaryChartData($summary, 'Stock Movement Count', 'Movement Mix', 'Movement Health');
 
-        if ($export = $this->handleExport($request, 'Stock Movement Report', ['Date', 'Product', 'Type', 'Before', 'Change', 'After'], (clone $query)->get()->map(function ($movement) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Stock Movement Report', ['Date', 'Product', 'Type', 'Before', 'Change', 'After'], (clone $query)->get()->map(function ($movement) {
             return [
                 optional($movement->created_at)->format('Y-m-d H:i'),
                 $movement->product->name ?? '-',
@@ -576,7 +578,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Damaged Stock Totals', 'Damage Mix', 'Damage Health');
 
-        if ($export = $this->handleExport($request, 'Damaged Stock Report', ['Date', 'Product', 'Qty', 'Loss', 'Reason'], (clone $query)->get()->map(function ($damagedStock) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Damaged Stock Report', ['Date', 'Product', 'Qty', 'Loss', 'Reason'], (clone $query)->get()->map(function ($damagedStock) {
             return [
                 optional($damagedStock->created_at)->format('Y-m-d'),
                 $damagedStock->product->name ?? '-',
@@ -606,7 +608,7 @@ class ReportController extends Controller
         $revenueExpr = $revenueColumn ? "sale_items.{$revenueColumn}" : '0';
         $profitExpr = $profitColumn ? "sale_items.{$profitColumn}" : "({$revenueExpr} - ({$quantityExpr} * {$costExpr}))";
 
-        $data = SaleItem::query()
+        $query = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->select(
@@ -621,18 +623,18 @@ class ReportController extends Controller
                 $query->where('sales.store_id', $request->store_id);
             })
             ->groupBy('products.id', 'products.name')
-            ->orderByDesc('profit')
-            ->paginate(20)
-            ->withQueryString();
+            ->orderByDesc('profit');
+        $data = (clone $query)->paginate(20)->withQueryString();
+        $totals = DB::query()->fromSub((clone $query)->reorder(), 'profit_rows')->selectRaw('SUM(revenue) as revenue, SUM(cost) as cost, SUM(profit) as profit')->first();
 
         $summary = [
-            'Revenue' => $this->money((float) $data->sum('revenue')),
-            'Cost' => $this->money((float) $data->sum('cost')),
-            'Gross Profit' => $this->money((float) $data->sum('profit')),
+            'Revenue' => $this->money((float) $totals->revenue),
+            'Cost' => $this->money((float) $totals->cost),
+            'Gross Profit' => $this->money((float) $totals->profit),
         ];
         $chartData = $this->summaryChartData($summary, 'Product Profit Totals', 'Revenue Mix', 'Profit Health');
 
-        if ($export = $this->handleExport($request, 'Product Profit Report', ['Product', 'Sold Qty', 'Revenue', 'Cost', 'Profit'], collect($data->items())->map(fn ($row) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Product Profit Report', ['Product', 'Sold Qty', 'Revenue', 'Cost', 'Profit'], (clone $query)->get()->map(fn ($row) => [
             $row->product_name,
             $row->sold_qty,
             $row->revenue,
@@ -649,6 +651,8 @@ class ReportController extends Controller
     {
         $salesQuery = $this->applyDate($request, Sale::query(), 'sales', ['sale_date', 'created_at']);
         $expenseQuery = $this->applyDate($request, Expense::query(), 'expenses', ['expense_date', 'created_at']);
+        $salesQuery = $this->applyStoreFilter($request, $salesQuery, 'sales');
+        $expenseQuery = $this->applyStoreFilter($request, $expenseQuery, 'expenses');
 
         $salesTotalColumn = $this->firstColumn('sales', ['payable_amount', 'total_amount']) ?? 'id';
         $retailQuery = clone $salesQuery;
@@ -682,7 +686,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Income vs Expense', 'Profit & Loss Mix', 'Profit Health');
 
-        if ($export = $this->handleExport($request, 'Profit & Loss Report', ['Category', 'Description', 'Amount'], $data->map(fn ($row) => [$row->category, $row->description, $row->amount]))) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Profit & Loss Report', ['Category', 'Description', 'Amount'], $data->map(fn ($row) => [$row->category, $row->description, $row->amount]))) {
             return $export;
         }
 
@@ -693,6 +697,7 @@ class ReportController extends Controller
     {
         $query = Expense::with(['category', 'paidFrom', 'creator']);
         $query = $this->applyDate($request, $query, 'expenses', ['expense_date', 'created_at']);
+        $query = $this->applyStoreFilter($request, $query, 'expenses');
 
         if ($request->filled('payment_method') && $this->hasColumn('expenses', 'payment_method')) {
             $query->where('payment_method', $request->payment_method);
@@ -705,7 +710,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Expense Totals', 'Expense Mix', 'Expense Health');
 
-        if ($export = $this->handleExport($request, 'Expense Report', ['Date', 'Category', 'Title', 'Amount', 'Payment Method', 'Paid From', 'Reference'], (clone $query)->get()->map(fn ($expense) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Expense Report', ['Date', 'Category', 'Title', 'Amount', 'Payment Method', 'Paid From', 'Reference'], (clone $query)->get()->map(fn ($expense) => [
             optional($expense->expense_date ?? $expense->created_at)->format('Y-m-d'),
             $expense->category->name ?? '-',
             $expense->title ?? '-',
@@ -736,7 +741,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Customer Due Totals', 'Due Mix', 'Collection Health');
 
-        if ($export = $this->handleExport($request, 'Customer Due Report', ['Customer', 'Phone', 'Due Balance'], (clone $query)->get()->map(fn ($customer) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Customer Due Report', ['Customer', 'Phone', 'Due Balance'], (clone $query)->get()->map(fn ($customer) => [
             $customer->name,
             $customer->phone,
             $this->value($customer, ['balance', 'opening_balance'], 0),
@@ -763,7 +768,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Supplier Payable Totals', 'Payable Mix', 'Supplier Health');
 
-        if ($export = $this->handleExport($request, 'Supplier Due Report', ['Supplier', 'Phone', 'Payable Balance'], (clone $query)->get()->map(fn ($supplier) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Supplier Due Report', ['Supplier', 'Phone', 'Payable Balance'], (clone $query)->get()->map(fn ($supplier) => [
             $supplier->name,
             $supplier->phone,
             $this->value($supplier, ['balance', 'opening_balance'], 0),
@@ -783,7 +788,7 @@ class ReportController extends Controller
         $summary = ['Total Collections' => $this->money($this->sumColumn($query, 'customer_transactions', ['credit']))];
         $chartData = $this->summaryChartData($summary, 'Customer Collections', 'Collection Mix', 'Collection Health');
 
-        if ($export = $this->handleExport($request, 'Customer Payment Report', ['Date', 'Customer', 'Amount', 'Ref'], (clone $query)->get()->map(fn ($payment) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Customer Payment Report', ['Date', 'Customer', 'Amount', 'Ref'], (clone $query)->get()->map(fn ($payment) => [
             optional($payment->transaction_date)->format('Y-m-d'),
             $payment->customer->name ?? '-',
             $payment->credit,
@@ -804,7 +809,7 @@ class ReportController extends Controller
         $summary = ['Total Payments' => $this->money($this->sumColumn($query, 'supplier_transactions', ['credit']))];
         $chartData = $this->summaryChartData($summary, 'Supplier Payments', 'Payment Mix', 'Payment Health');
 
-        if ($export = $this->handleExport($request, 'Supplier Payment Report', ['Date', 'Supplier', 'Amount', 'Ref'], (clone $query)->get()->map(fn ($payment) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Supplier Payment Report', ['Date', 'Supplier', 'Amount', 'Ref'], (clone $query)->get()->map(fn ($payment) => [
             optional($payment->transaction_date)->format('Y-m-d'),
             $payment->supplier->name ?? '-',
             $payment->credit,
@@ -825,7 +830,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Cash & Bank Position', 'Account Mix', 'Balance Health');
 
-        if ($export = $this->handleExport($request, 'Cash & Bank Report', ['Account', 'Type', 'Balance', 'Status'], Account::where('account_type', 'Asset')->get()->map(fn ($account) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Cash & Bank Report', ['Account', 'Type', 'Balance', 'Status'], Account::where('account_type', 'Asset')->get()->map(fn ($account) => [
             $account->account_name,
             $account->account_type,
             $account->current_balance,
@@ -841,6 +846,8 @@ class ReportController extends Controller
     {
         $salesQuery = $this->applyDate($request, Sale::query(), 'sales', ['sale_date', 'created_at']);
         $purchaseQuery = $this->applyDate($request, Purchase::query(), 'purchases', ['purchase_date', 'created_at']);
+        $salesQuery = $this->applyStoreFilter($request, $salesQuery, 'sales');
+        $purchaseQuery = $this->applyStoreFilter($request, $purchaseQuery, 'purchases');
 
         $salesTax = $this->sumColumn($salesQuery, 'sales', ['total_tax_amount', 'tax_amount']);
         $purchaseTax = $this->sumColumn($purchaseQuery, 'purchases', ['tax_total', 'tax_amount']);
@@ -859,7 +866,7 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Tax Totals', 'Tax Mix', 'Tax Health');
 
-        if ($export = $this->handleExport($request, 'Tax Report', ['Period', 'Total Sales', 'Tax Collected', 'Tax Paid'], $data->map(fn ($row) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Tax Report', ['Period', 'Total Sales', 'Tax Collected', 'Tax Paid'], $data->map(fn ($row) => [
             $row->period,
             $row->total_sales,
             $row->tax_collected,
@@ -880,7 +887,7 @@ class ReportController extends Controller
         $summary = ['Total Activities' => $logs->total()];
         $chartData = $this->summaryChartData($summary, 'Activity Count', 'Activity Mix', 'System Health');
 
-        if ($export = $this->handleExport($request, 'User Activity Report', ['Date', 'User', 'Module', 'Action', 'Description'], (clone $query)->get()->map(fn ($log) => [
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'User Activity Report', ['Date', 'User', 'Module', 'Action', 'Description'], (clone $query)->get()->map(fn ($log) => [
             optional($log->created_at)->format('Y-m-d H:i'),
             $log->user->name ?? '-',
             $log->module,

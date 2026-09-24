@@ -34,6 +34,7 @@
         ['gradient' => 'from-rose-600 to-red-500', 'icon' => 'M6 18L18 6M6 6l12 12'],
     ];
 
+    $currentBalanceReport = in_array($title, ['Customer Due Report', 'Supplier Due Report', 'Cash & Bank Report']);
     $description = $descriptions[$title] ?? 'Advanced business report with filters, exports, and operational insights';
     $barChart = $chartData['bar'] ?? [];
     $barItems = collect($barChart['items'] ?? []);
@@ -134,7 +135,7 @@
                                 <div>
                                     <p class="text-xs font-black uppercase tracking-wider text-white/75">{{ $label }}</p>
                                     <div class="mt-3 text-2xl font-black tracking-tight">{{ $value }}</div>
-                                    <p class="mt-1 text-xs font-semibold text-white/70">Current filtered period</p>
+                                    <p class="mt-1 text-xs font-semibold text-white/70">{{ $currentBalanceReport ? 'Current balance' : 'Current filtered period' }}</p>
                                 </div>
                                 <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/18 ring-1 ring-white/20">
                                     <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $style['icon'] }}" /></svg>
@@ -150,7 +151,7 @@
 
             @if($filters)
                 <div class="report-filter-card rounded-2xl border border-white/70 bg-white p-5 shadow-lg shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20">
-                    <form method="GET" action="{{ url()->current() }}" class="report-filter-form flex flex-col gap-5">
+                    <details class="report-filters" open><summary class="cursor-pointer py-2 font-bold">Filters ({{ count(array_filter(request()->except(['page', 'type']), fn ($value) => filled($value) && $value !== 'all')) }})</summary><form method="GET" action="{{ url()->current() }}" class="report-filter-form flex flex-col gap-5">
                         <div>
                             <div class="flex items-center justify-between gap-3">
                                 <div>
@@ -162,7 +163,7 @@
                         </div>
 
                         <div class="[&_label]:mb-1 [&_label]:text-xs [&_label]:font-black [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-slate-500 [&_input]:rounded-xl [&_input]:border-slate-200 [&_input]:bg-slate-50 [&_input]:text-sm [&_input]:font-semibold [&_input]:shadow-sm [&_input]:transition [&_input]:focus:border-blue-400 [&_input]:focus:ring-blue-400 [&_select]:rounded-xl [&_select]:border-slate-200 [&_select]:bg-slate-50 [&_select]:text-sm [&_select]:font-semibold [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-blue-400 [&_select]:focus:ring-blue-400 dark:[&_input]:border-slate-700 dark:[&_input]:bg-slate-950 dark:[&_input]:text-slate-200 dark:[&_select]:border-slate-700 dark:[&_select]:bg-slate-950 dark:[&_select]:text-slate-200">
-                            @if($enableMultiStore)
+                            @if($enableMultiStore && !$currentBalanceReport)
                                 <div class="mb-4">
                                     <label class="block text-xs font-bold text-slate-700 mb-1">Store Filter</label>
                                     <select name="store_id" class="w-full md:w-1/4 rounded-xl border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
@@ -180,10 +181,19 @@
                             <a href="{{ $resetRoute }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">Reset</a>
                             <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2 text-xs font-black text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-700">Apply Filter</button>
                         </div>
-                    </form>
+                    </form></details>
                 </div>
             @endif
 
+            @if(request()->except(['page', 'type']))
+                <div class="flex flex-wrap gap-2" aria-label="Active filters">
+                    @foreach(request()->except(['page', 'type']) as $filterName => $filterValue)
+                        @if(is_scalar($filterValue) && filled($filterValue) && $filterValue !== 'all')
+                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-800">{{ ucfirst(str_replace('_', ' ', $filterName)) }}: {{ $filterValue }}</span>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
             <div class="report-charts grid grid-cols-1 gap-4 lg:grid-cols-4">
                 <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
                     <div class="flex items-center justify-between">
@@ -308,24 +318,24 @@
 
                         button.addEventListener('click', function () {
                             dateSelect.value = value;
-                            form.submit();
+                            if (value === 'custom') { form.querySelector('input[type=date]')?.focus(); return; }
+                            form.querySelectorAll('input[type=date]').forEach(input => input.value = '');
+                            form.requestSubmit();
                         });
 
                         quickWrap.appendChild(button);
                     });
                 }
 
-                form.querySelectorAll('select').forEach(function (select) {
-                    select.addEventListener('change', function () {
-                        form.submit();
-                    });
-                });
-
                 form.querySelectorAll('input[type="date"]').forEach(function (input) {
                     input.addEventListener('change', function () {
-                        form.submit();
+                        if (dateSelect) dateSelect.value = 'custom';
                     });
                 });
+                form.addEventListener('submit', function () {
+                    if (dateSelect && (form.start_date?.value || form.end_date?.value)) dateSelect.value = 'custom';
+                });
+
             });
         });
     </script>

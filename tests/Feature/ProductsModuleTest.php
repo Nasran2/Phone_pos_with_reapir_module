@@ -374,7 +374,7 @@ test('excel import template exposes products and category reference sheets', fun
 
     $sheets = (new ProductImportWorkbookExport)->sheets();
     expect(collect($sheets)->map->title()->all())->toBe(['Instructions', 'Products', 'Categories', 'Brands', 'Units']);
-    expect($sheets[1]->collection()->pluck(1)->all())->toContain('Visible Product');
+    expect($sheets[1]->collection()->pluck(0)->all())->toContain('Visible Product');
     expect($sheets[2]->collection()->pluck(1)->all())->toContain('Visible Phones');
 
     $workbook = ExcelFacade::raw(new ProductImportWorkbookExport, ExcelFormat::XLSX);

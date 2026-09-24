@@ -711,6 +711,18 @@
                     <div class="py-1"><span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Cheque Management @if($chequeBadge) ({{ $chequeBadge }}) @endif</span><div class="mt-1 space-y-1 pl-3"><a href="{{ route('cheques.dashboard') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Dashboard</a><a href="{{ route('cheques.received.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Received</a><a href="{{ route('cheques.issued.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Issued</a><a href="{{ route('cheques.list','upcoming') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Upcoming</a><a href="{{ route('cheques.list','overdue') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Overdue</a><a href="{{ route('cheques.calendar') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Calendar</a><a href="{{ route('cheques.reports') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Reports</a></div></div>
                     @endif
 
+                    @if($moduleSettings['accounting'] && auth()->user()->hasPermission('accounting.view'))
+                    <div class="py-1"><span class="px-3 text-xs font-bold text-slate-500">Accounting</span><div class="pl-3">
+                        @foreach(['accounting.accounts.index' => 'Accounts', 'accounting.journal-entries.index' => 'Journal', 'accounting.ledger.index' => 'Ledger / Cash Book', 'accounting.capital-drawings.index' => 'Capital & Drawings'] as $navRoute => $navLabel)
+                        <a href="{{ route($navRoute) }}" class="rounded px-3 text-xs {{ request()->routeIs($navRoute) ? 'bg-blue-600 text-white' : 'text-slate-300' }}">{{ $navLabel }}</a>
+                        @endforeach
+                    </div></div>
+                    @endif
+                    <div class="py-1">
+                        @foreach(['tax.dashboard' => ['tax_dashboard.view', 'Tax Dashboard'], 'tax.periods.index' => ['tax_periods.view', 'Tax Periods'], 'tax.payments.index' => ['tax_payments.view', 'Tax Payments'], 'tax.transactions.index' => ['tax_transactions.view', 'Tax Transactions'], 'tax.reports.index' => ['tax_reports.view', 'Tax Reports']] as $navRoute => [$navPermission, $navLabel])
+                            @if(auth()->user()->hasPermission($navPermission))<a href="{{ route($navRoute) }}" class="rounded px-3 text-xs {{ request()->routeIs($navRoute) ? 'bg-blue-600 text-white' : 'text-slate-300' }}">{{ $navLabel }}</a>@endif
+                        @endforeach
+                    </div>
                     @if ($canAccessReports)
                     <div>
                         <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('reports.*') ? 'bg-[#182647]/50 text-white' : 'text-slate-350' }}">
@@ -755,8 +767,18 @@
     </div>
     @endif
 
+    @include('partials.mobile-bottom-nav')
+
     <!-- Main Content Area Wrapper -->
     <main class="app-main flex-1 flex flex-col min-h-screen min-w-0 w-full bg-slate-50 dark:bg-slate-900 overflow-x-hidden">
+        @foreach(['success', 'warning', 'error', 'info'] as $messageType)
+            @if(is_string(session($messageType)))
+                <div role="status" class="m-3 rounded-xl border p-3 text-sm {{ $messageType === 'error' ? 'border-red-200 bg-red-50 text-red-800' : ($messageType === 'warning' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-blue-200 bg-blue-50 text-blue-800') }}">{{ session($messageType) }}</div>
+            @endif
+        @endforeach
+        @if($errors->any())
+            <div role="alert" class="m-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"><strong>Please check the following:</strong><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+        @endif
         {{ $slot }}
     </main>
 
@@ -766,6 +788,15 @@
         function toggleSubmenu(button) {
             const submenu = button.nextElementSibling;
             const chevron = button.querySelector('.chevron-icon');
+            const opening = submenu.classList.contains('hidden');
+            button.closest('nav')?.querySelectorAll('button[onclick="toggleSubmenu(this)"]').forEach(other => {
+                if (other !== button) {
+                    other.nextElementSibling?.classList.add('hidden');
+                    other.querySelector('.chevron-icon')?.classList.remove('rotate-180');
+                    other.setAttribute('aria-expanded', 'false');
+                }
+            });
+            button.setAttribute('aria-expanded', String(opening));
             
             if (submenu.classList.contains('hidden')) {
                 submenu.classList.remove('hidden');
@@ -809,6 +840,13 @@
         }
 
         window.addEventListener('keydown', function (event) {
+            const drawer = document.getElementById('mobile-sidebar');
+            if (event.key === 'Tab' && drawer && !drawer.classList.contains('hidden')) {
+                const items = [...drawer.querySelectorAll('a[href], button, input, select')].filter(el => el.getClientRects().length);
+                const first = items[0], last = items[items.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+            }
             if (event.key === 'Escape' && !document.getElementById('mobile-sidebar')?.classList.contains('hidden')) {
                 toggleMobileSidebar(false);
             }

@@ -1,6 +1,6 @@
 <x-layouts::app :title="__('Create Sale Return')">
     <div x-data="returnProcess()" class="flex flex-col h-full bg-slate-50 min-h-screen">
-        <div class="px-6 py-8 md:px-8 max-w-7xl mx-auto w-full flex items-start justify-between">
+        <div class="px-6 py-8 md:px-8 max-w-7xl mx-auto w-full flex flex-wrap gap-3 items-start justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-slate-850">POS Returns</h2>
                 <p class="text-sm text-slate-500 mt-1">Exchange same products, refund paid bills, or reduce customer due balances.</p>
@@ -123,7 +123,7 @@
                     
                     <!-- If Invoice -->
                     <div x-show="sourceType === 'invoice'">
-                        <table class="w-full text-left border-collapse">
+                        <table class="mobile-record-table w-full text-left border-collapse">
                             <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                                 <tr>
                                     <th class="p-3 border-b border-slate-200">Product</th>
@@ -136,20 +136,20 @@
                             <tbody class="divide-y divide-slate-100 text-sm">
                                 <template x-for="(item, index) in returnItems" :key="item.id">
                                     <tr>
-                                        <td class="p-3 font-semibold text-slate-800">
+                                        <td data-label="Product" class="p-3 font-semibold text-slate-800">
                                             <span x-text="item.name"></span>
                                             <input type="hidden" :name="'items['+index+'][sale_item_id]'" :value="item.sale_item_id">
                                             <input type="hidden" :name="'items['+index+'][product_id]'" :value="item.product_id">
                                         </td>
-                                        <td class="p-3 text-right" x-text="item.max_qty"></td>
-                                        <td class="p-3 text-right font-mono" x-text="formatCurrency(item.unit_price)"></td>
-                                        <td class="p-3">
+                                        <td data-label="Sold Qty" class="p-3 text-right" x-text="item.max_qty"></td>
+                                        <td data-label="Unit Price" class="p-3 text-right font-mono" x-text="formatCurrency(item.unit_price)"></td>
+                                        <td data-label="Condition" class="p-3">
                                             <select x-model="item.stock_action" :name="'items['+index+'][stock_action]'" class="w-36 px-2 py-1.5 border border-slate-200 rounded text-xs bg-white">
                                                 <option value="return_to_stock">Return to Stock</option>
                                                 <option value="scrap">Scrap (Damaged)</option>
                                             </select>
                                         </td>
-                                        <td class="p-3 text-right">
+                                        <td data-label="Return Qty" class="p-3 text-right">
                                             <input type="number" step="any" min="0" :max="item.max_qty" x-model="item.qty" :name="'items['+index+'][quantity]'" class="w-20 px-2 py-1.5 border border-slate-200 rounded text-right text-sm">
                                         </td>
                                     </tr>
@@ -169,7 +169,7 @@
                             </select>
                             <button type="button" @click="addOldReturnProduct()" class="px-4 py-2 bg-blue-100 text-blue-700 font-bold rounded-lg text-xs hover:bg-blue-200">Add Item</button>
                         </div>
-                        <table class="w-full text-left border-collapse" x-show="returnItems.length > 0">
+                        <table class="mobile-record-table w-full text-left border-collapse" x-show="returnItems.length > 0">
                             <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                                 <tr>
                                     <th class="p-3 border-b border-slate-200">Product</th>
@@ -182,22 +182,22 @@
                             <tbody class="divide-y divide-slate-100 text-sm">
                                 <template x-for="(item, index) in returnItems" :key="item.uid">
                                     <tr>
-                                        <td class="p-3 font-semibold text-slate-800">
+                                        <td data-label="Product" class="p-3 font-semibold text-slate-800">
                                             <span x-text="item.name"></span>
                                             <input type="hidden" :name="'items['+index+'][product_id]'" :value="item.product_id">
                                             <input type="hidden" :name="'items['+index+'][unit_price]'" :value="item.unit_price">
                                         </td>
-                                        <td class="p-3 text-right font-mono" x-text="formatCurrency(item.unit_price)"></td>
-                                        <td class="p-3">
+                                        <td data-label="Expense/Unit Value" class="p-3 text-right font-mono" x-text="formatCurrency(item.unit_price)"></td>
+                                        <td data-label="Condition" class="p-3">
                                             <select x-model="item.stock_action" :name="'items['+index+'][stock_action]'" class="w-36 px-2 py-1.5 border border-slate-200 rounded text-xs bg-white">
                                                 <option value="return_to_stock">Return to Stock</option>
                                                 <option value="scrap">Scrap (Damaged)</option>
                                             </select>
                                         </td>
-                                        <td class="p-3 text-right">
+                                        <td data-label="Return Qty" class="p-3 text-right">
                                             <input type="number" step="any" min="0" x-model="item.qty" :name="'items['+index+'][quantity]'" class="w-20 px-2 py-1.5 border border-slate-200 rounded text-right text-sm">
                                         </td>
-                                        <td class="p-3 text-center">
+                                        <td data-label="Action" class="p-3 text-center">
                                             <button type="button" @click="removeReturnItem(index)" class="text-red-500 hover:text-red-700 font-bold text-lg">&times;</button>
                                         </td>
                                     </tr>
@@ -252,7 +252,7 @@
                         <button type="button" @click="addExchangeProduct()" class="px-4 py-2 bg-purple-100 text-purple-700 font-bold rounded-lg text-xs hover:bg-purple-200">Add Item</button>
                     </div>
 
-                    <table class="w-full text-left border-collapse" x-show="exchangeItems.length > 0">
+                    <table class="mobile-record-table w-full text-left border-collapse" x-show="exchangeItems.length > 0">
                         <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                             <tr>
                                 <th class="p-3 border-b border-slate-200">New Product</th>
@@ -264,17 +264,17 @@
                         <tbody class="divide-y divide-slate-100 text-sm">
                             <template x-for="(item, index) in exchangeItems" :key="item.uid">
                                 <tr>
-                                    <td class="p-3 font-semibold text-slate-800">
+                                    <td data-label="New Product" class="p-3 font-semibold text-slate-800">
                                         <span x-text="item.name"></span>
                                         <input type="hidden" :name="'exchange_items['+index+'][product_id]'" :value="item.product_id">
                                     </td>
-                                    <td class="p-3 text-right">
+                                    <td data-label="Price" class="p-3 text-right">
                                         <input type="number" step="any" min="0" x-model="item.unit_price" :name="'exchange_items['+index+'][unit_price]'" class="w-24 px-2 py-1.5 border border-slate-200 rounded text-right text-sm">
                                     </td>
-                                    <td class="p-3 text-right">
+                                    <td data-label="Qty" class="p-3 text-right">
                                         <input type="number" step="any" min="1" x-model="item.qty" :name="'exchange_items['+index+'][quantity]'" class="w-20 px-2 py-1.5 border border-slate-200 rounded text-right text-sm">
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td data-label="Action" class="p-3 text-center">
                                         <button type="button" @click="removeExchangeItem(index)" class="text-red-500 hover:text-red-700 font-bold text-lg">&times;</button>
                                     </td>
                                 </tr>

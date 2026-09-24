@@ -17,11 +17,11 @@ class ImportShipmentController extends Controller
 
     public function create()
     {
-        $suppliers = \App\Models\Supplier::where('is_active', true)->get();
+        $suppliers = \App\Models\Supplier::where('status', true)->get();
         $currencies = \App\Models\Currency::where('is_active', true)->get();
         $hsCodes = \App\Models\HsCode::where('is_active', true)->get();
         $products = \App\Models\Product::where('is_active', true)->get();
-        $stores = \App\Models\Store::where('is_active', true)->get();
+        $stores = \App\Models\Store::where('status', true)->get();
         
         // Get latest active exchange rates
         $exchangeRates = \App\Models\ExchangeRate::where(function($q) {
@@ -104,19 +104,43 @@ class ImportShipmentController extends Controller
         }
 
         $importShipment->load('items.product');
-        $suppliers = \App\Models\Supplier::where('is_active', true)->get();
+        $suppliers = \App\Models\Supplier::where('status', true)->get();
         $currencies = \App\Models\Currency::where('is_active', true)->get();
         $hsCodes = \App\Models\HsCode::where('is_active', true)->get();
         $products = \App\Models\Product::where('is_active', true)->get();
-        $stores = \App\Models\Store::where('is_active', true)->get();
+        $stores = \App\Models\Store::where('status', true)->get();
         
-        return view('import_shipments.edit', compact('importShipment', 'suppliers', 'currencies', 'hsCodes', 'products', 'stores'));
+        $exchangeRates = \App\Models\ExchangeRate::whereNull('effective_to')->orWhere('effective_to', '>=', today()->toDateString())->get()->keyBy('currency_id');
+        return view('import_shipments.create', compact('importShipment', 'suppliers', 'currencies', 'hsCodes', 'products', 'stores', 'exchangeRates'));
     }
 
     public function update(Request $request, \App\Models\ImportShipment $importShipment)
     {
-        // Skip full implementation for brevity, typically similar to store
-        return redirect()->route('import-shipments.index')->with('success', 'Import shipment updated successfully.');
+        $data = $request->validate([
+            'reference_no' => ['required', 'string', \Illuminate\Validation\Rule::unique('import_shipments')->ignore($importShipment->id)],
+            'shipment_date' => 'required|date', 'supplier_id' => 'required|exists:suppliers,id',
+            'currency_id' => 'required|exists:currencies,id', 'store_id' => 'required|exists:stores,id',
+            'exchange_rate' => 'required|numeric|min:0.000001', 'cost_allocation_method' => 'required|in:value,weight,quantity',
+            'notes' => 'nullable|string', 'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id', 'items.*.hs_code_id' => 'nullable|exists:hs_codes,id',
+            'items.*.quantity' => 'required|numeric|min:1', 'items.*.foreign_unit_price' => 'required|numeric|min:0',
+        ]);
+        \DB::transaction(function () use ($importShipment, $data) {
+            $shipment = \App\Models\ImportShipment::lockForUpdate()->findOrFail($importShipment->id);
+            abort_unless($shipment->status === 'draft', 422, 'Only draft shipments can be edited.');
+            $items = $data['items'];
+            unset($data['items']);
+            $shipment->update($data);
+            $shipment->items()->delete();
+            $foreignTotal = 0;
+            foreach ($items as $item) {
+                $foreign = $item['quantity'] * $item['foreign_unit_price'];
+                $shipment->items()->create($item + ['foreign_line_total' => $foreign, 'local_line_total' => $foreign * $data['exchange_rate']]);
+                $foreignTotal += $foreign;
+            }
+            $shipment->update(['foreign_total_amount' => $foreignTotal, 'local_total_amount' => $foreignTotal * $data['exchange_rate']]);
+        });
+        return redirect()->route('import-shipments.show', $importShipment)->with('success', 'Import shipment updated successfully.');
     }
 
     public function destroy(\App\Models\ImportShipment $importShipment)

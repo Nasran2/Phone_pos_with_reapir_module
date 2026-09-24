@@ -26,6 +26,11 @@ class ImportShipment extends Model
         return $this->hasMany(ImportCostAllocation::class);
     }
 
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);

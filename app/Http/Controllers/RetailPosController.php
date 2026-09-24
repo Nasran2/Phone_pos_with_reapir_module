@@ -554,6 +554,7 @@ class RetailPosController extends Controller
                 'inventory_status' => $completedSale->inventoryStatus(),
                 'payment_status' => $completedSale->payment_status,
                 'due_amount' => (float) $completedSale->due_amount,
+                'share_url' => URL::signedRoute('sales.shared', ['sale' => $saleId]),
                 'print_url' => URL::signedRoute('sales.shared', [
                     'sale' => $saleId,
                     'print' => 1,
@@ -567,6 +568,10 @@ class RetailPosController extends Controller
             throw $e;
         } catch (\RuntimeException $e) {
             DB::rollBack();
+            if ($e instanceof \Illuminate\Database\QueryException) {
+                report($e);
+                return response()->json(['success' => false, 'message' => 'Unable to save checkout. Please try again or contact support.'], 500);
+            }
 
             return response()->json([
                 'success' => false,
@@ -574,10 +579,11 @@ class RetailPosController extends Controller
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+            report($e);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Checkout failed: '.$e->getMessage(),
+                'message' => 'Unable to complete checkout. Please try again or contact support.',
             ], 500);
         }
     }

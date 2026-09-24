@@ -1,5 +1,7 @@
 <x-layouts::app :title="__('Dashboard')">
-    @php($currencySymbol = \App\Support\SystemSettings::currencySymbol())
+    @php
+        $currencySymbol = \App\Support\SystemSettings::currencySymbol();
+    @endphp
     <!-- ApexCharts Library (Gives beautiful interactive charts with smooth curves) -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
@@ -9,7 +11,8 @@
         <div class="flex items-center gap-3">
             <h2 class="text-lg font-bold text-slate-850 dark:text-white">Dashboard</h2>
             @if($enableMultiStore)
-                <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 ml-4">
+                <form method="GET" action="{{ route('dashboard') }}" class="flex flex-wrap items-center gap-2 ml-4">
+                    <input type="hidden" name="chart_period" value="{{ $chartPeriod }}">
                     @if(request('date'))
                         <input type="hidden" name="date" value="{{ request('date') }}">
                     @endif
@@ -24,40 +27,25 @@
             @endif
         </div>
 
-        <!-- Search, Scanner, Notifications, and Date Picker -->
-        <div class="flex items-center gap-4">
-            <!-- Global Search Input -->
-            <div class="relative hidden md:block w-72">
-                <input 
-                    type="text" 
-                    placeholder="Search products, invoices, customers..." 
-                    class="w-full pl-10 pr-10 py-2.5.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white transition"
-                />
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
+        <div class="dashboard-tools flex flex-wrap items-center gap-3 min-w-0">
+            <x-global-search />
+            @if(auth()->user()->hasPermission('cheques.view'))
+            <details class="relative notification-panel">
+                <summary class="mobile-touch-button cursor-pointer list-none" aria-label="Cheque alerts">🔔 <span class="text-xs font-bold">{{ $unreadNotifications }}</span></summary>
+                <div class="notification-results absolute right-0 z-40 rounded-xl border bg-white p-4 shadow-lg">
+                    <p class="text-sm font-bold mb-2">Current cheque alerts</p>
+                    @forelse($upcomingCheques as $notification)
+                        <a class="block py-3 border-b text-sm" href="{{ route('cheques.show', $notification->id) }}">{{ $notification->cheque_number }} · {{ $notification->cheque_date->format('d M Y') }} · {{ \App\Support\SystemSettings::money($notification->amount) }}</a>
+                    @empty
+                        <p class="text-sm text-slate-500">No cheques require action.</p>
+                    @endforelse
+                    <a class="block py-3 text-blue-600" href="{{ route('cheques.dashboard') }}">View cheque dashboard</a>
                 </div>
-                <!-- Scanner Icon -->
-                <button class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-500 transition cursor-pointer" title="Scan Barcode">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M3 5h2v14H3zm4 0h1v14H7zm3 0h3v14h-3zm5 0h1v14h-1zm3 0h3v14h-3z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Notifications Bell -->
-            <div class="relative">
-                <button class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-500 transition rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer">
-                    <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                </button>
-                <span class="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-800"></span>
-            </div>
-
+            </details>
+            @endif
             <!-- Date Picker Card -->
             <form id="date-filter-form" method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <input type="hidden" name="chart_period" value="{{ $chartPeriod }}">
                 @if(request('store_id'))
                     <input type="hidden" name="store_id" value="{{ request('store_id') }}">
                 @endif
@@ -70,7 +58,7 @@
     </div>
 
     <!-- Main Dashboard Body (Scrollable Content) -->
-    <div class="p-6 md:p-8 space-y-6 flex-1 w-full overflow-y-auto">
+    <div class="dashboard-content p-6 md:p-8 space-y-6 flex-1 w-full min-w-0">
         
         <!-- Upcoming Cheques Alert Banner -->
         @if(isset($upcomingCheques) && $upcomingCheques->count() > 0)
@@ -95,14 +83,14 @@
                                             <span class="font-extrabold">{{ \App\Support\SystemSettings::money((float)$cheque->amount) }}</span> 
                                             <span class="text-amber-600 ml-1">
                                                 (No: {{ $cheque->cheque_number }} | Bank: {{ $cheque->bank_name ?? 'N/A' }} | 
-                                                Date: <span class="{{ $cheque->cheque_date < date('Y-m-d') ? 'text-red-600 font-bold' : ($cheque->cheque_date == date('Y-m-d') ? 'text-amber-800 font-bold' : '') }}">{{ $cheque->cheque_date }}</span>)
+                                                Date: <span class="{{ $cheque->cheque_date->lt(today()) ? 'text-red-600 font-bold' : ($cheque->cheque_date->isToday() ? 'text-amber-800 font-bold' : '') }}">{{ $cheque->cheque_date->format('d M Y') }}</span>)
                                             </span>
                                         </div>
                                         <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
                                             <a href="{{ route('cheques.show', $cheque->id) }}" class="text-[10px] font-bold px-2 py-1 rounded bg-amber-200/50 text-amber-800 hover:bg-amber-300 transition">View</a>
-                                            @if($cheque->cheque_date <= date('Y-m-d'))
-                                                <button type="button" onclick="passCheque({{ $cheque->id }})" class="text-[10px] font-bold px-2 py-1 rounded bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm transition">Pass</button>
-                                                <button type="button" onclick="returnCheque({{ $cheque->id }})" class="text-[10px] font-bold px-2 py-1 rounded bg-rose-500 text-white hover:bg-rose-600 shadow-sm transition">Return</button>
+                                            @if($cheque->cheque_date->lte(today()))
+                                                @if(auth()->user()->hasPermission('cheques.mark_passed'))<button type="button" onclick="passCheque({{ $cheque->id }})" class="text-[10px] font-bold px-2 py-1 rounded bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm transition">Pass</button>@endif
+                                                @if(auth()->user()->hasPermission('cheques.mark_returned'))<button type="button" onclick="returnCheque({{ $cheque->id }})" class="text-[10px] font-bold px-2 py-1 rounded bg-rose-500 text-white hover:bg-rose-600 shadow-sm transition">Return</button>@endif
                                             @endif
                                         </div>
                                     </li>
@@ -117,6 +105,15 @@
             </div>
             
             <script>
+            let chequeSubmitting = false;
+            function appendChequeFields(form, fields) {
+                fields._token = @json(csrf_token());
+                Object.entries(fields).forEach(([name, value]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden'; input.name = name; input.value = value;
+                    form.appendChild(input);
+                });
+            }
             function passCheque(id) {
                 Swal.fire({
                     title: 'Mark as Passed',
@@ -129,10 +126,11 @@
                         ref: document.getElementById('swal-cref').value
                     })
                 }).then((result) => {
-                    if (result.isConfirmed) {
+                    if (result.isConfirmed && !chequeSubmitting) {
+                        chequeSubmitting = true;
                         let f = document.createElement('form');
                         f.method = 'POST'; f.action = '{{ url("cheques") }}/' + id + '/pass';
-                        f.innerHTML = '@csrf<input type="hidden" name="cleared_date" value="'+result.value.date+'"><input type="hidden" name="deposit_reference" value="'+result.value.ref+'">';
+                        appendChequeFields(f, {cleared_date: result.value.date, deposit_reference: result.value.ref});
                         document.body.appendChild(f); f.submit();
                     }
                 });
@@ -150,10 +148,11 @@
                         charge: document.getElementById('swal-rcharge').value
                     })
                 }).then((result) => {
-                    if (result.isConfirmed) {
+                    if (result.isConfirmed && !chequeSubmitting) {
+                        chequeSubmitting = true;
                         let f = document.createElement('form');
                         f.method = 'POST'; f.action = '{{ url("cheques") }}/' + id + '/return';
-                        f.innerHTML = '@csrf<input type="hidden" name="return_date" value="'+result.value.date+'"><input type="hidden" name="return_reason" value="'+result.value.reason+'"><input type="hidden" name="return_charge" value="'+result.value.charge+'">';
+                        appendChequeFields(f, {return_date: result.value.date, return_reason: result.value.reason, return_charge: result.value.charge});
                         document.body.appendChild(f); f.submit();
                     }
                 });
@@ -161,142 +160,65 @@
             </script>
         @endif
 
-        <!-- 5 Stats Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            <!-- 1. Total Sales Today -->
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Total Sales (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $totalSalesToday) }}</h3>
-                    <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="18 15 12 9 6 15"/>
-                        </svg>
-                        <span>12.5%</span>
-                        <span class="text-slate-400 font-semibold ml-0.5">vs Yesterday</span>
+        @php
+            $cards = [
+                ['Total Sales', $totalSalesToday, route('reports.sales', $reportFilters), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'],
+                ['Retail Sales', $retailSalesToday, route('reports.sales', $reportFilters + ['sale_type' => 'retail']), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>'],
+                ['Wholesale Sales', $wholesaleSalesToday, route('reports.sales', $reportFilters + ['sale_type' => 'wholesale']), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'],
+                ['Gross Profit', $totalProfitToday, route('reports.profit_loss', $reportFilters), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'],
+                ['Total Purchase', $totalPurchaseToday, route('reports.purchases', $reportFilters), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'],
+            ];
+        @endphp
+        <p class="text-sm font-semibold text-slate-500">Selected date: {{ $dateLabel }}</p>
+        <div class="dashboard-stats grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+            @foreach($cards as [$label, $amount, $target, $icon])
+                <a href="{{ $target }}" class="dashboard-stat group block bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-sm transition duration-300">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="min-w-0">
+                            <span class="text-xs font-bold text-slate-500 uppercase">{{ $label }}</span>
+                            <h3 class="mt-2 text-xl font-extrabold text-slate-900 truncate">{{ \App\Support\SystemSettings::money((float) $amount) }}</h3>
+                            <p class="mt-2 text-xs text-slate-500 truncate">{{ $changes[$loop->index] }} · vs previous day</p>
+                        </div>
+                        <div class="text-slate-100 group-hover:text-blue-500/30 transition-colors duration-300 shrink-0">
+                            {!! $icon !!}
+                        </div>
                     </div>
-                </div>
-                <div class="p-3.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- 2. Retail Sales Today -->
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Retail Sales (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $retailSalesToday) }}</h3>
-                    <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="18 15 12 9 6 15"/>
-                        </svg>
-                        <span>10.8%</span>
-                        <span class="text-slate-400 font-semibold ml-0.5">vs Yesterday</span>
-                    </div>
-                </div>
-                <div class="p-3.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- 3. Wholesale Sales Today -->
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Wholesale Sales (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $wholesaleSalesToday) }}</h3>
-                    <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="18 15 12 9 6 15"/>
-                        </svg>
-                        <span>15.3%</span>
-                        <span class="text-slate-400 font-semibold ml-0.5">vs Yesterday</span>
-                    </div>
-                </div>
-                <div class="p-3.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- 4. Total Profit Today -->
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Total Profit (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $totalProfitToday) }}</h3>
-                    <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="18 15 12 9 6 15"/>
-                        </svg>
-                        <span>11.2%</span>
-                        <span class="text-slate-400 font-semibold ml-0.5">vs Yesterday</span>
-                    </div>
-                </div>
-                <div class="p-3.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-105 transition shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- 5. Total Purchase Today -->
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center justify-between group hover:shadow-md transition duration-200">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase">Total Purchase (Today)</span>
-                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-tight">{{ \App\Support\SystemSettings::money((float) $totalPurchaseToday) }}</h3>
-                    <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="18 15 12 9 6 15"/>
-                        </svg>
-                        <span>8.7%</span>
-                        <span class="text-slate-400 font-semibold ml-0.5">vs Yesterday</span>
-                    </div>
-                </div>
-                <div class="p-3.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="1" y="3" width="15" height="13" rx="2" ry="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-                    </svg>
-                </div>
-            </div>
+                </a>
+            @endforeach
         </div>
 
-        <!-- Central Analytics Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- 1. Sales Overview line chart -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs lg:col-span-6 flex flex-col justify-between">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/40 pb-4 mb-4">
                     <div>
                         <h3 class="text-sm font-bold text-slate-800 dark:text-white">Sales Overview</h3>
-                        <p class="text-[10px] text-slate-400 font-medium">Hourly transaction analytics</p>
+                        <p class="text-[10px] text-slate-400 font-medium">Selected period around {{ $dateLabel }}</p>
                     </div>
                     <!-- Chart Toggles -->
                     <div class="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'today']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'today' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">Today</a>
-                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'week']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'week' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">This Week</a>
-                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'month']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'month' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">This Month</a>
-                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'year']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'year' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">This Year</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'today']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'today' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">{{ $dateLabel === 'Today' ? 'Today' : 'Selected Day' }}</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'week']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'week' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">Week</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'month']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'month' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">Month</a>
+                        <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'year']) }}" class="px-2.5 py-1 block {{ $chartPeriod === 'year' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-md shadow-xs' : '' }}">Year</a>
                     </div>
                 </div>
                 <!-- Line Chart Mount Div -->
-                <div class="w-full h-72" id="sales-line-chart"></div>
+                <div class="w-full min-w-0 h-72" id="sales-line-chart"></div>
             </div>
 
             <!-- 2. Sales by Payment Method Chart -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs lg:col-span-3 flex flex-col justify-between">
                 <div class="border-b border-slate-100 dark:border-slate-700/40 pb-4 mb-4">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white">Sales by Payment Method</h3>
-                    <p class="text-[10px] text-slate-400 font-medium">Collection allocation channels</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Cleared payments for selected-date sales</p>
                 </div>
                 <!-- Donut Chart Mount Div -->
                 <div class="w-full h-52 flex items-center justify-center" id="payment-donut-chart"></div>
                 
                 <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-700/40 pt-4 flex items-center justify-between mt-2">
                     <span>Total Transactions:</span>
-                    <span class="text-slate-800 dark:text-white font-extrabold text-xs">86</span>
+                    <span class="text-slate-800 dark:text-white font-extrabold text-xs">{{ $paymentTransactionCount }}</span>
                 </div>
             </div>
 
@@ -304,7 +226,7 @@
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs lg:col-span-3 flex flex-col justify-between">
                 <div class="border-b border-slate-100 dark:border-slate-700/40 pb-4 mb-4">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white">System Summary</h3>
-                    <p class="text-[10px] text-slate-400 font-medium">Business key metrics</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Current balances · expenses for {{ $dateLabel }}</p>
                 </div>
                 <div class="space-y-3.5 flex-1 flex flex-col justify-center">
                     <div class="flex items-center justify-between border-b border-slate-100/60 dark:border-slate-750 pb-2.5">
@@ -338,7 +260,7 @@
                     <div class="flex items-center justify-between border-b border-slate-100/60 dark:border-slate-750 pb-2.5">
                         <div class="flex items-center gap-2">
                             <span class="h-2 w-2 rounded-full bg-amber-500"></span>
-                            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Total Expenses (Today):</span>
+                            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Total Expenses ({{ $dateLabel }}):</span>
                         </div>
                         <span class="text-xs font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $totalExpensesToday) }}</span>
                     </div>
@@ -369,7 +291,7 @@
                         <h3 class="text-sm font-bold text-slate-800 dark:text-white">Recent Sales</h3>
                         <p class="text-[10px] text-slate-400 font-medium">Today's transactions</p>
                     </div>
-                    <a href="#" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
+                    <a href="{{ route('reports.sales', $reportFilters) }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
                 </div>
                 <div class="flex-1 overflow-x-auto min-h-64">
                     <table class="w-full text-left border-collapse text-xs">
@@ -388,9 +310,9 @@
                                         <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                                         </svg>
-                                        <span>{{ $sale->invoice_no }}</span>
+                                        <a href="{{ route('sales.show', $sale->id) }}">{{ $sale->invoice_no }}</a>
                                     </td>
-                                    <td class="py-3.5 text-slate-600 dark:text-slate-300 font-semibold">{{ $sale->customer_name }}</td>
+                                    <td class="py-3.5 text-slate-600 dark:text-slate-300 font-semibold">{{ $sale->customer_name ?: 'Walk-in Customer' }}</td>
                                     <td class="py-3.5 text-right font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $sale->payable_amount) }}</td>
                                     <td class="py-3.5 text-right">
                                         @if($sale->due_amount == 0)
@@ -417,7 +339,7 @@
                         <h3 class="text-sm font-bold text-slate-800 dark:text-white">Recent Purchases</h3>
                         <p class="text-[10px] text-slate-400 font-medium">Inventory intake</p>
                     </div>
-                    <a href="#" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
+                    <a href="{{ route('reports.purchases', $reportFilters) }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
                 </div>
                 <div class="flex-1 overflow-x-auto min-h-64">
                     <table class="w-full text-left border-collapse text-xs">
@@ -436,7 +358,7 @@
                                         <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                                         </svg>
-                                        <span>{{ $purchase->invoice_no }}</span>
+                                        <a href="{{ route('purchases.show', $purchase->id) }}">{{ $purchase->invoice_no }}</a>
                                     </td>
                                     <td class="py-3.5 text-slate-600 dark:text-slate-300 font-semibold">{{ $purchase->supplier_name }}</td>
                                     <td class="py-3.5 text-right font-extrabold text-slate-800 dark:text-white">{{ \App\Support\SystemSettings::money((float) $purchase->total_amount) }}</td>
@@ -465,7 +387,7 @@
                         <h3 class="text-sm font-bold text-slate-800 dark:text-white">Low Stock Alert</h3>
                         <p class="text-[10px] text-slate-400 font-medium">Replenishment list</p>
                     </div>
-                    <a href="#" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
+                    <a href="{{ route('reports.low_stock', array_filter(['store_id' => $storeId])) }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">View All</a>
                 </div>
                 <div class="flex-1 space-y-3.5 flex flex-col justify-start min-h-64">
                     @forelse($lowStockAlerts as $alert)
@@ -517,7 +439,7 @@
                 </div>
             </div>
 
-            <!-- Today's Orders -->
+            <!-- Orders · {{ $dateLabel }} -->
             <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center gap-3">
                 <div class="p-2.5 rounded-lg bg-amber-100/70 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 shrink-0">
                     <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -525,7 +447,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Today's Orders</p>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Orders · {{ $dateLabel }}</p>
                     <h4 class="text-sm font-black text-slate-800 dark:text-white mt-1">{{ $todayOrders }}</h4>
                 </div>
             </div>
@@ -543,7 +465,7 @@
                 </div>
             </div>
 
-            <!-- Unread Notifications -->
+            <!-- Current Cheque Alerts -->
             <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs flex items-center gap-3 col-span-2 md:col-span-1">
                 <div class="p-2.5 rounded-lg bg-indigo-100/70 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400 shrink-0">
                     <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -551,7 +473,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Unread Notifications</p>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-wide uppercase leading-none">Current Cheque Alerts</p>
                     <h4 class="text-sm font-black text-slate-800 dark:text-white mt-1">{{ $unreadNotifications }}</h4>
                 </div>
             </div>
@@ -562,6 +484,10 @@
     <!-- Charts Loading Configurations -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            if (typeof ApexCharts === 'undefined') {
+                document.querySelector('#sales-line-chart').textContent = 'Chart unavailable. Open the sales report for detailed totals.';
+                return;
+            }
             const dashboardCurrency = @json($currencySymbol);
             // A. Sales overview line chart
             const salesLineOptions = {
@@ -598,7 +524,7 @@
                     }
                 },
                 xaxis: {
-                    categories: @json($chartHours),
+                    categories: @json($chartLabels),
                     axisBorder: { show: false },
                     axisTicks: { show: false },
                     labels: {
@@ -676,7 +602,7 @@
                                     show: true,
                                     label: 'Total',
                                     formatter: function () {
-                                        return @json(\App\Support\SystemSettings::money((float) $totalSalesToday));
+                                        return @json(\App\Support\SystemSettings::money((float) array_sum($paymentsSummary)));
                                     },
                                     style: {
                                         fontSize: '11px',

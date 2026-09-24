@@ -39,7 +39,7 @@ class TaxRateController extends Controller
 
         TaxRate::create($validated);
 
-        return redirect()->route('tax-rates.index')->with('success', 'Tax Rate created successfully.');
+        return redirect()->route('accounting.tax-rates.index')->with('success', 'Tax Rate created successfully.');
     }
 
     public function update(Request $request, TaxRate $taxRate)
@@ -68,12 +68,12 @@ class TaxRateController extends Controller
 
         $taxRate->update($validated);
 
-        return redirect()->route('tax-rates.index')->with('success', 'Tax Rate updated successfully.');
+        return redirect()->route('accounting.tax-rates.index')->with('success', 'Tax Rate updated successfully.');
     }
 
     public function destroy(TaxRate $taxRate)
     {
         $taxRate->delete();
-        return redirect()->route('tax-rates.index')->with('success', 'Tax Rate deleted successfully.');
+        return redirect()->route('accounting.tax-rates.index')->with('success', 'Tax Rate deleted successfully.');
     }
 }

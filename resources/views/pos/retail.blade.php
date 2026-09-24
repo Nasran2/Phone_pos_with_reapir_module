@@ -7,7 +7,7 @@
 <body class="pos-shell h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="retailPosApp()">
 
     <!-- SCREEN 7: Hamburger Menu Drawer (Overlay) -->
-    <div x-show="showMenuDrawer" 
+    <div x-show="showMenuDrawer"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="-translate-x-full"
          x-transition:enter-end="translate-x-0"
@@ -16,7 +16,7 @@
          x-transition:leave-end="-translate-x-full"
          class="fixed inset-y-0 left-0 w-[min(88vw,20rem)] bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl"
          x-cloak>
-        
+
         <div>
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-5 border-b border-[#182647] bg-[#091024]">
@@ -60,7 +60,7 @@
                     <svg class="w-5 h-5 text-slate-455" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="12" rx="2"/><path d="M12 15v4"/><path d="M9 19h6"/></svg>
                     <span>Wholesale POS</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
+                <a href="{{ route('reports.index') }}" class="flex items-center gap-3 py-2 px-3 hover:bg-[#182647] hover:text-white rounded-lg text-sm transition">
                     <svg class="w-5 h-5 text-slate-455" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     <span>Report Logs</span>
                 </a>
@@ -86,16 +86,16 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Drawer Backdrop Overlay -->
-    <div x-show="showMenuDrawer" 
-         @click="showMenuDrawer = false" 
-         class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden" 
+    <div x-show="showMenuDrawer"
+         @click="showMenuDrawer = false"
+         class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden"
          x-cloak></div>
 
     <!-- MAIN GRID CONTAINER -->
-    <div class="flex-1 flex flex-col w-full h-[100dvh] overflow-hidden">
-        
+    <div class="pos-workspace min-h-0 flex-1 flex flex-col w-full h-[100dvh] overflow-hidden">
+
         <!-- TOP HEADER BAR -->
         <header class="bg-[#0c1630] border-b border-[#182647] text-white min-h-16 h-auto px-3 sm:px-4 py-2 sm:py-0 flex flex-wrap items-center justify-between gap-2 shrink-0 z-30">
             <div class="flex min-w-0 items-center gap-2 sm:gap-4">
@@ -126,7 +126,7 @@
                 <span class="text-xs font-bold text-slate-300 font-mono" x-text="liveTime"></span>
             </div>
 
-                <div class="flex w-full sm:w-auto min-w-0 items-center justify-end gap-1.5 sm:gap-3 overflow-x-auto scrollbar-hide">
+                <div class="flex w-full sm:w-auto min-w-0 items-center justify-start sm:justify-end gap-1.5 sm:gap-3 overflow-x-auto scrollbar-hide">
                     @if($enableMultiStore ?? false)
                     <div class="flex items-center gap-2 mr-2">
                         <select onchange="window.location.href='{{ route('pos.retail') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500">
@@ -176,20 +176,20 @@
         <!-- Dynamic Category Header Selector (Horizontal scroll bar) -->
         <div class="bg-white border-b border-slate-200/80 px-3 sm:px-4 py-2 flex items-center justify-between shrink-0 gap-2 sm:gap-3">
             <div class="flex min-w-0 items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
-                <button @click="selectedCategory = 'all'" 
+                <button @click="selectedCategory = 'all'"
                         class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
                         :class="selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
                     All Products
                 </button>
                 @foreach($categories as $category)
-                    <button @click="selectedCategory = '{{ $category->slug }}'" 
+                    <button @click="selectedCategory = '{{ $category->slug }}'"
                             class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
                             :class="selectedCategory === '{{ $category->slug }}' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
                         {{ $category->name }}
                     </button>
                 @endforeach
             </div>
-            
+
             <!-- Mobile Toggle Tabs -->
             <div class="flex shrink-0 items-center gap-1 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
                 <button @click="mobileTab = 'products'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
@@ -201,16 +201,16 @@
         </div>
 
         <!-- MAIN CONTENT AREA -->
-        <div class="flex-1 flex overflow-hidden">
-            
+        <div class="pos-content min-h-0 flex-1 flex overflow-hidden">
+
             <!-- LEFT COLUMN: SEARCH + PRODUCT GRID -->
-            <div class="flex-1 overflow-y-auto p-3 sm:p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
+            <div class="pos-products min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 flex flex-col justify-between" :class="mobileTab === 'products' ? 'block' : 'hidden lg:block'">
                 <div class="space-y-4">
                     <!-- Global search input -->
                     <div class="relative w-full">
-                        <input 
-                            type="text" 
-                            placeholder="Scan Barcode or Search by Name, SKU, IMEI... (F1)" 
+                        <input
+                            type="text"
+                            placeholder="Scan Barcode or Search by Name, SKU, IMEI... (F1)"
                             x-model="searchQuery"
                             @input="watchSearchQuery($event.target.value)"
                             id="search-input"
@@ -232,10 +232,10 @@
                     <!-- Products Grid -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
                         <template x-for="product in filteredProducts()" :key="product.id">
-                            <div @click="addToCart(product)" 
+                            <div @click="addToCart(product)"
                                  class="bg-white border border-slate-250/70 rounded-xl p-2.5 flex flex-col justify-between hover:shadow-md cursor-pointer transition select-none hover:border-blue-400 group relative"
                                  :class="product.stock <= 0 ? 'opacity-50 cursor-not-allowed border-slate-200' : ''">
-                                
+
                                 <!-- Image & Stock Alert Tag -->
                                 <div class="h-16 sm:h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:scale-102 transition shrink-0 relative overflow-hidden">
                                     <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -243,9 +243,9 @@
                                         <line x1="8" y1="21" x2="16" y2="21"/>
                                         <line x1="12" y1="17" x2="12" y2="21"/>
                                     </svg>
-                                    
+
                                     <!-- Stock label -->
-                                    <span class="absolute top-1 right-1 px-1.5 py-0.5 text-[8px] font-black rounded-md shadow-xs text-white" 
+                                    <span class="absolute top-1 right-1 px-1.5 py-0.5 text-[8px] font-black rounded-md shadow-xs text-white"
                                           :class="product.stock <= 0 ? 'bg-red-600' : (product.stock <= product.stock_alert_quantity ? 'bg-amber-500' : 'bg-slate-900/60')"
                                           x-text="product.stock <= 0 ? 'Out of Stock' : 'Stock: ' + parseInt(product.stock)"></span>
                                 </div>
@@ -266,15 +266,16 @@
             </div>
 
             <!-- RIGHT COLUMN: CART & CUSTOMER DETAILS -->
-            <div class="w-full lg:w-96 border-l border-slate-200/80 bg-white p-3 sm:p-4 flex flex-col overflow-hidden shrink-0 select-none"
+            <div class="pos-cart-panel pos-cart-retail w-full lg:w-96 border-l border-slate-200/80 bg-white p-3 sm:p-4 flex flex-col overflow-hidden shrink-0 select-none"
                  :class="mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'">
-                
+
                 <!-- Customer info header -->
                 <div class="space-y-3 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="relative flex-1">
-                            <select x-model="selectedCustomerId" class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition">
-                                <template x-for="cust in customers" :key="cust.id">
+                            <input x-show="customers.length > 10" type="search" x-model.debounce.200ms="customerSearch" placeholder="Search customer or phone" aria-label="Search customer or phone" class="w-full mb-2 rounded-lg border border-slate-200" />
+                            <select aria-label="Customer" x-model="selectedCustomerId" class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition">
+                                <template x-for="cust in customers.filter(c => c.id == selectedCustomerId || (c.name + ' ' + (c.phone || '')).toLowerCase().includes(customerSearch.toLowerCase()))" :key="cust.id">
                                     <option :value="cust.id" x-text="cust.name + (cust.phone !== 'N/A' ? ' (' + cust.phone + ')' : '')"></option>
                                 </template>
                             </select>
@@ -295,7 +296,7 @@
                     </template>
 
                     <!-- Cart Item Table Header -->
-                    <div class="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-100">
+                    <div class="pos-cart-columns grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-100">
                         <span class="col-span-6">Item details</span>
                         <span class="col-span-3 text-center">Qty</span>
                         <span class="col-span-3 text-right">Total</span>
@@ -303,20 +304,20 @@
                 </div>
 
                 <!-- Cart Items Scroll Area -->
-                <div class="flex-1 overflow-y-auto py-2 divide-y divide-slate-100/60">
+                <div class="pos-cart-items flex-1 overflow-y-auto py-2 divide-y divide-slate-100/60">
                     <template x-for="(item, index) in cart" :key="index">
-                        <div class="grid grid-cols-12 gap-1 items-start py-2.5">
-                            
+                        <div class="pos-cart-item grid grid-cols-12 gap-1 items-start py-2.5">
+
                             <!-- Product Details & Serial Selector -->
                             <div class="col-span-6 space-y-1">
-                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate hover:text-blue-600 cursor-pointer transition" 
-                                    @click="openEditItemModal(item, index)" 
+                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate hover:text-blue-600 cursor-pointer transition"
+                                    @click="openEditItemModal(item, index)"
                                     x-text="item.name"
                                     title="Click to edit item discount, qty, and price"></h4>
                                 <template x-if="item.variant_label">
                                     <div class="text-[9px] font-bold text-blue-600" x-text="item.variant_label"></div>
                                 </template>
-                                
+
                                 <!-- Serial/IMEI Selection (Only visible for Smartphones) -->
                                 <template x-if="item.is_smartphone && item.serials.length > 0">
                                     <div>
@@ -328,27 +329,28 @@
                                         </select>
                                     </div>
                                 </template>
-                                
-                                <div class="flex items-center gap-1">
-                                    <span class="text-[8px] text-slate-400 uppercase font-black">Price:</span>
-                                    <input type="number" 
-                                           x-model.number="item.selling_price" 
+
+                                <label class="pos-line-price flex items-center gap-1">
+                                    <span class="text-[8px] text-slate-400 uppercase font-black">Unit price (Rs)</span>
+                                    <input type="number"
+                                           aria-label="Unit price" inputmode="decimal" min="0" step="any"
+                                       x-model.number="item.selling_price"
                                            @input="updateLineTotal(item)"
                                            class="w-16 px-1 py-0.5 border border-slate-200 rounded text-[9px] font-semibold focus:outline-none" />
-                                </div>
+                                </label>
                             </div>
-                            
+
                             <!-- Qty Steppers / Manual input -->
-                            <div class="col-span-3 flex flex-col items-center justify-center gap-1">
+                            <div class="pos-line-quantity col-span-3 flex flex-col items-center justify-center gap-1">
                                 <div class="flex items-center gap-1">
-                                    <button @click="decrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
+                                    <button aria-label="Decrease quantity" @click="decrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     </button>
-                                    <input type="number" 
-                                           x-model.number="item.quantity" 
+                                    <input type="number"
+                                           x-model.number="item.quantity"
                                            @input="clampCartQuantity(item)"
                                            class="w-10 h-8 p-0 text-center border border-slate-200 rounded text-xs font-bold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                                    <button @click="incrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
+                                    <button aria-label="Increase quantity" @click="incrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     </button>
                                 </div>
@@ -361,7 +363,7 @@
                             </div>
                         </div>
                     </template>
-                    
+
                     <template x-if="cart.length === 0">
                         <div class="flex flex-col items-center justify-center h-full gap-2 text-slate-400 py-16">
                             <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -373,7 +375,7 @@
                 </div>
 
                 <!-- BILL SUMMARY & CHECKOUT ACTIONS -->
-                <div class="border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
+                <div class="pos-checkout border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
                     <div class="space-y-1.5 text-xs">
                         <div class="flex items-center justify-between text-slate-500">
                             <span class="font-bold text-slate-700">Items</span>
@@ -423,7 +425,7 @@
 
                     <button @click="printDueInvoice()"
                             class="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-xs font-black text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            :disabled="cart.length === 0">
+                            :disabled="(checkoutBusy) || (cart.length === 0)">
                         <i class="fas fa-file-invoice"></i>
                         <span>Due &amp; Print <span class="font-semibold">(No Payment)</span></span>
                     </button>
@@ -431,13 +433,13 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold pt-2.5 border-t border-slate-100">
                         <button @click="clearCart()" class="py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl transition cursor-pointer hover:bg-red-100">Clear</button>
                         <button @click="holdCurrentSale()" class="py-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl transition cursor-pointer hover:bg-amber-100">Hold <span class="hidden sm:inline">(F6)</span></button>
-                        <button @click="quickPay()" 
+                        <button @click="quickPay()"
                                 class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
-                                :disabled="cart.length === 0"
-                                :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
+
+                                :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''" :disabled="(checkoutBusy) || (cart.length === 0)">
                             <span>Quick <span class="hidden sm:inline">(F10)</span></span>
                         </button>
-                        <button @click="openPaymentPopup()" 
+                        <button @click="openPaymentPopup()"
                                 class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition flex items-center justify-center gap-1 cursor-pointer"
                                 :disabled="cart.length === 0"
                                 :class="cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''">
@@ -489,7 +491,7 @@
     <div x-show="showEditItemModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 transform scale-100 transition duration-300"
              @click.away="showEditItemModal = false">
-            
+
             <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-bold text-slate-850">Edit Cart Item</h3>
@@ -510,10 +512,10 @@
                 <!-- Quantity -->
                 <div>
                     <label class="block text-slate-500 mb-1">Quantity (Stock: <span x-text="activeEditItem ? parseInt(activeEditItem.stock) : 0"></span>)</label>
-                    <input type="number" x-model.number="editModalQty" 
+                    <input type="number" x-model.number="editModalQty"
                            :max="activeEditItem ? activeEditItem.stock : null"
                            min="1"
-                           @input="if (activeEditItem && editModalQty > activeEditItem.stock) { editModalQty = activeEditItem.stock; }" 
+                           @input="if (activeEditItem && editModalQty > activeEditItem.stock) { editModalQty = activeEditItem.stock; }"
                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold" />
                 </div>
 
@@ -549,7 +551,7 @@
     <div x-show="showPaymentPopup" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <div class="max-h-[calc(100dvh-1.5rem)] overflow-y-auto bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 transform scale-100 transition duration-300"
              @click.away="showPaymentPopup = false">
-            
+
             <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-bold text-slate-850">POS Checkout Split Payments</h3>
@@ -568,7 +570,14 @@
 
             <div class="space-y-3">
                 <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><template x-for="method in ['Cash','Bank Transfer','Cheque','Customer Credit / Due']"><button @click="addPaymentRow(method)" class="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400" x-text="method === 'Customer Credit / Due' ? 'Due' : method"></button></template></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <template x-for="pm in [{name: 'Cash', label: 'Cash', shortcut: 'F7'}, {name: 'Bank Transfer', label: 'Bank', shortcut: 'F8'}, {name: 'Cheque', label: 'Cheque', shortcut: 'F9'}, {name: 'Customer Credit / Due', label: 'Due', shortcut: ''}]">
+                        <button @click="addPaymentRow(pm.name)" class="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400 relative flex items-center justify-center">
+                            <span x-text="pm.label"></span>
+                            <span x-show="pm.shortcut" class="absolute top-1 right-1 text-[8px] opacity-50" x-text="pm.shortcut"></span>
+                        </button>
+                    </template>
+                </div>
                 <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <div class="grid grid-cols-1 sm:grid-cols-[1fr_130px_44px] gap-2">
                         <select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs">
@@ -604,10 +613,10 @@
             <!-- Submit details button -->
             <div class="grid grid-cols-2 gap-3 text-xs font-bold mt-6">
                 <button @click="showPaymentPopup = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
-                <button @click="submitPOSCheckout()" 
+                <button @click="submitPOSCheckout()"
                         class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center justify-center gap-1.5"
-                        :disabled="!paymentsValid()"
-                        :class="!paymentsValid() ? 'opacity-50 cursor-not-allowed' : ''">
+
+                        :class="!paymentsValid() ? 'opacity-50 cursor-not-allowed' : ''" :disabled="(checkoutBusy) || (!paymentsValid())">
                     <span>Complete Sale <span class="hidden sm:inline">(F8)</span></span>
                 </button>
             </div>
@@ -618,7 +627,7 @@
     <div x-show="showHoldSalesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col justify-between"
              @click.away="showHoldSalesModal = false">
-            
+
             <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-bold text-slate-850">Hold Invoices Queue</h3>
@@ -662,7 +671,7 @@
     <div x-show="showAddCustomerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200"
              @click.away="showAddCustomerModal = false">
-            
+
             <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-bold text-slate-850">Add Retail Customer</h3>
@@ -681,7 +690,7 @@
                 </div>
                 <div>
                     <label class="block text-slate-500 mb-1">Mobile / Phone</label>
-                    <input type="text" x-model="newCustPhone" placeholder="e.g. 0771234567" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none" />
+                    <input type="tel" x-model="newCustPhone" placeholder="e.g. 0771234567" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none" />
                 </div>
                 <div>
                     <label class="block text-slate-500 mb-1">Email Address</label>
@@ -700,7 +709,7 @@
     <div x-show="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs select-none" x-cloak>
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 flex flex-col justify-between"
              @click.away="showSuccessModal = false">
-            
+
             <div class="text-center pb-4 border-b border-slate-100">
                 <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -712,11 +721,11 @@
             <!-- Receipt layout inside modal -->
             <div class="my-4 bg-slate-50 border border-slate-200/50 rounded-2xl p-4 font-mono text-[10px] text-slate-700 space-y-3 max-h-[300px] overflow-y-auto leading-relaxed" id="receipt-print-area">
                 <div class="text-center">
-                    <h4 class="font-extrabold text-xs text-slate-900 uppercase">Phone Shop POS</h4>
+                    <h4 class="font-extrabold text-xs text-slate-900 uppercase">{{ \App\Support\SystemSettings::get('business_name', 'Phone Shop POS', 'business_settings') }}</h4>
                     <p class="text-[9px] text-slate-500 leading-tight">Retail POS & Accessories System</p>
-                    <p class="text-[8px] text-slate-500">Colombo, Sri Lanka &bull; +94 76 247 2822</p>
+                    <p class="text-[8px] text-slate-500">{{ \App\Support\SystemSettings::get('business_address', '', 'business_settings') }} {{ \App\Support\SystemSettings::get('business_phone', '', 'business_settings') }}</p>
                 </div>
-                
+
                 <div class="border-t border-dashed border-slate-300 pt-2 space-y-0.5">
                     <p><strong>Invoice:</strong> <span x-text="successData ? successData.invoice_no : ''"></span></p>
                     <p><strong>Date:</strong> <span x-text="successData ? successData.date : ''"></span></p>
@@ -761,7 +770,7 @@
                         <span>Total Payable:</span>
                         <span x-text="'Rs. ' + formatMoney(successData ? successData.payable : 0)"></span>
                     </div>
-                    
+
                     <template x-if="successData && successData.payment_rows && successData.payment_rows.length > 0">
                         <div class="border-t border-dashed border-slate-300 mt-1.5 pt-1.5 space-y-1">
                             <template x-for="(row, index) in successData.payment_rows" :key="index">
@@ -821,23 +830,25 @@
                     </button>
                 </div>
 
-                <!-- Sharing and WhatsApp integrations -->
-                <div class="flex items-center gap-2">
-                    <a :href="'https://api.whatsapp.com/send?phone=' + (getSelectedCustomer() && getSelectedCustomer().phone !== 'N/A' ? getSelectedCustomer().phone : '') + '&text=Thank%20you%20for%20your%20purchase!%20Invoice%20No:%20' + (successData ? successData.invoice_no : '')" 
-                       target="_blank" 
-                       class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-center text-xs font-bold flex items-center justify-center gap-1 transition">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.457 4.8 1.458 5.432 0 9.854-4.41 9.856-9.83.001-2.628-1.01-5.1-2.855-6.947a9.785 9.785 0 0 0-6.98-2.87c-5.438 0-9.86 4.41-9.862 9.83-.001 1.93.488 3.81 1.419 5.46l-.999 3.648 3.766-.988z"/></svg>
-                        <span>Share on WhatsApp</span>
-                    </a>
-                </div>
+                <button type="button" @click="window.shareInvoice(successData)" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs">Share Invoice</button>
+                <a :href="successData?.share_url" target="_blank" rel="noopener" class="block py-3 text-center text-blue-600 font-bold text-xs">View Invoice</a>
+                <button type="button" @click="showSuccessModal = false; mobileTab = 'products'" class="w-full py-3 rounded-xl bg-slate-800 text-white text-xs font-bold">New Sale</button>
             </div>
         </div>
     </div>
 
+    <div x-show="checkoutBusy" x-cloak class="fixed inset-0 z-[60] bg-slate-950/50 flex items-center justify-center" role="status" aria-live="polite"><span class="rounded-xl bg-white p-6 font-bold">Processing sale…</span></div>
+
+    <button type="button" x-show="mobileTab === 'products' && cart.length > 0" @click="mobileTab = 'cart'" class="pos-cart-shortcut lg:hidden" x-cloak>
+        <span><span x-text="cart.reduce((total, item) => total + Number(item.quantity), 0)"></span> items · Rs. <span x-text="formatMoney(calculateGrandTotal())"></span></span>
+        <strong>View Cart / Pay →</strong>
+    </button>
     <!-- UI SCRIPTS -->
     <script>
         function retailPosApp() {
             return {
+                checkoutBusy: false,
+                customerSearch: '',
                 categories: @json($categories),
                 products: @json($products),
                 customers: @json($customers),
@@ -846,7 +857,7 @@
                 resumeHold: @json($resumeHold),
                 editSale: @json($editSale ?? null),
                 settings: @json($posSettings),
-                
+
                 // Selectors
                 sourceType: '{{ $sourceType ?? 'store' }}',
                 lorryId: '{{ $activeLorryId ?? '' }}',
@@ -972,9 +983,16 @@
                         } else if (e.key === 'F6') {
                             e.preventDefault();
                             this.showHoldSalesModal = true;
+                        } else if (e.key === 'F7') {
+                            e.preventDefault();
+                            if (this.showPaymentPopup) this.addPaymentRow('Cash');
                         } else if (e.key === 'F8') {
                             e.preventDefault();
-                            document.getElementById('search-input').focus();
+                            if (this.showPaymentPopup) this.addPaymentRow('Bank Transfer');
+                            else document.getElementById('search-input').focus();
+                        } else if (e.key === 'F9') {
+                            e.preventDefault();
+                            if (this.showPaymentPopup) this.addPaymentRow('Cheque');
                         } else if (e.key === 'F10') {
                             e.preventDefault();
                             this.quickPay();
@@ -1020,7 +1038,7 @@
                 // Scan detection logic
                 watchSearchQuery(value) {
                     if (!value) return;
-                    
+
                     // Look for exact barcode/SKU match
                     let match = this.products.find(p => p.barcode === value || p.sku === value);
                     if (match) {
@@ -1037,7 +1055,7 @@
                         let gain = context.createGain();
                         oscillator.type = 'sine';
                         oscillator.frequency.value = 800; // 800Hz beep frequency
-                        gain.gain.setValueAtTime(0.08, context.currentTime); 
+                        gain.gain.setValueAtTime(0.08, context.currentTime);
                         gain.gain.exponentialRampToValueAtTime(0.005, context.currentTime + 0.12); // fade out
                         oscillator.connect(gain);
                         gain.connect(context.destination);
@@ -1056,7 +1074,7 @@
                         if (this.selectedCategory !== 'all' && p.category_slug !== this.selectedCategory) {
                             return false;
                         }
-                        
+
                         // Query match (checks name, barcode, SKU, or active IMEIs)
                         if (query) {
                             let matchName = p.name.toLowerCase().includes(query);
@@ -1065,7 +1083,7 @@
                             let matchIMEI = p.serials ? p.serials.some(sn => sn.toLowerCase().includes(query)) : false;
                             return matchName || matchSku || matchBarcode || matchIMEI;
                         }
-                        
+
                         return true;
                     });
                 },
@@ -1195,13 +1213,13 @@
                         Swal.fire({ text: 'Quantity must be at least 1!', icon: 'warning' });
                         return;
                     }
-                    
+
                     let item = this.cart[this.activeEditIndex];
                     item.selling_price = this.editModalPrice;
                     item.quantity = this.editModalQty;
                     item.discount_type = this.editModalDiscountType;
                     item.discount_amount = this.editModalDiscountAmount;
-                    
+
                     this.updateLineTotal(item);
                     this.showEditItemModal = false;
                 },
@@ -1270,9 +1288,9 @@
                     let includedTax = 0;
                     let addedTax = 0;
                     let totalTax = 0;
-                    
+
                     let globalDiscount = this.globalDiscountType === 'percentage'
-                        ? 0 
+                        ? 0
                         : this.toNumber(this.globalDiscountValue);
 
                     // First pass: Calculate item raw line totals
@@ -1281,16 +1299,16 @@
                         let qty = this.toNumber(item.quantity);
                         let discount = this.toNumber(item.discount_amount);
                         let baseTotal = price * qty;
-                        
+
                         if (item.discount_type === 'percentage') {
                             item.line_total = this.roundMoney(baseTotal - (baseTotal * (discount / 100)));
                         } else {
                             item.line_total = Math.max(0, this.roundMoney(baseTotal - discount));
                         }
-                        
+
                         subTotal += item.line_total;
                     });
-                    
+
                     // Global Discount Percentage
                     if (this.globalDiscountType === 'percentage') {
                         globalDiscount = (subTotal * this.toNumber(this.globalDiscountValue)) / 100;
@@ -1303,13 +1321,13 @@
                             let itemShare = subTotal > 0 ? (item.line_total / subTotal) : 0;
                             let itemDiscountShare = this.roundMoney(globalDiscount * itemShare);
                             let discountedAmount = Math.max(0, item.line_total - itemDiscountShare);
-                            
+
                             let taxStatus = item.tax_status || 'taxable';
                             let rate = (['non_taxable', 'zero_rated', 'exempt'].includes(taxStatus)) ? 0 : this.toNumber(item.tax_rate !== undefined ? item.tax_rate : this.taxPercentage);
-                            
+
                             let itemTaxMode = item.tax_mode || 'use_global';
                             if (itemTaxMode === 'use_global') itemTaxMode = this.taxMode || 'exclusive';
-                            
+
                             let itemTax = 0;
                             if (itemTaxMode === 'inclusive') {
                                 let taxable = this.roundMoney(discountedAmount / (1 + (rate / 100)));
@@ -1326,16 +1344,16 @@
                             totalTax += itemTax;
                         });
                     }
-                    
+
                     this.totals.subTotal = this.roundMoney(subTotal);
                     this.totals.discount = globalDiscount;
                     this.totals.addedTax = this.roundMoney(addedTax);
                     this.totals.includedTax = this.roundMoney(includedTax);
                     this.totals.totalTax = this.roundMoney(totalTax);
                     this.totals.grandTotal = Math.max(0, this.roundMoney(subTotal - globalDiscount + addedTax + this.toNumber(this.shippingCost)));
-                    
+
                     this.paidAmount = this.totals.grandTotal;
-                    
+
                     // Save cart to local storage
                     localStorage.setItem('retail_cart_items', JSON.stringify(this.cart));
                 },
@@ -1386,7 +1404,7 @@
 
                 submitQuickCustomer() {
                     if (!this.newCustName) return;
-                    
+
                     fetch('{{ route("pos.retail.customer") }}', {
                         method: 'POST',
                         headers: {
@@ -1439,7 +1457,7 @@
 
                     this.holdSales.push(newHold);
                     localStorage.setItem('retail_held_sales', JSON.stringify(this.holdSales));
-                    
+
                     Swal.fire({ text: 'Sale placed on hold with Reference: ' + holdRef, icon: 'success' });
                     this.cart = [];
                     this.globalDiscountType = 'fixed';
@@ -1536,6 +1554,7 @@
 
                 // Submits checkout details to Laravel backend controller
                 submitPOSCheckout(options = {}) {
+                    if (this.checkoutBusy) { options.printWindow?.close(); return; }
                     if (this.cart.length === 0) return;
 
                     const payable = this.calculateGrandTotal();
@@ -1557,7 +1576,7 @@
                                 customerOptions[c.id] = c.name + (c.phone ? ' - ' + c.phone : '');
                             }
                         });
-                        
+
                         Swal.fire({
                             title: 'Customer Required',
                             text: options.duePrint
@@ -1587,6 +1606,7 @@
 
                     let totalPaid = options.duePrint ? 0 : this.calculateSplitTotalPaid();
 
+                    this.checkoutBusy = true;
                     fetch('{{ route("pos.retail.store") }}', {
                         method: 'POST',
                         headers: {
@@ -1618,8 +1638,7 @@
                         if (contentType && contentType.indexOf("application/json") !== -1) {
                             return res.json();
                         } else {
-                            const text = await res.text();
-                            throw new Error("Server returned HTML instead of JSON. " + text.substring(0, 100));
+                            throw new Error('Unable to complete checkout. Please try again or sign in again.');
                         }
                     })
                     .then(data => {
@@ -1628,6 +1647,9 @@
                             this.successData = {
                                 invoice_no: data.invoice_no,
                                 print_url: data.print_url,
+                                share_url: data.share_url,
+                                due_amount: data.due_amount,
+                                cheque_hold_amount: data.cheque_hold_amount,
                                 date: now.toLocaleString(),
                                 customer: this.getSelectedCustomer().name,
                                 items: JSON.parse(JSON.stringify(this.cart)),
@@ -1648,7 +1670,7 @@
                             this.currentHoldId = null;
                             this.showPaymentPopup = false;
                             this.recalculateCartTotals();
-                            
+
                             // Reload updated products list (with modified stock levels and available serials)
                             this.fetchProductsList();
 
@@ -1670,19 +1692,26 @@
                     .catch(error => {
                         if (options.printWindow && !options.printWindow.closed) options.printWindow.close();
                         Swal.fire({ text: 'Checkout failed: ' + error.message, icon: 'error' });
-                    });
+                    }).finally(() => { this.checkoutBusy = false; });
                 },
 
                 fetchProductsList() {
-                    fetch('{{ route("pos.retail") }}', {
-                        headers: { 'Accept': 'application/json' }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.products) {
-                            this.products = data.products;
-                        }
-                    });
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('edit_sale_id');
+                    url.searchParams.delete('hold_id');
+                    fetch(url, { headers: { 'Accept': 'application/json' } })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Stock refresh failed');
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.products) this.products = data.products;
+                            if (data.customers) this.customers = data.customers;
+                        })
+                        .catch(() => Swal.fire({
+                            text: 'Your sale was saved, but stock could not refresh. Reload this page before the next sale.',
+                            icon: 'warning'
+                        }));
                 },
 
                 printA4Invoice(invoice) {

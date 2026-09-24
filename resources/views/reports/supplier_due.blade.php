@@ -7,31 +7,7 @@
     :exportRoute="route('reports.supplier_due')" 
     :resetRoute="route('reports.supplier_due')"
 >
-    <x-slot name="filterContent">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Quick Date</label>
-                <select name="date_filter" class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-                    <option value="today" {{ request('date_filter', 'today') == 'today' ? 'selected' : '' }}>Today</option>
-                    <option value="yesterday" {{ request('date_filter') == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
-                    <option value="this_week" {{ request('date_filter') == 'this_week' ? 'selected' : '' }}>This Week</option>
-                    <option value="last_week" {{ request('date_filter') == 'last_week' ? 'selected' : '' }}>Last Week</option>
-                    <option value="this_month" {{ request('date_filter') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                    <option value="last_month" {{ request('date_filter') == 'last_month' ? 'selected' : '' }}>Last Month</option>
-                    <option value="this_year" {{ request('date_filter') == 'this_year' ? 'selected' : '' }}>This Year</option>
-                    <option value="custom" {{ request('date_filter') == 'custom' ? 'selected' : '' }}>Custom Date Range</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Start Date</label>
-                <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">End Date</label>
-                <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-            </div>
-        </div>
-    </x-slot>
+    <x-slot name="filterContent"><p class="text-sm text-slate-500">Current balances and stock. Historical date filters do not apply.</p></x-slot>
 
     <table class="w-full text-left border-collapse">
         <thead>

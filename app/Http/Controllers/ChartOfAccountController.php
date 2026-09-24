@@ -17,8 +17,8 @@ class ChartOfAccountController extends Controller
             $query->where('status', $request->status == 'active' ? 1 : 0);
         }
         if ($request->filled('search')) {
-            $query->where('account_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('account_code', 'like', '%' . $request->search . '%');
+            $query->where(fn ($search) => $search->where('account_name', 'like', '%' . $request->search . '%')
+                  ->orWhere('account_code', 'like', '%' . $request->search . '%'));
         }
 
         $accounts = $query->paginate(20)->withQueryString();

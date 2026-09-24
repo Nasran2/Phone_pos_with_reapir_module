@@ -59,6 +59,8 @@ Route::get('shared/invoices/{sale}', [SaleController::class, 'shared'])
     ->middleware('signed');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('global-search', \App\Http\Controllers\GlobalSearchController::class)->name('global-search')->middleware('throttle:60,1');
+
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
@@ -239,22 +241,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:units.delete');
 
     // HS Codes
-    Route::resource('hs-codes', HsCodeController::class)->except(['create', 'show', 'edit']);
+    Route::resource('hs-codes', HsCodeController::class)->except(['create', 'show', 'edit'])->middleware('permission:tax_settings.manage');
 
     // Import Shipments
-    Route::post('import-shipments/{import_shipment}/finalize', [ImportShipmentController::class, 'finalize'])->name('import-shipments.finalize');
-    Route::resource('import-shipments', ImportShipmentController::class);
+    Route::post('import-shipments/{import_shipment}/finalize', [ImportShipmentController::class, 'finalize'])->name('import-shipments.finalize')->middleware('permission:purchase.edit');
+    Route::resource('import-shipments', ImportShipmentController::class)->middleware('permission:purchase.view')->middlewareFor(['create', 'store'], 'permission:purchase.create')->middlewareFor(['edit', 'update'], 'permission:purchase.edit')->middlewareFor('destroy', 'permission:purchase.delete');
 
     // Tax Management
     Route::prefix('tax')->name('tax.')->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\TaxDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('periods', \App\Http\Controllers\TaxPeriodController::class);
+        Route::resource('periods', \App\Http\Controllers\TaxPeriodController::class)->only(['index', 'create', 'store', 'show']);
         Route::post('payments/{payment}/approve', [\App\Http\Controllers\TaxPaymentController::class, 'approve'])->name('payments.approve');
         Route::post('payments/{payment}/reverse', [\App\Http\Controllers\TaxPaymentController::class, 'reverse'])->name('payments.reverse');
-        Route::resource('payments', \App\Http\Controllers\TaxPaymentController::class);
+        Route::resource('payments', \App\Http\Controllers\TaxPaymentController::class)->only(['index', 'create', 'store', 'show']);
         
         Route::post('adjustments/{adjustment}/approve', [\App\Http\Controllers\TaxAdjustmentController::class, 'approve'])->name('adjustments.approve');
-        Route::resource('adjustments', \App\Http\Controllers\TaxAdjustmentController::class);
+        Route::resource('adjustments', \App\Http\Controllers\TaxAdjustmentController::class)->only(['index', 'create', 'store']);
         
         Route::get('transactions', [\App\Http\Controllers\TaxTransactionController::class, 'index'])->name('transactions.index');
         Route::get('reports', [\App\Http\Controllers\TaxReportController::class, 'index'])->name('reports.index');
@@ -474,13 +476,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Accounting & Expenses
     Route::prefix('accounting')->name('accounting.')->group(function () {
-        Route::resource('accounts', ChartOfAccountController::class)->middleware('permission:accounting.view');
-        Route::resource('tax-rates', TaxRateController::class);
-        Route::resource('expense-categories', ExpenseCategoryController::class)->middleware('permission:expenses.view');
-        Route::resource('expenses', ExpenseController::class)->middleware('permission:expenses.view');
-        Route::resource('journal-entries', JournalEntryController::class)->middleware('permission:accounting.view');
+        Route::resource('accounts', ChartOfAccountController::class)->only(['index', 'store', 'destroy'])->middleware('permission:accounting.view');
+        Route::resource('tax-rates', TaxRateController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:tax_settings.manage');
+        Route::resource('expense-categories', ExpenseCategoryController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:expenses.view');
+        Route::resource('expenses', ExpenseController::class)->only(['index', 'store', 'destroy'])->middleware('permission:expenses.view')->middlewareFor('store', 'permission:expenses.create')->middlewareFor('destroy', 'permission:expenses.delete');
+        Route::resource('journal-entries', JournalEntryController::class)->only(['index', 'store', 'destroy'])->middleware('permission:accounting.view');
         Route::get('ledger', [LedgerBookController::class, 'index'])->name('ledger.index')->middleware('permission:accounting.view');
-        Route::resource('capital-drawings', CapitalDrawingController::class)->middleware('permission:accounting.view');
+        Route::resource('capital-drawings', CapitalDrawingController::class)->only(['index', 'store'])->middleware('permission:accounting.view');
     });
 
     Route::prefix('cheques')->name('cheques.')->group(function () {

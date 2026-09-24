@@ -22,7 +22,9 @@
                     <option value="custom" {{ request('date_filter') == 'custom' ? 'selected' : '' }}>Custom Date Range</option>
                 </select>
             </div>
-            <!-- More filters can be added here if suppliers exist -->
+            <div><label for="purchase-start-date" class="block text-xs font-bold">Start Date</label><input id="purchase-start-date" name="start_date" type="date" value="{{ request('start_date') }}" class="w-full"></div>
+            <div><label for="purchase-end-date" class="block text-xs font-bold">End Date</label><input id="purchase-end-date" name="end_date" type="date" value="{{ request('end_date') }}" class="w-full"></div>
+            <div><label for="purchase-search" class="block text-xs font-bold">Invoice / Reference</label><input id="purchase-search" name="search" type="search" value="{{ request('search') }}" class="w-full"></div>
         </div>
     </x-slot>
 
@@ -41,8 +43,8 @@
         <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @forelse($purchases as $purchase)
                 <tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 font-medium text-slate-900">{{ $purchase->purchase_no }}</td>
-                    <td class="p-4">{{ $purchase->created_at->format('Y-m-d H:i') }}</td>
+                    <td class="p-4 font-medium text-slate-900"><a class="text-blue-600 underline" href="{{ route('purchases.show', $purchase) }}">{{ $purchase->displayNo() }}</a></td>
+                    <td class="p-4">{{ $purchase->purchase_date->format('Y-m-d') }}</td>
                     <td class="p-4">{{ $purchase->supplier->name ?? 'Unknown Supplier' }}</td>
                     <td class="p-4 text-right font-bold text-slate-900">Rs. {{ number_format((float) ($purchase->grand_total ?? $purchase->total_amount ?? $purchase->subtotal ?? 0), 2) }}</td>
                     <td class="p-4 text-right text-emerald-600 font-medium">Rs. {{ number_format($purchase->paid_amount, 2) }}</td>

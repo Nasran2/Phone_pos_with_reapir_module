@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "workflow": "retail mobile quantity-2 cash checkout, success, native share and signed invoice",
+      "invoice": "RSL-202609220002",
+      "status": 200
+    },
+    {
+      "workflow": "wholesale mobile quantity-2 cash checkout, success, native share and signed invoice",
+      "invoice": "WSL-202609220002",
+      "status": 200
+    },
+    {
+      "workflow": "375px report filter apply, reset and pagination",
+      "url": "http://127.0.0.1:8765/reports/sales?date_filter=custom&start_date=2026-09-21&end_date=2026-09-21&page=2"
+    },
+    {
+      "workflow": "375px debounced search, keyboard navigation, More drawer and Escape"
+    },
+    {
+      "workflow": "375px sales return form after responsive fix"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,117 @@
+{
+  "results": [
+    {
+      "kind": "retail",
+      "width": 320,
+      "height": 568,
+      "priceWidth": 252,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "retail",
+      "width": 375,
+      "height": 812,
+      "priceWidth": 307,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "retail",
+      "width": 390,
+      "height": 600,
+      "priceWidth": 322,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "retail",
+      "width": 430,
+      "height": 932,
+      "priceWidth": 362,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "retail",
+      "width": 768,
+      "height": 600,
+      "priceWidth": 700,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "retail",
+      "width": 375,
+      "height": 360,
+      "priceWidth": 307,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "retail",
+      "width": 1440,
+      "height": 900,
+      "priceWidth": 62,
+      "priceRequired": 49.6339111328125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 320,
+      "height": 568,
+      "priceWidth": 252,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 375,
+      "height": 812,
+      "priceWidth": 307,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 390,
+      "height": 600,
+      "priceWidth": 322,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 430,
+      "height": 932,
+      "priceWidth": 362,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 768,
+      "height": 600,
+      "priceWidth": 700,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 375,
+      "height": 360,
+      "priceWidth": 307,
+      "priceRequired": 71.2705078125,
+      "checkoutReachable": true
+    },
+    {
+      "kind": "wholesale",
+      "width": 1440,
+      "height": 900,
+      "priceWidth": 46,
+      "priceRequired": 54.25993347167969,
+      "checkoutReachable": true
+    }
+  ],
+  "errors": []
+}

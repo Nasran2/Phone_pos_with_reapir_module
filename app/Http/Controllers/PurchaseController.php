@@ -131,7 +131,7 @@ class PurchaseController extends Controller
             DB::rollBack();
             report($e);
 
-            return back()->withInput()->withErrors(['purchase' => 'Unable to save purchase. ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['purchase' => 'Unable to save purchase. Please check the details or contact support.']);
         }
     }
 
@@ -227,7 +227,7 @@ class PurchaseController extends Controller
             DB::rollBack();
             report($e);
 
-            return back()->withInput()->withErrors(['purchase' => 'Unable to update purchase. ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['purchase' => 'Unable to update purchase. Please check the details or contact support.']);
         }
     }
 

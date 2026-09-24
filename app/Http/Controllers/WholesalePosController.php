@@ -153,6 +153,10 @@ class WholesalePosController extends Controller
         $activeStoreId = $storeId;
         $posSettings = SystemSettings::posPayload();
 
+        if (request()->wantsJson()) {
+            return response()->json(compact('products', 'customers'));
+        }
+
         return view('pos.wholesale', compact('categories', 'products', 'customers', 'holdSales', 'paymentMethods', 'resumeHold', 'editSale', 'enableMultiStore', 'stores', 'activeStoreId', 'posSettings', 'distributionEnabled', 'sourceType', 'lorries', 'activeLorryId', 'distributionTrips', 'activeTripId'));
     }
 
@@ -538,6 +542,7 @@ class WholesalePosController extends Controller
                 'inventory_status' => $completedSale->inventoryStatus(),
                 'payment_status' => $completedSale->payment_status,
                 'due_amount' => (float) $completedSale->due_amount,
+                'share_url' => URL::signedRoute('sales.shared', ['sale' => $saleId]),
                 'print_url' => URL::signedRoute('sales.shared', [
                     'sale' => $saleId,
                     'print' => 1,
@@ -550,6 +555,10 @@ class WholesalePosController extends Controller
             throw $e;
         } catch (\RuntimeException $e) {
             DB::rollBack();
+            if ($e instanceof \Illuminate\Database\QueryException) {
+                report($e);
+                return response()->json(['success' => false, 'message' => 'Unable to save checkout. Please try again or contact support.'], 500);
+            }
 
             return response()->json([
                 'success' => false,
@@ -557,10 +566,11 @@ class WholesalePosController extends Controller
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+            report($e);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Checkout failed: '.$e->getMessage(),
+                'message' => 'Unable to complete checkout. Please try again or contact support.',
             ], 500);
         }
     }

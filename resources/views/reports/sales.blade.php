@@ -70,8 +70,8 @@
                     $paymentStatus = strtolower($sale->payment_status ?? 'due');
                 @endphp
                 <tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 font-medium text-slate-900">{{ $sale->invoice_no }}</td>
-                    <td class="p-4">{{ $sale->created_at->format('Y-m-d H:i') }}</td>
+                    <td class="p-4 font-medium text-slate-900"><a href="{{ route('sales.show', $sale) }}" class="text-blue-600 underline">{{ $sale->invoice_no }}</a></td>
+                    <td class="p-4">{{ $sale->sale_date->format('Y-m-d') }} · {{ $sale->created_at->format('H:i') }}</td>
                     <td class="p-4">{{ $sale->customer->name ?? 'Walk-in Customer' }}</td>
                     <td class="p-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $saleType === 'retail' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">{{ ucfirst($saleType) }}</span></td>
                     <td class="p-4 text-right font-bold text-slate-900">Rs. {{ number_format((float) ($sale->payable_amount ?? $sale->grand_total ?? $sale->total_amount ?? 0), 2) }}</td>

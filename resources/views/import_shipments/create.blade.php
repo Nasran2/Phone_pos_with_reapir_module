@@ -19,8 +19,9 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('import-shipments.store') }}" id="shipmentForm" class="space-y-6">
+    <form method="POST" action="{{ isset($importShipment) ? route('import-shipments.update', $importShipment) : route('import-shipments.store') }}" id="shipmentForm" class="space-y-6">
         @csrf
+        @isset($importShipment) @method('PUT') @endisset
         
         <!-- Header Details -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -28,18 +29,18 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Reference / Invoice No *</label>
-                    <input type="text" name="reference_no" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    <input type="text" name="reference_no" value="{{ old('reference_no', $importShipment->reference_no ?? '') }}" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Shipment Date *</label>
-                    <input type="date" name="shipment_date" value="{{ date('Y-m-d') }}" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    <input type="date" name="shipment_date" value="{{ old('shipment_date', $importShipment->shipment_date ?? date('Y-m-d')) }}" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Supplier *</label>
                     <select name="supplier_id" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm select2">
                         <option value="">Select Supplier</option>
                         @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                            <option value="{{ $supplier->id }}" @selected(old('supplier_id', $importShipment->supplier_id ?? null) == $supplier->id)>{{ $supplier->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -48,26 +49,26 @@
                     <select name="currency_id" id="currency_id" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm" onchange="updateExchangeRate()">
                         <option value="">Select Currency</option>
                         @foreach($currencies as $currency)
-                            <option value="{{ $currency->id }}" data-rate="{{ $exchangeRates[$currency->id]->rate ?? 1 }}">{{ $currency->code }} - {{ $currency->name }}</option>
+                            <option value="{{ $currency->id }}" @selected(old('currency_id', $importShipment->currency_id ?? null) == $currency->id) data-rate="{{ $exchangeRates[$currency->id]->rate ?? 1 }}">{{ $currency->code }} - {{ $currency->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Exchange Rate (to LKR) *</label>
-                    <input type="number" step="0.000001" min="0.000001" name="exchange_rate" id="exchange_rate" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    <input type="number" step="0.000001" min="0.000001" name="exchange_rate" value="{{ old('exchange_rate', $importShipment->exchange_rate ?? '') }}" id="exchange_rate" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Receiving Store *</label>
                     <select name="store_id" required class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm select2">
                         <option value="">Select Store</option>
                         @foreach($stores as $store)
-                            <option value="{{ $store->id }}">{{ $store->name }}</option>
+                            <option value="{{ $store->id }}" @selected(old('store_id', $importShipment->store_id ?? null) == $store->id)>{{ $store->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="md:col-span-3">
                     <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="2" class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm"></textarea>
+                    <textarea name="notes" rows="2" class="w-full rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-sm">{{ old('notes', $importShipment->notes ?? '') }}</textarea>
                 </div>
             </div>
             <!-- Hidden field for cost allocation method -> fixed to 'value' for now as standard practice -->
@@ -112,6 +113,7 @@
         const products = @json($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'hs_code_id' => $p->hs_code_id]; })->toArray());
         const hsCodes = @json($hsCodes->toArray());
         
+        const escapeOption = value => { const span = document.createElement('span'); span.textContent = value; return span.innerHTML; };
         let rowCount = 0;
 
         function updateExchangeRate() {
@@ -123,19 +125,19 @@
             }
         }
 
-        function addItemRow() {
+        function addItemRow(item = {}) {
             const tbody = document.getElementById('itemsTbody');
             const tr = document.createElement('tr');
             tr.id = `row_${rowCount}`;
             
             let productOptions = '<option value="">Select Product...</option>';
             products.forEach(p => {
-                productOptions += `<option value="${p.id}" data-hscode="${p.hs_code_id || ''}">${p.name}</option>`;
+                productOptions += `<option value="${p.id}" data-hscode="${p.hs_code_id || ''}">${escapeOption(p.name)}</option>`;
             });
 
             let hsCodeOptions = '<option value="">Select HS Code...</option>';
             hsCodes.forEach(h => {
-                hsCodeOptions += `<option value="${h.id}">${h.code} - ${h.description}</option>`;
+                hsCodeOptions += `<option value="${h.id}">${escapeOption(h.code)} - ${escapeOption(h.description)}</option>`;
             });
 
             tr.innerHTML = `
@@ -163,6 +165,7 @@
             `;
             
             tbody.appendChild(tr);
+            Object.entries(item).forEach(([key, value]) => { const field = tr.querySelector('[name="items[' + rowCount + '][' + key + ']"]'); if (field) field.value = value ?? ''; });
             rowCount++;
         }
 
@@ -185,7 +188,8 @@
 
         // Initialize with one row
         document.addEventListener('DOMContentLoaded', function() {
-            addItemRow();
+            const initialItems = @json(old('items', isset($importShipment) ? $importShipment->items->toArray() : []));
+            if (initialItems.length) initialItems.forEach(item => addItemRow(item)); else addItemRow();
         });
     </script>
 </x-layouts::app>
