@@ -12,7 +12,7 @@ class StockHistory extends Model
 
     protected $fillable = [
         'product_id', 'store_id', 'variant_id', 'quantity_before', 'quantity_change', 'new_quantity', 
-        'type', 'reference_no', 'note', 'created_by', 'reference_type', 'reference_id', 'description'
+        'type', 'reference_no', 'note', 'created_by', 'reference_type', 'reference_id', 'description', 'created_at'
     ];
 
     // Disable default timestamps because migration has useCurrent created_at and no updated_at

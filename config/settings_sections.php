@@ -74,7 +74,7 @@ return [
         'groups' => [
             ['title' => 'Multi Store Management', 'description' => 'Decide how stores are selected across products, purchases, POS, stock, reports, and dashboard.', 'fields' => [
                 ['key' => 'enable_multi_store', 'label' => 'Enable Multi Store', 'type' => 'toggle', 'default' => false, 'rules' => $commonToggle],
-                ['key' => 'default_store_id', 'label' => 'Default Store ID', 'type' => 'number', 'default' => 1, 'rules' => ['nullable', 'integer', 'min:1']],
+                ['key' => 'default_store_id', 'label' => 'Default Store ID', 'type' => 'store_select', 'default' => 1, 'rules' => ['nullable', 'integer', 'min:1']],
                 ['key' => 'force_store_selection', 'label' => 'Require Store Selection', 'type' => 'toggle', 'default' => false, 'rules' => $commonToggle],
             ]],
             ['title' => 'Transfers & Permissions', 'description' => 'Stock transfer control between branches.', 'fields' => [

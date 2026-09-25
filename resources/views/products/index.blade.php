@@ -1,7 +1,7 @@
 @php
-    $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs')
-        ?: $units->first(fn($unit) => str_contains(strtolower($unit->name), 'piece'))
-        ?: $units->first();
+$defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs')
+?: $units->first(fn($unit) => str_contains(strtolower($unit->name), 'piece'))
+?: $units->first();
 @endphp
 
 <x-layouts::app :title="__('Products Management')">
@@ -19,14 +19,14 @@
             <!-- Export / Import Buttons -->
             <a href="{{ route('products.export') }}" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 text-xs font-bold rounded-lg transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span>Export CSV</span>
             </a>
-            
+
             <button onclick="openModal('importModal')" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 text-xs font-bold rounded-lg transition cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
                 <span>Import Excel / CSV</span>
             </button>
@@ -34,7 +34,8 @@
             @if(auth()->user()->hasPermission('products.create'))
             <button onclick="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 <span>Add Product</span>
             </button>
@@ -48,7 +49,7 @@
         <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl flex items-center justify-between text-emerald-800 text-xs font-medium">
             <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>{{ session('success') }}</span>
             </div>
@@ -60,7 +61,7 @@
         <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl text-amber-800 text-xs font-medium space-y-1">
             <ul class="list-disc pl-5">
                 @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
+                <li>{{ $error }}</li>
                 @endforeach
             </ul>
         </div>
@@ -71,16 +72,16 @@
             <form method="GET" action="{{ route('products.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 md:grid-cols-4 gap-4">
                 <!-- Search box -->
                 <div class="relative">
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="search"
                         value="{{ request('search') }}"
-                        placeholder="Search Name, SKU, IMEI..." 
-                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition"
-                    />
+                        placeholder="Search Name, SKU, IMEI..."
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition" />
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                     </div>
                 </div>
@@ -88,27 +89,29 @@
                 <!-- Store filter -->
                 <div class="relative" id="filter-stores-container">
                     @php
-                        $selectedStores = request('store_ids', []);
-                        if (request('store_id')) $selectedStores[] = request('store_id');
-                        $selectedText = count($selectedStores) > 0 ? \App\Models\Store::whereIn('id', $selectedStores)->pluck('name')->join(', ') : 'All Stores';
+                    $selectedStores = request('store_ids', []);
+                    if (request('store_id')) $selectedStores[] = request('store_id');
+                    $selectedText = count($selectedStores) > 0 ? \App\Models\Store::whereIn('id', $selectedStores)->pluck('name')->join(', ') : 'All Stores';
                     @endphp
                     <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer h-[42px]" onclick="document.getElementById('filter-store-dropdown').classList.toggle('hidden')">
                         <span id="filter-store-select-text" class="text-slate-800 truncate block mr-2 text-xs">
                             {{ $selectedText }}
                         </span>
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                     </div>
-                    
+
                     <div id="filter-store-dropdown" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl hidden">
                         <div class="p-2 border-b border-slate-100">
                             <input type="text" id="filter-store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterFilterStores()">
                         </div>
                         <div class="max-h-40 overflow-y-auto p-1" id="filter-store-list">
                             @foreach($stores as $st)
-                                <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded filter-store-item">
-                                    <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ in_array($st->id, $selectedStores) ? 'checked' : '' }} class="filter-store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateFilterStoreSelection()">
-                                    <span class="text-xs font-semibold text-slate-700 filter-store-name">{{ $st->name }}</span>
-                                </label>
+                            <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded filter-store-item">
+                                <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ in_array($st->id, $selectedStores) ? 'checked' : '' }} class="filter-store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateFilterStoreSelection()">
+                                <span class="text-xs font-semibold text-slate-700 filter-store-name">{{ $st->name }}</span>
+                            </label>
                             @endforeach
                         </div>
                     </div>
@@ -116,31 +119,31 @@
 
                 <!-- Category filter -->
                 <div>
-                    <select name="category_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="category_id" data-searchable="false" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">All Categories</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
+                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Brand filter -->
                 <div>
-                    <select name="brand_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="brand_id" data-searchable="false" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">All Brands</option>
                         @foreach($brands as $brand)
-                            <option value="{{ $brand->id }}" {{ request('brand_id') == $brand->id ? 'selected' : '' }}>
-                                {{ $brand->name }}
-                            </option>
+                        <option value="{{ $brand->id }}" {{ request('brand_id') == $brand->id ? 'selected' : '' }}>
+                            {{ $brand->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Status filter -->
                 <div>
-                    <select name="status" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="status" data-searchable="false" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                         <option value="">All Statuses</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -216,31 +219,31 @@
                             <!-- Stock -->
                             <td class="px-6 py-4">
                                 @php
-                                    $qty = floatval($product->current_stock ?? 0);
-                                    $alertQty = intval($product->stock_alert_quantity);
-                                    $isLow = $qty <= $alertQty;
-                                @endphp
-                                <div class="space-y-1">
+                                $qty = floatval($product->current_stock ?? 0);
+                                $alertQty = intval($product->stock_alert_quantity);
+                                $isLow = $qty <= $alertQty;
+                                    @endphp
+                                    <div class="space-y-1">
                                     @if($product->storeStocks && count($product->storeStocks) > 1)
-                                        <div class="mb-1 space-y-0.5">
-                                            @foreach($product->storeStocks as $storeStock)
-                                                <div class="text-[9px] text-slate-500 font-semibold flex justify-between gap-2 border-b border-slate-100 pb-0.5">
-                                                    <span>{{ $storeStock->store->name ?? 'Store' }}:</span>
-                                                    <span class="{{ $storeStock->quantity <= $alertQty ? 'text-red-600 font-bold' : 'text-slate-700' }}">
-                                                        {{ number_format((float)$storeStock->quantity) }}
-                                                    </span>
-                                                </div>
-                                            @endforeach
+                                    <div class="mb-1 space-y-0.5">
+                                        @foreach($product->storeStocks as $storeStock)
+                                        <div class="text-[9px] text-slate-500 font-semibold flex justify-between gap-2 border-b border-slate-100 pb-0.5">
+                                            <span>{{ $storeStock->store->name ?? 'Store' }}:</span>
+                                            <span class="{{ $storeStock->quantity <= $alertQty ? 'text-red-600 font-bold' : 'text-slate-700' }}">
+                                                {{ number_format((float)$storeStock->quantity) }}
+                                            </span>
                                         </div>
+                                        @endforeach
+                                    </div>
                                     @elseif($product->storeStocks && count($product->storeStocks) === 1)
-                                        <div class="text-[9px] text-slate-500 font-semibold mb-1">
-                                            {{ $product->storeStocks[0]->store->name ?? 'Store' }}
-                                        </div>
+                                    <div class="text-[9px] text-slate-500 font-semibold mb-1">
+                                        {{ $product->storeStocks[0]->store->name ?? 'Store' }}
+                                    </div>
                                     @endif
-                                    
+
                                     <div class="flex items-center gap-1">
                                         @if($product->storeStocks && count($product->storeStocks) > 1)
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase">Total:</span>
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Total:</span>
                                         @endif
                                         <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-700' }}">
                                             {{ number_format($qty) }} {{ $product->unit->short_name ?? 'pcs' }}
@@ -249,93 +252,90 @@
                                     @if($isLow)
                                     <div class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Low Stock</div>
                                     @endif
-                                </div>
-                            </td>
-                            <!-- Status -->
-                            <td class="px-6 py-4">
-                                @if($product->is_active)
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">Active</span>
-                                @else
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-800">Inactive</span>
-                                @endif
-                            </td>
-                            <!-- Actions -->
-                            <td class="px-6 py-4 text-right whitespace-nowrap">
-                                <div class="flex items-center justify-end gap-1.5">
-                                    <!-- Print Barcode -->
-                                    <button 
-                                        onclick="showBarcodePrint('{{ $product->name }}', '{{ $product->barcode }}')"
-                                        class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition rounded-lg cursor-pointer"
-                                        title="Print Barcode"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                                        </svg>
-                                    </button>
-
-                                    <!-- Stock History -->
-                                    <button 
-                                        onclick="showStockHistory({{ $product->id }}, '{{ $product->name }}')"
-                                        class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition rounded-lg cursor-pointer"
-                                        title="View Stock Ledger"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    </button>
-
-                                    @if(auth()->user()->hasPermission('products.edit'))
-                                    <!-- Edit Details -->
-                                    <button 
-                                        onclick="openEditModal({{ json_encode($product) }})"
-                                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
-                                        title="Edit Product"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                    </button>
-                                    @endif
-
-                                    @if(auth()->user()->hasPermission('products.delete'))
-                                    <button 
-                                        onclick="confirmDelete({{ $product->id }}, '{{ $product->name }}')"
-                                        class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
-                                        title="Delete Product"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                    </button>
-                                    <form id="delete-form-{{ $product->id }}" method="POST" action="{{ route('products.destroy', $product->id) }}" class="hidden">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="px-6 py-12 text-center text-slate-400">
-                                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
-                                </svg>
-                                <span class="font-bold">No products found matching query.</span>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
             </div>
+            </td>
+            <!-- Status -->
+            <td class="px-6 py-4">
+                @if($product->is_active)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">Active</span>
+                @else
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-800">Inactive</span>
+                @endif
+            </td>
+            <!-- Actions -->
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1.5">
+                    <!-- Print Barcode -->
+                    <button
+                        onclick="showBarcodePrint('{{ $product->name }}', '{{ $product->barcode }}')"
+                        class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition rounded-lg cursor-pointer"
+                        title="Print Barcode">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                    </button>
 
-            <!-- Pagination links -->
-            @if($products->hasPages())
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200/60">
-                {{ $products->links() }}
-            </div>
-            @endif
+                    <!-- Stock History -->
+                    <button
+                        onclick="showStockHistory({{ $product->id }}, '{{ $product->name }}')"
+                        class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition rounded-lg cursor-pointer"
+                        title="View Stock Ledger">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+
+                    @if(auth()->user()->hasPermission('products.edit'))
+                    <!-- Edit Details -->
+                    <button
+                        onclick="openEditModal({{ json_encode($product) }})"
+                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                        title="Edit Product">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                    @endif
+
+                    @if(auth()->user()->hasPermission('products.delete'))
+                    <button
+                        onclick="confirmDelete({{ $product->id }}, '{{ $product->name }}')"
+                        class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                        title="Delete Product">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                    <form id="delete-form-{{ $product->id }}" method="POST" action="{{ route('products.destroy', $product->id) }}" class="hidden">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                    @endif
+                </div>
+            </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="9" class="px-6 py-12 text-center text-slate-400">
+                    <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4m0 4h.01" />
+                    </svg>
+                    <span class="font-bold">No products found matching query.</span>
+                </td>
+            </tr>
+            @endforelse
+            </tbody>
+            </table>
         </div>
+
+        <!-- Pagination links -->
+        @if($products->hasPages())
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200/60">
+            {{ $products->links() }}
+        </div>
+        @endif
+    </div>
     </div>
 
     <!-- PRODUCT ADD / EDIT MODAL -->
@@ -373,7 +373,7 @@
                                 <select name="category_id" id="prod_category_id" onchange="handleCategoryChange(this)" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                     <option value="" data-sales-tax="" data-purchase-tax="">Select Category</option>
                                     @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" data-sales-tax="{{ $category->default_sales_tax_profile_id }}" data-purchase-tax="{{ $category->default_purchase_tax_profile_id }}">{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" data-sales-tax="{{ $category->default_sales_tax_profile_id }}" data-purchase-tax="{{ $category->default_purchase_tax_profile_id }}">{{ $category->name }}</option>
                                     @endforeach
                                 </select>
                                 @if(auth()->user()->hasPermission('categories.create'))
@@ -387,7 +387,7 @@
                                 <select name="brand_id" id="prod_brand_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                     <option value="">Select Brand</option>
                                     @foreach($brands as $brand)
-                                        <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                                    <option value="{{ $brand->id }}">{{ $brand->name }}</option>
                                     @endforeach
                                 </select>
                                 @if(auth()->user()->hasPermission('brands.create'))
@@ -401,7 +401,7 @@
                                 <select name="unit_id" id="prod_unit_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                     <option value="">Select Unit</option>
                                     @foreach($units as $unit)
-                                        <option value="{{ $unit->id }}" @selected($defaultUnit && $defaultUnit->id === $unit->id)>{{ $unit->name }} ({{ $unit->short_name }})</option>
+                                    <option value="{{ $unit->id }}" @selected($defaultUnit && $defaultUnit->id === $unit->id)>{{ $unit->name }} ({{ $unit->short_name }})</option>
                                     @endforeach
                                 </select>
                                 @if(auth()->user()->hasPermission('units.create'))
@@ -433,24 +433,26 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div id="assign-stores-container" class="relative">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign To Stores</label>
-                            
+
                             <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500" onclick="document.getElementById('store-dropdown').classList.toggle('hidden')">
                                 <span id="store-select-text" class="text-slate-800 truncate block mr-2 font-semibold text-xs" style="max-width: 150px;">
                                     {{ $stores->where('is_default', true)->pluck('name')->join(', ') ?: 'Select stores...' }}
                                 </span>
-                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
                             </div>
-                            
+
                             <div id="store-dropdown" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg hidden">
                                 <div class="p-2 border-b border-slate-100">
                                     <input type="text" id="store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterStores()">
                                 </div>
                                 <div class="max-h-40 overflow-y-auto p-1" id="store-list">
                                     @foreach($stores as $st)
-                                        <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded store-item">
-                                            <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ $st->is_default ? 'checked' : '' }} class="store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateStoreSelection()">
-                                            <span class="text-xs font-semibold text-slate-700 store-name">{{ $st->name }}</span>
-                                        </label>
+                                    <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded store-item">
+                                        <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ (count($stores) == 1 || $st->id == \App\Models\Setting::get('default_store_id') || $st->is_default) ? 'checked' : '' }} class="store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateStoreSelection()">
+                                        <span class="text-xs font-semibold text-slate-700 store-name">{{ $st->name }}</span>
+                                    </label>
                                     @endforeach
                                 </div>
                             </div>
@@ -481,9 +483,9 @@
                             <select name="sales_tax_profile_id" id="prod_sales_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                 <option value="">Category Default</option>
                                 @foreach($taxProfiles as $tax)
-                                    @if($tax->tax_type == 'VAT')
-                                    <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
-                                    @endif
+                                @if($tax->tax_type == 'VAT')
+                                <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
+                                @endif
                                 @endforeach
                             </select>
                         </div>
@@ -492,9 +494,9 @@
                             <select name="purchase_tax_profile_id" id="prod_purchase_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
                                 <option value="">Category Default</option>
                                 @foreach($taxProfiles as $tax)
-                                    @if($tax->tax_type == 'VAT')
-                                    <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
-                                    @endif
+                                @if($tax->tax_type == 'VAT')
+                                <option value="{{ $tax->id }}">{{ $tax->name }} ({{ floatval($tax->rate) }}%)</option>
+                                @endif
                                 @endforeach
                             </select>
                         </div>
@@ -520,7 +522,8 @@
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                                 <svg class="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+                                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                                    <line x1="12" y1="18" x2="12.01" y2="18" />
                                 </svg>
                                 <span>Phone IMEI / Serial Numbers Registration</span>
                             </h4>
@@ -538,7 +541,7 @@
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                                 <svg class="w-4.5 h-4.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                 </svg>
                                 <span>Multi-Variant Management (RAM, Storage, Color)</span>
                             </h4>
@@ -715,7 +718,7 @@
                         <span id="bc_label_code"></span>
                     </div>
                 </div>
-                
+
                 <div class="flex items-center gap-4">
                     <div class="text-xs text-slate-500 font-bold">Qty to Print: <input type="number" value="1" class="w-12 border rounded px-1.5 py-0.5 text-center"></div>
                 </div>
@@ -724,7 +727,7 @@
                 <button type="button" onclick="closeModal('barcodePrintModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg cursor-pointer">Close</button>
                 <button type="button" onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm cursor-pointer flex items-center gap-1.5">
                     <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                     </svg>
                     <span>Print Label</span>
                 </button>
@@ -770,7 +773,7 @@
             const modal = document.getElementById(id);
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
+
             setTimeout(() => {
                 const container = modal.querySelector('.modal-container');
                 container.classList.remove('scale-95', 'opacity-0');
@@ -783,7 +786,7 @@
             const container = modal.querySelector('.modal-container');
             container.classList.remove('scale-100', 'opacity-100');
             container.classList.add('scale-95', 'opacity-0');
-            
+
             setTimeout(() => {
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
@@ -821,13 +824,13 @@
             }
 
             fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                },
-                body: new FormData(form),
-            })
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: new FormData(form),
+                })
                 .then(async response => {
                     const payload = await response.json().catch(() => ({}));
                     if (!response.ok) {
@@ -922,12 +925,12 @@
             document.getElementById('prod_description').value = '';
             document.getElementById('prod_is_active').checked = true;
             document.getElementById('prod_imeis').value = '';
-            
+
             document.getElementById('opening-stock-container').classList.remove('hidden');
             document.getElementById('assign-stores-container').classList.remove('hidden');
             document.getElementById('variants-section').classList.remove('hidden');
             document.getElementById('imei-input-container').classList.remove('hidden');
-            
+
             // Clear preview
             const preview = document.getElementById('prod_image_preview');
             preview.src = '#';
@@ -968,7 +971,8 @@
             const assignedStoreIds = storeStocks.map(s => String(s.store_id));
             window.isEditMode = true;
             window.currentAssignedStores = assignedStoreIds;
-            
+            window.currentStoreStocks = storeStocks;
+
             // Check the appropriate checkboxes
             const checkboxes = document.querySelectorAll('.store-checkbox');
             checkboxes.forEach(cb => {
@@ -976,16 +980,9 @@
             });
             updateStoreSelection();
 
-            // Re-hide the opening stock container initially (only shown for newly checked stores)
-            document.getElementById('opening-stock-container').classList.add('hidden');
-            const dynamicContainer = document.getElementById('dynamic-opening-stock-inputs');
-            if (dynamicContainer) {
-                dynamicContainer.innerHTML = '';
-            }
-            
             // Allow managing stores on edit
             document.getElementById('assign-stores-container').classList.remove('hidden');
-            
+
             document.getElementById('variants-section').classList.remove('hidden');
             document.getElementById('imei-input-container').classList.add('hidden');
 
@@ -1013,7 +1010,7 @@
             const row = document.createElement('tr');
             row.className = 'hover:bg-slate-50/50 transition';
             row.id = `variant-row-${variantIndex}`;
-            
+
             row.innerHTML = `
                 <input type="hidden" name="variants[${variantIndex}][id]" value="${variant.id || ''}">
                 <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][color]" value="${variant.color || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="e.g. Blue"></td>
@@ -1028,7 +1025,7 @@
                     <button type="button" onclick="removeVariantRow(${variantIndex})" class="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
                 </td>
             `;
-            
+
             tbody.appendChild(row);
             variantIndex++;
             syncOpeningStockVisibility();
@@ -1071,11 +1068,11 @@
 
         function showStockHistory(productId, name) {
             document.getElementById('hist_product_name').innerText = name;
-            
+
             // Clear old data
             const tbody = document.getElementById('hist-table-body');
             tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Loading ledger logs...</td></tr>`;
-            
+
             openModal('stockHistoryModal');
 
             // Fetch from API
@@ -1087,7 +1084,7 @@
                         tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No stock movements recorded.</td></tr>`;
                         return;
                     }
-                    
+
                     data.history.forEach(log => {
                         const changeVal = parseFloat(log.quantity_change);
                         const changeText = changeVal > 0 ? `+${changeVal}` : changeVal;
@@ -1135,12 +1132,12 @@
                 item.style.display = text.includes(input) ? 'flex' : 'none';
             });
         }
-        
+
         function updateStoreSelection() {
             let checked = document.querySelectorAll('.store-checkbox:checked');
             let text = [];
             let stockContainer = document.getElementById('dynamic-opening-stock-inputs');
-            
+
             // store current values so we don't lose them when redrawing
             let currentValues = {};
             if (stockContainer) {
@@ -1153,17 +1150,34 @@
             checked.forEach(cb => {
                 let storeName = cb.nextElementSibling.innerText;
                 text.push(storeName);
-                
-                // In edit mode, don't show opening stock input for already assigned stores
+
+                // In edit mode, allow editing existing stock but with a warning
                 if (window.isEditMode && window.currentAssignedStores && window.currentAssignedStores.includes(cb.value)) {
+                    if (stockContainer && window.currentStoreStocks) {
+                        let stockObj = window.currentStoreStocks.find(s => String(s.store_id) === String(cb.value));
+                        let qty = stockObj ? stockObj.quantity : 0;
+                        let storeId = cb.value;
+                        let inputName = 'opening_stock[' + storeId + ']';
+
+                        let div = document.createElement('div');
+                        div.className = 'mb-3';
+                        div.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-semibold text-slate-600 w-28 truncate" title="${storeName}">${storeName}</span>
+                                <input type="number" name="${inputName}" value="${qty}" class="flex-1 px-2 py-1.5 border border-amber-300 bg-amber-50 rounded-md text-xs focus:ring-1 focus:ring-amber-500 text-slate-800" placeholder="0">
+                            </div>
+                            <p class="text-[9px] text-amber-600 mt-0.5 ml-[120px] font-medium leading-tight">⚠ Warning: Modifying this will overwrite current stock.</p>
+                        `;
+                        stockContainer.appendChild(div);
+                    }
                     return;
                 }
-                
+
                 if (stockContainer) {
                     let storeId = cb.value;
                     let inputName = 'opening_stock[' + storeId + ']';
                     let val = currentValues[inputName] || '';
-                    
+
                     let div = document.createElement('div');
                     div.className = 'flex items-center gap-2';
                     div.innerHTML = `
@@ -1173,6 +1187,10 @@
                     stockContainer.appendChild(div);
                 }
             });
+
+            if (checked.length === 0 && stockContainer) {
+                stockContainer.innerHTML = '<p class="text-[10px] text-amber-600 italic py-1">Please select a store first to assign opening stock.</p>';
+            }
 
             document.getElementById('store-select-text').innerText = text.length > 0 ? text.join(', ') : 'Select stores...';
         }
@@ -1184,7 +1202,7 @@
                 if (dropdown) dropdown.classList.add('hidden');
             }
         });
-        
+
         // Initialize store selection text on load
         document.addEventListener('DOMContentLoaded', updateStoreSelection);
 
@@ -1219,13 +1237,13 @@
             if (selectedOption) {
                 const salesTaxId = selectedOption.getAttribute('data-sales-tax');
                 const purchaseTaxId = selectedOption.getAttribute('data-purchase-tax');
-                
+
                 if (salesTaxId) {
                     document.getElementById('prod_sales_tax_profile_id').value = salesTaxId;
                 } else {
                     document.getElementById('prod_sales_tax_profile_id').value = '';
                 }
-                
+
                 if (purchaseTaxId) {
                     document.getElementById('prod_purchase_tax_profile_id').value = purchaseTaxId;
                 } else {

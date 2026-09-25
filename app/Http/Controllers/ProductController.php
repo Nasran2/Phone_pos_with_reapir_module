@@ -145,12 +145,12 @@ class ProductController extends Controller
 
         try {
             // Generate SKU if missing
-            $sku = ($validated['sku'] ?? null) ?: 'PROD-'.strtoupper(Str::random(8));
+            $sku = ($validated['sku'] ?? null) ?: 'PROD-' . strtoupper(Str::random(8));
 
             // Barcode Auto Generate
             $barcode = $validated['barcode'] ?? null;
             if (empty($barcode)) {
-                $barcode = 'ING-'.time().rand(100, 999);
+                $barcode = 'ING-' . time() . rand(100, 999);
             }
 
             $logoPath = null;
@@ -288,12 +288,11 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return redirect()->route('products.index')->with('success', 'Product created successfully.');
-
+            return redirect()->back()->with('success', 'Product created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Failed to create product: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to create product: ' . $e->getMessage()]);
         }
     }
 
@@ -344,7 +343,7 @@ class ProductController extends Controller
                 }
 
                 $duplicateVariant = ProductVariant::where('sku', $variantInput['sku'])
-                    ->when(! empty($variantInput['id']), fn ($query) => $query->where('id', '!=', $variantInput['id']))
+                    ->when(! empty($variantInput['id']), fn($query) => $query->where('id', '!=', $variantInput['id']))
                     ->exists();
 
                 if ($duplicateVariant) {
@@ -411,7 +410,7 @@ class ProductController extends Controller
             }
 
             ProductVariant::where('product_id', $product->id)
-                ->when(! empty($keptVariantIds), fn ($query) => $query->whereNotIn('id', $keptVariantIds))
+                ->when(! empty($keptVariantIds), fn($query) => $query->whereNotIn('id', $keptVariantIds))
                 ->delete();
 
             // Handle Store assignments
@@ -436,17 +435,44 @@ class ProductController extends Controller
                         StockHistory::create([
                             'product_id' => $product->id,
                             'store_id' => $storeId,
-                            'transaction_type' => 'opening_stock',
+                            'type' => 'opening_stock',
                             'reference_type' => 'product_update',
                             'reference_id' => $product->id,
                             'quantity_before' => 0,
                             'quantity_change' => $qty,
-                            'quantity_after' => $qty,
-                            'unit_cost' => $product->cost_price,
-                            'total_cost' => $qty * $product->cost_price,
-                            'user_id' => auth()->id(),
-                            'notes' => 'Opening stock assigned on update',
+                            'new_quantity' => $qty,
+                            'created_by' => auth()->id(),
+                            'note' => 'Opening stock assigned on update',
                         ]);
+                    }
+                }
+
+                // Update existing stores
+                $storesToUpdate = array_intersect($requestedStores, $currentStoreIds);
+                foreach ($storesToUpdate as $storeId) {
+                    if (isset($openingStocks[$storeId])) {
+                        $newQty = floatval($openingStocks[$storeId]);
+                        $stock = $currentStoreStocks->where('store_id', $storeId)->first();
+
+                        if ($stock && $stock->quantity != $newQty) {
+                            $oldQty = $stock->quantity;
+                            $diff = $newQty - $oldQty;
+
+                            $stock->update(['quantity' => $newQty]);
+
+                            StockHistory::create([
+                                'product_id' => $product->id,
+                                'store_id' => $storeId,
+                                'type' => 'manual_adjustment',
+                                'reference_type' => 'product_update',
+                                'reference_id' => $product->id,
+                                'quantity_before' => $oldQty,
+                                'quantity_change' => $diff,
+                                'new_quantity' => $newQty,
+                                'created_by' => auth()->id(),
+                                'note' => 'Stock updated directly via product edit',
+                            ]);
+                        }
                     }
                 }
 
@@ -467,12 +493,11 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
-
+            return redirect()->back()->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Failed to update product: '.$e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to update product: ' . $e->getMessage()]);
         }
     }
 
@@ -489,11 +514,11 @@ class ProductController extends Controller
             ActivityLog::log('Delete', 'Products Module', "Soft deleted product: {$productName}");
             DB::commit();
 
-            return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+            return redirect()->back()->with('success', 'Product deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->route('products.index')->with('error', 'Failed to delete product.');
+            return redirect()->back()->with('error', 'Failed to delete product.');
         }
     }
 
@@ -617,7 +642,7 @@ class ProductController extends Controller
         try {
             DB::transaction(function () use ($rows, $columns, $value, &$importedCount, &$skippedCount) {
                 foreach ($rows as $rowOffset => $row) {
-                    if (! collect($row)->contains(fn ($cell) => filled($cell))) {
+                    if (! collect($row)->contains(fn($cell) => filled($cell))) {
                         continue;
                     }
 
@@ -648,7 +673,7 @@ class ProductController extends Controller
                     }
 
                     if ($sku === '') {
-                        $sku = 'PROD-'.strtoupper(Str::random(8));
+                        $sku = 'PROD-' . strtoupper(Str::random(8));
                     }
 
                     $categoryName = trim((string) $value($row, $columns, 'category'));
@@ -682,8 +707,8 @@ class ProductController extends Controller
                         $product->restore();
                     }
 
-                    $barcodeToSave = $barcode !== '' ? $barcode : ($product?->barcode ?: 'ING-'.Str::upper(Str::random(12)));
-                    
+                    $barcodeToSave = $barcode !== '' ? $barcode : ($product?->barcode ?: 'ING-' . Str::upper(Str::random(12)));
+
                     if ($barcodeToSave !== '') {
                         $existingBarcode = Product::withTrashed()->where('barcode', $barcodeToSave)->where('sku', '!=', $sku)->first();
                         if ($existingBarcode) {
@@ -750,13 +775,13 @@ class ProductController extends Controller
                 $message .= " Skipped {$skippedCount} reference or empty rows.";
             }
 
-            return redirect()->route('products.index')->with('success', $message);
+            return redirect()->back()->with('success', $message);
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
             report($e);
 
-            return redirect()->route('products.index')->with('error', 'Product import failed: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Product import failed: ' . $e->getMessage());
         }
     }
 
@@ -766,7 +791,7 @@ class ProductController extends Controller
         if (in_array($extension, ['xlsx', 'xls'], true)) {
             $sheets = Excel::toArray(new \stdClass, $file);
             foreach ($sheets as $sheet) {
-                $headings = array_map(fn ($heading) => $this->normalizeImportHeading((string) $heading), $sheet[0] ?? []);
+                $headings = array_map(fn($heading) => $this->normalizeImportHeading((string) $heading), $sheet[0] ?? []);
                 if (in_array('name', $headings, true)) {
                     return $sheet;
                 }
@@ -816,7 +841,7 @@ class ProductController extends Controller
         $suffix = 2;
 
         while ((clone $query)->where('slug', $slug)->exists()) {
-            $slug = $base.'-'.$suffix++;
+            $slug = $base . '-' . $suffix++;
         }
 
         return $slug;

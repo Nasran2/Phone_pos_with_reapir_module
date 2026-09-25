@@ -92,7 +92,7 @@ class SettingsController extends Controller
             }
         }
 
-        return back()->with('success', $successMessage);
+        return back()->with('settings_success', $successMessage);
     }
 
     public function reset(string $path): RedirectResponse

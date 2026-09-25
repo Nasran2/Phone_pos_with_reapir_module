@@ -76,9 +76,9 @@
 
     <div class="flex-1 w-full overflow-y-auto bg-slate-50">
         <div class="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
-            @if(session('success'))
+            @if(session('settings_success'))
                 <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-sm">
-                    {{ session('success') }}
+                    {{ session('settings_success') }}
                 </div>
             @endif
 
@@ -170,6 +170,12 @@
                                         @if($type === 'select')
                                             <select id="{{ $key }}" name="{{ $key }}" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                                 @foreach($field['options'] as $optionValue => $optionLabel)
+                                                    <option value="{{ $optionValue }}" @selected((string) $fieldValue === (string) $optionValue)>{{ $optionLabel }}</option>
+                                                @endforeach
+                                            </select>
+                                        @elseif($type === 'store_select')
+                                            <select id="{{ $key }}" name="{{ $key }}" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                                @foreach(\App\Models\Store::orderBy('name')->pluck('name', 'id') as $optionValue => $optionLabel)
                                                     <option value="{{ $optionValue }}" @selected((string) $fieldValue === (string) $optionValue)>{{ $optionLabel }}</option>
                                                 @endforeach
                                             </select>

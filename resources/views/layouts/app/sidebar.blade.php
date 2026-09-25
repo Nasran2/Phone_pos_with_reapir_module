@@ -179,19 +179,22 @@
                 <!-- Products Dropdown -->
                 @if (auth()->user()->hasPermission('products.view'))
                 <div>
-                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'bg-[#182647]/50 text-white' : '' }}">
+                    <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('stock-adjustments.*') || request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3">
                             <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                             </svg>
                             <span>Products</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock-adjustments.*') || request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
-                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? '' : 'hidden' }}">
+                    <div class="pl-10 pr-2 py-1 space-y-1 bg-[#091024]/40 rounded-lg mt-0.5 {{ request()->routeIs('stock-adjustments.*') || request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? '' : 'hidden' }}">
                         <a href="{{ route('products.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('products.index') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">All Products</a>
+                        @if(auth()->user()->hasPermission('stock.adjustment.view'))
+                        <a href="{{ route('stock-adjustments.index') }}" class="block py-2 px-3 text-xs font-medium text-slate-400 hover:text-white">Stock Adjustment</a>
+                        @endif
                         <a href="{{ route('categories.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('categories.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Categories</a>
                         <a href="{{ route('brands.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('brands.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Brands</a>
                         <a href="{{ route('units.index') }}" class="block py-2 text-xs font-medium {{ request()->routeIs('units.*') ? 'text-blue-400 font-semibold' : 'text-slate-400 hover:text-white' }}">Units</a>
@@ -634,6 +637,9 @@
                         <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Products</span>
                         <div class="mt-1 space-y-1 pl-3">
                             <a href="{{ route('products.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('products.index') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">All Products</a>
+                        @if(auth()->user()->hasPermission('stock.adjustment.view'))
+                        <a href="{{ route('stock-adjustments.index') }}" class="block py-2 px-3 text-xs font-medium text-slate-400 hover:text-white">Stock Adjustment</a>
+                        @endif
                             <a href="{{ route('categories.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('categories.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Categories</a>
                             <a href="{{ route('brands.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('brands.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Brands</a>
                             <a href="{{ route('units.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('units.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Units</a>
@@ -771,14 +777,7 @@
 
     <!-- Main Content Area Wrapper -->
     <main class="app-main flex-1 flex flex-col min-h-screen min-w-0 w-full bg-slate-50 dark:bg-slate-900 overflow-x-hidden">
-        @foreach(['success', 'warning', 'error', 'info'] as $messageType)
-            @if(is_string(session($messageType)))
-                <div role="status" class="m-3 rounded-xl border p-3 text-sm {{ $messageType === 'error' ? 'border-red-200 bg-red-50 text-red-800' : ($messageType === 'warning' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-blue-200 bg-blue-50 text-blue-800') }}">{{ session($messageType) }}</div>
-            @endif
-        @endforeach
-        @if($errors->any())
-            <div role="alert" class="m-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"><strong>Please check the following:</strong><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
-        @endif
+
         {{ $slot }}
     </main>
 

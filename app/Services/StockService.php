@@ -54,6 +54,7 @@ class StockService
             // Log stock history
             StockHistory::create([
                 'product_id' => $product->id,
+                'created_at' => now(),
                 'quantity_before' => $quantityBefore,
                 'quantity_change' => $quantityChange,
                 'new_quantity' => $newQuantity,

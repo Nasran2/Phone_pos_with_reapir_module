@@ -52,6 +52,15 @@ Route::get('/link-storage', function () {
     return 'Storage linked successfully!';
 });
 
+Route::get('/cachtwinsofte', function () {
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return 'All cache cleared successfully!';
+});
+
 Route::redirect('/', 'login')->name('home');
 
 Route::get('shared/invoices/{sale}', [SaleController::class, 'shared'])
@@ -424,6 +433,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('stock-adjustments.show')
         ->middleware('permission:stock.adjustment.view');
 
+    Route::get('stock-adjustments/{stockAdjustment}/edit', [StockAdjustmentController::class, 'edit'])->name('stock-adjustments.edit')->middleware('permission:stock.adjustment.edit');
+    Route::put('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'update'])->name('stock-adjustments.update')->middleware('permission:stock.adjustment.edit');
+    Route::delete('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'destroy'])->name('stock-adjustments.destroy')->middleware('permission:stock.adjustment.delete');
+    Route::get('stock-adjustments/{stockAdjustment}/pdf', [StockAdjustmentController::class, 'pdf'])->name('stock-adjustments.pdf')->middleware('permission:stock.adjustment.view');
+
     // Damaged Stock
     Route::get('damaged-stocks', [DamagedStockController::class, 'index'])
         ->name('damaged-stocks.index')
@@ -437,6 +451,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('damaged-stocks/{damagedStock}', [DamagedStockController::class, 'destroy'])
         ->name('damaged-stocks.destroy')
         ->middleware('permission:damaged_stock.delete');
+    Route::get('stock-adjustments/{stockAdjustment}/edit', [StockAdjustmentController::class, 'edit'])->name('stock-adjustments.edit')->middleware('permission:stock.adjustment.edit');
+    Route::put('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'update'])->name('stock-adjustments.update')->middleware('permission:stock.adjustment.edit');
+    Route::delete('stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'destroy'])->name('stock-adjustments.destroy')->middleware('permission:stock.adjustment.delete');
+    Route::get('stock-adjustments/{stockAdjustment}/pdf', [StockAdjustmentController::class, 'pdf'])->name('stock-adjustments.pdf')->middleware('permission:stock.adjustment.view');
+
     // Damaged Stock
     Route::post('damaged-stocks/{damagedStock}/status', [DamagedStockController::class, 'updateStatus'])
         ->name('damaged-stocks.status')

@@ -1,0 +1,9 @@
+{
+  "create": true,
+  "update": true,
+  "delete": true,
+  "pdf": true,
+  "mobileWidth": 375,
+  "desktopWidth": 1440,
+  "errors": []
+}

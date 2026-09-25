@@ -1,351 +1,68 @@
-<x-layouts::app :title="__('Create Stock Adjustment')">
-    <!-- Header Section -->
-    <div class="p-6 md:p-8 pb-0">
-        <a href="{{ route('stock-adjustments.index') }}" class="inline-flex items-center text-xs text-slate-500 hover:text-teal-600 font-medium mb-2 transition">
-            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Adjustments History
-        </a>
-        <h1 class="text-2xl font-serif text-slate-800 tracking-tight">New Stock Adjustment</h1>
-        <p class="text-sm text-slate-500 mt-1">Add multiple products to adjust their stock levels simultaneously.</p>
-    </div>
-
-    <!-- Main Content Panel -->
-    <div class="p-6 md:p-8 pt-6 flex-1 w-full overflow-y-auto">
-        
-        @if ($errors->any())
-        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-800 text-xs font-medium space-y-1">
-            <span class="font-bold block">Please fix the following validation errors:</span>
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-
-        <form method="POST" action="{{ route('stock-adjustments.store') }}" enctype="multipart/form-data">
-            @csrf
-            
-            <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 md:p-8">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <input type="hidden" name="adjustment_type" id="adjustment_type" value="correction">
-                    <div class="md:col-span-1">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Date *</label>
-                        <input type="date" name="adjustment_date" required value="{{ now()->toDateString() }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Reference / Reason</label>
-                        <input type="text" name="reason" placeholder="e.g. Stock count discrepancy" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                </div>
-
-                <div class="mb-8">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Transaction Notes (Optional)</label>
-                    <textarea name="notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500" placeholder="Overall reason or reference for this adjustment..."></textarea>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Add Product</label>
-                    <div class="relative" id="productSearchContainer">
-                        <input 
-                            type="text" 
-                            id="productSearchInput" 
-                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white" 
-                            placeholder="Search by SKU or product name..."
-                            autocomplete="off"
-                        >
-                        <div id="productSuggestions" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
-                            <!-- JS will populate suggestions here -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border border-slate-200/60 rounded-xl overflow-hidden mb-6">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-slate-50/50 border-b border-slate-200/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
-                                    <th class="px-6 py-3">Product</th>
-                                    <th class="px-6 py-3">Store & Inventory</th>
-                                    <th class="px-6 py-3 text-right">Unit & Qty</th>
-                                    <th class="px-6 py-3 text-right">New Stock</th>
-                                    <th class="px-6 py-3 text-right w-16">Remove</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adjustmentTableBody" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Items added dynamically -->
-                                <tr id="emptyRowPlaceholder">
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
-                                        No products added yet. Search and select a product above.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="px-6 py-2.5 bg-[#84A9A6] hover:bg-[#729794] text-white font-medium rounded-lg text-sm transition shadow-sm cursor-pointer">
-                        Post Adjustments
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- JS Handling Dynamic Products Addition -->
-    <script>
-        const allProducts = @json($products);
-        let rowIndex = 0;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('productSearchInput');
-            const suggestionsBox = document.getElementById('productSuggestions');
-            let highlightIndex = -1;
-            let currentSuggestions = [];
-
-            // Prevent form submit on Enter in search box
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (highlightIndex > -1 && highlightIndex < currentSuggestions.length) {
-                        selectProduct(currentSuggestions[highlightIndex]);
-                    }
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (highlightIndex < currentSuggestions.length - 1) {
-                        highlightIndex++;
-                        updateHighlight();
-                    }
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (highlightIndex > 0) {
-                        highlightIndex--;
-                        updateHighlight();
-                    }
-                } else if (e.key === 'Escape') {
-                    closeSuggestions();
-                }
-            });
-
-            searchInput.addEventListener('input', function() {
-                const query = this.value.trim().toLowerCase();
-                if (query.length === 0) {
-                    closeSuggestions();
-                    return;
-                }
-
-                currentSuggestions = allProducts.filter(p => 
-                    (p.sku && p.sku.toLowerCase().includes(query)) || 
-                    (p.name && p.name.toLowerCase().includes(query))
-                ).slice(0, 10); // Limit to 10 results
-
-                renderSuggestions();
-            });
-
-            // Close suggestions when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!document.getElementById('productSearchContainer').contains(e.target)) {
-                    closeSuggestions();
-                }
-            });
-
-            function renderSuggestions() {
-                if (currentSuggestions.length === 0) {
-                    suggestionsBox.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">No products found</div>';
-                    suggestionsBox.classList.remove('hidden');
-                    return;
-                }
-
-                highlightIndex = -1;
-                suggestionsBox.innerHTML = '';
-                currentSuggestions.forEach((prod, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'px-4 py-2 cursor-pointer text-sm border-b border-slate-50 last:border-0 suggestion-item';
-                    div.innerHTML = `<span class="font-bold text-slate-700">${prod.sku}</span> - <span class="text-slate-600">${prod.name}</span> <span class="text-xs text-slate-400 ml-2">(Stock: ${prod.current_stock})</span>`;
-                    
-                    div.addEventListener('mouseenter', () => {
-                        highlightIndex = index;
-                        updateHighlight();
-                    });
-                    
-                    div.addEventListener('click', () => {
-                        selectProduct(prod);
-                    });
-                    
-                    suggestionsBox.appendChild(div);
-                });
-
-                suggestionsBox.classList.remove('hidden');
-            }
-
-            function updateHighlight() {
-                const items = suggestionsBox.querySelectorAll('.suggestion-item');
-                items.forEach((item, index) => {
-                    if (index === highlightIndex) {
-                        item.classList.add('bg-teal-50', 'text-teal-700');
-                        item.classList.remove('text-slate-700');
-                    } else {
-                        item.classList.remove('bg-teal-50', 'text-teal-700');
-                    }
-                });
-            }
-
-            function closeSuggestions() {
-                suggestionsBox.classList.add('hidden');
-                highlightIndex = -1;
-            }
-
-            function selectProduct(prod) {
-                addProductRow(prod);
-                searchInput.value = '';
-                closeSuggestions();
-                searchInput.focus();
-            }
-        });
-
-        function addProductRow(prod) {
-            const productId = prod.id;
-            if (!productId) return;
-
-            const sku = prod.sku;
-            const name = prod.name;
-            const currentStock = parseFloat(prod.current_stock);
-
-            // Check if already added
-            if (document.getElementById(`row-${productId}`)) {
-                Swal.fire({
-                    title: 'Already Added',
-                    text: 'This product is already in the adjustment list.',
-                    icon: 'info',
-                    confirmButtonColor: '#0d9488'
-                });
-                return;
-            }
-
-            // Remove placeholder
-            const placeholder = document.getElementById('emptyRowPlaceholder');
-            if (placeholder) {
-                placeholder.remove();
-            }
-
-            const tbody = document.getElementById('adjustmentTableBody');
-            const tr = document.createElement('tr');
-            tr.id = `row-${productId}`;
-            tr.dataset.currentStock = currentStock;
-            tr.className = 'hover:bg-slate-50/50 transition';
-            tr.innerHTML = `
-                <td class="px-6 py-4">
-                    <input type="hidden" name="items[${rowIndex}][product_id]" value="${productId}">
-                    <div class="font-medium text-slate-800">${name}</div>
-                    <div class="text-[10px] text-slate-400">SKU: ${sku}</div>
-                </td>
-                <td class="px-6 py-4 text-slate-600 text-sm">
-                    Main Store<br><span class="text-[10px] text-slate-400">Current: ${currentStock.toFixed(0)}</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                    <div class="flex items-center justify-end gap-1.5">
-                        <div class="flex items-center bg-slate-100 rounded p-0.5">
-                            <button type="button" onclick="toggleSign(this, '+')" class="sign-btn-plus px-2 py-1 rounded shadow-sm bg-white text-teal-600 font-black text-xs transition cursor-pointer">+</button>
-                            <button type="button" onclick="toggleSign(this, '-')" class="sign-btn-minus px-2 py-1 rounded text-slate-400 font-black text-xs hover:text-red-500 transition cursor-pointer">-</button>
-                            <input type="hidden" class="row-sign" value="+">
-                        </div>
-                        <input type="hidden" name="items[${rowIndex}][quantity]" class="qty-input" value="1">
-                        <input 
-                            type="number" 
-                            min="0"
-                            step="any" 
-                            class="display-qty w-20 px-2 py-1.5 border border-slate-200 rounded text-right focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium"
-                            value="1" 
-                            oninput="calculateRow(this.closest('tr'))"
-                            required
-                        >
-                    </div>
-                </td>
-                <td class="px-6 py-4 text-right">
-                    <input 
-                        type="text" 
-                        class="new-stock-display w-24 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded text-right font-medium text-slate-800 focus:outline-none"
-                        value="${(currentStock + 1).toFixed(0)}"
-                        readonly
-                    >
-                </td>
-                <td class="px-6 py-4 text-right">
-                    <button 
-                        type="button" 
-                        onclick="removeRow(this, ${productId})"
-                        class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition duration-150 cursor-pointer"
-                    >
-                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                    </button>
-                </td>
-            `;
-
-            tbody.appendChild(tr);
-            rowIndex++;
-
-            // Recalculate row just added
-            calculateRow(tr);
-        }
-
-        function removeRow(btn, productId) {
-            btn.closest('tr').remove();
-            
-            // If empty, append placeholder back
-            const tbody = document.getElementById('adjustmentTableBody');
-            if (tbody.children.length === 0) {
-                const tr = document.createElement('tr');
-                tr.id = 'emptyRowPlaceholder';
-                tr.innerHTML = `
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
-                        No products added yet. Search and select a product above.
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            }
-        }
-
-        function toggleSign(btn, sign) {
-            const tr = btn.closest('tr');
-            const signInput = tr.querySelector('.row-sign');
-            signInput.value = sign;
-            
-            const btnPlus = tr.querySelector('.sign-btn-plus');
-            const btnMinus = tr.querySelector('.sign-btn-minus');
-            
-            if (sign === '+') {
-                btnPlus.className = "sign-btn-plus px-2 py-1 rounded shadow-sm bg-white text-teal-600 font-black text-xs transition cursor-pointer";
-                btnMinus.className = "sign-btn-minus px-2 py-1 rounded text-slate-400 font-black text-xs hover:text-red-500 transition cursor-pointer";
-            } else {
-                btnMinus.className = "sign-btn-minus px-2 py-1 rounded shadow-sm bg-white text-red-600 font-black text-xs transition cursor-pointer";
-                btnPlus.className = "sign-btn-plus px-2 py-1 rounded text-slate-400 font-black text-xs hover:text-teal-500 transition cursor-pointer";
-            }
-            calculateRow(tr);
-        }
-
-        function calculateRow(row) {
-            const currentStock = parseFloat(row.dataset.currentStock);
-            const displayQty = Math.abs(parseFloat(row.querySelector('.display-qty').value) || 0);
-            const sign = row.querySelector('.row-sign').value;
-            
-            const actualQty = sign === '+' ? displayQty : -displayQty;
-            row.querySelector('.qty-input').value = actualQty;
-            
-            let newStock = currentStock + actualQty;
-
-            row.querySelector('.new-stock-display').value = newStock.toFixed(0);
-        }
-
-        function recalculateAllRows() {
-            const tbody = document.getElementById('adjustmentTableBody');
-            Array.from(tbody.children).forEach(row => {
-                if (row.id !== 'emptyRowPlaceholder') {
-                    calculateRow(row);
-                }
-            });
-        }
-    </script>
+<x-layouts::app :title="__('Stock Adjustment')">
+@include('stock.partials.adjustment_styles')
+<div class="adj" x-data="bulkAdjustment()">
+<header class="adj-head">
+<div><a class="adj-back" href="{{ route('stock-adjustments.index') }}">← Adjustment history</a><h1>{{ $adjustment ? 'Edit stock adjustment' : 'New stock adjustment' }}</h1><p class="adj-sub">{{ $adjustment?->adjustment_no ?? 'Update stock quantities for multiple products in one entry.' }}</p></div>
+<span class="adj-pill">{{ $storeName }}</span>
+</header>
+<form method="POST" @submit="saving = true" enctype="multipart/form-data" action="{{ $adjustment ? route('stock-adjustments.update', $adjustment) : route('stock-adjustments.store') }}">
+@csrf @if($adjustment) @method('PUT') @endif
+<div class="adj-body">
+<div class="adj-card"><div class="adj-card-head"><h2>Adjustment details</h2><span class="adj-pill">1 · Details</span></div>
+<div class="adj-pad adj-fields">
+<label class="adj-field">Adjustment mode<select name="adjustment_type" x-model="mode"><option value="correction">Increase / decrease quantities (+ / −)</option><option value="opening_stock">Set counted / opening stock</option></select></label>
+<label class="adj-field">Date<input type="date" name="adjustment_date" required value="{{ old('adjustment_date', $adjustment?->adjustment_date->format('Y-m-d') ?? today()->toDateString()) }}"></label>
+<label class="adj-field adj-wide">Reason<input type="text" name="reason" maxlength="255" value="{{ old('reason', $adjustment?->reason) }}" placeholder="e.g. Stock count correction or damaged items"></label>
+</div></div>
+<div class="adj-layout">
+<div class="adj-stack adj-selected-column">
+<div class="adj-card" x-ref="selectedProducts">
+<div class="adj-card-head"><div><h2>Selected products <span class="adj-pill" x-text="rows.length"></span></h2><p class="adj-sub">Choose the action and quantity for each product.</p></div><span class="adj-pill">2 · Quantities</span></div>
+<template x-for="(row, index) in rows" :key="row.product_id">
+<section class="adj-line">
+<input type="hidden" :name="'items['+index+'][product_id]'" :value="row.product_id">
+<input type="hidden" :name="'items['+index+'][quantity]'" :value="mode === 'opening_stock' ? Number(row.amount) : row.sign * Number(row.amount)">
+<div class="adj-line-top"><div class="adj-name"><strong x-text="product(row.product_id)?.name"></strong><small x-text="product(row.product_id)?.sku"></small></div><button type="button" class="adj-btn adj-danger" @click="rows.splice(index,1)" :aria-label="'Remove '+product(row.product_id)?.name">Remove</button></div>
+<div class="adj-row-fields">
+<label class="adj-field" x-show="mode !== 'opening_stock'">Action<select x-model.number="row.sign"><option value="1">+ Increase</option><option value="-1">− Decrease</option></select></label>
+<label class="adj-field">Quantity<input type="number" :min="mode === 'opening_stock' ? 0 : 1" step="1" required x-model.number="row.amount"></label>
+</div>
+<div class="adj-stock"><div><span>Current stock</span><strong x-text="product(row.product_id)?.stock"></strong></div><div><span x-text="mode === 'opening_stock' ? 'Counted' : 'Adjustment'"></span><strong :class="row.sign < 0 && mode !== 'opening_stock' ? 'text-red-600' : 'text-emerald-600'" x-text="(mode === 'opening_stock' ? '' : row.sign > 0 ? '+' : '−') + Number(row.amount || 0)"></strong></div><div><span>After saving</span><strong :class="after(row) < 0 ? 'text-red-600' : 'text-blue-600'" x-text="after(row).toFixed(2)"></strong></div></div>
+<p x-show="after(row) < 0" class="adj-sub text-red-600" role="alert">This decrease exceeds the available stock. Reduce the quantity.</p>
+</section>
+</template>
+<div x-show="!rows.length" class="adj-empty"><b>No products selected yet</b><p>Select products in the product picker, then add them here.</p></div>
+</div>
+</div>
+<div class="adj-stack adj-picker-column">
+<div class="adj-card adj-picker-card"><div class="adj-card-head"><h2>Find products</h2><span class="adj-pill">Multi-select</span></div><div class="adj-pad">
+<label class="adj-field">Search products<input type="search" x-model="search" placeholder="Name, SKU or barcode"></label>
+<div class="adj-picker">
+<template x-for="product in matches()" :key="product.id"><label class="adj-product"><input type="checkbox" :value="String(product.id)" x-model="selected" :disabled="rows.some(r => r.product_id == product.id)"><span class="adj-name"><strong x-text="product.name"></strong><small x-text="product.sku"></small></span><span class="adj-pill adj-muted" x-text="'Stock: '+product.stock"></span></label></template>
+<p x-show="!matches().length" class="adj-empty">No matching products.</p>
+</div><button type="button" @click="addSelected()" :disabled="!selected.length" class="adj-btn adj-primary" style="width:100%">Add selected products (<span x-text="selected.length"></span>)</button>
+</div></div>
+<div class="adj-card adj-notes-card"><div class="adj-card-head"><h2>Additional information</h2><span class="adj-sub">Optional</span></div><div class="adj-pad adj-stack">
+<label class="adj-field">Notes<textarea name="notes" placeholder="Add any details about this adjustment">{{ old('notes', $adjustment?->notes) }}</textarea></label>
+@unless($adjustment)<label class="adj-field">Supporting document<input type="file" name="document"></label>@endunless
+</div></div>
+</div>
+</div>
+<div class="adj-footer"><div><strong><span x-text="rows.length"></span> products selected</strong><p class="adj-sub">Review quantities before saving.</p></div><div class="adj-actions"><a href="{{ route('stock-adjustments.index') }}" class="adj-btn">Cancel</a><button :disabled="saving || !rows.length || rows.some(r => after(r) < 0)" class="adj-btn adj-primary">Save adjustment</button></div></div>
+</div></form></div>
+<script>
+function bulkAdjustment() {
+    const products = @json($products->values());
+    const previous = @json($initialItems);
+    const initial = @json(old('items', $initialItems));
+    return {
+        products, search: '', selected: [], saving: false, mode: @json(old('adjustment_type', 'correction')),
+        rows: initial.map(i => ({product_id: Number(i.product_id), sign: Number(i.quantity) < 0 ? -1 : 1, amount: Math.abs(Number(i.quantity))})),
+        product(id) { return this.products.find(p => p.id == id); },
+        matches() { const q = this.search.toLowerCase(); return this.products.filter(p => (p.name+' '+p.sku+' '+(p.barcode||'')).toLowerCase().includes(q)); },
+        addSelected() { this.selected.forEach(id => { if(!this.rows.some(r => r.product_id == id)) this.rows.push({product_id:Number(id),sign:1,amount:1}); }); this.selected=[]; if (window.innerWidth <= 640) this.$nextTick(() => this.$refs.selectedProducts.scrollIntoView({behavior:'smooth', block:'start'})); },
+        after(row) { if (this.mode === 'opening_stock') return Number(row.amount || 0); const old = previous.find(i => i.product_id == row.product_id); return Number(this.product(row.product_id)?.stock || 0) - Number(old?.quantity || 0) + row.sign * Number(row.amount || 0); }
+    };
+}
+</script>
 </x-layouts::app>

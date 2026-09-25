@@ -285,3 +285,30 @@ Follow-up browser results: dashboard passed at 320, 360, 375, 430, 768 and 1440p
 ## CRUD follow-up
 
 See [CRUD_REPORT.md](CRUD_REPORT.md) for the commercial workflow coverage, new expense/account edit forms, sale-edit/payment/journal fixes, purchase reversal safeguards, complete registered-action inventory and remaining verification limits. Final CRUD run: 102 passed, 2 skipped, 914 assertions. New edit forms passed browser saves at 375px and 1440px.
+
+## Retail product popup
+
+Retail product selection now opens a confirmation popup before changing the cart. It includes cost/retail price, editable selling price, quantity, line discount, note and available IMEI selection. Variant selection opens the same confirmation flow. Cancel leaves the cart unchanged; confirmation validates remaining stock, quantity, price, discount and duplicate IMEIs.
+
+Verified at 375px and 1440px: opening without adding, Cancel, quantity 2, price 123456.78, note persistence and rejection of zero quantity. No JavaScript errors were recorded. The retail feature tests passed (3 tests, 19 assertions) and the production build passed. Evidence: retail-popup-results.json and retail-add-popup-375.png.
+
+## Bulk stock adjustment (25 September 2026)
+
+Added Stock Adjustment inside Products on desktop and mobile navigation. The form supports product search by name/SKU/barcode, selecting several products together, per-row increase/decrease quantities, current/expected stock, reason, notes and an optional supporting document. Counted/opening-stock mode is retained, including setting stock to zero. Adjustments apply to the configured default store; editing/deleting uses the store recorded in the original movement history.
+
+CRUD includes create, list/filter, detail, edit and delete/reverse. Edits reconcile the difference against existing stock. Deletion reverses the adjustment and marks it deleted while retaining the original document and movement audit trail. Negative stock, duplicate product rows and repeated deletion are handled safely in database transactions. Existing view/create/edit/delete permissions are enforced.
+
+Exports include filtered adjustment history and an A4 individual PDF with product/SKU, before/change/after stock, reason, notes, operator, status and chronological movement history. The exported PDF was rendered and visually checked. Stock-service timestamps now use application time consistently.
+
+Validation: 106 tests passed, 2 existing skips (957 assertions). Browser verification passed multi-product create, mixed +/- quantities, edit, PDF and deletion with retained history at 375px/1440px. Build and Blade compilation passed. No migrations or production-data changes were needed. Evidence: bulk-adjustment-tests.json, bulk-adjustment-browser.json, bulk-adjustment-build.txt and stock-adjustment-example.pdf.
+
+## Stock adjustment UI refresh — 25 September 2026
+
+- Rebuilt the history list, create/edit form and detail view to match the Products screen: compact white headers, blue actions and count badges, rounded cards and consistent fields.
+- History uses a desktop table and labeled mobile cards, with reference/reason search, date filters and accessible detail actions.
+- Create/edit uses a two-column workspace on desktop. On mobile, the product picker comes first; adding products moves to the quantity cards.
+- Product rows display current stock, signed adjustment and projected stock separately. Negative-stock feedback stays next to its row.
+- Detail pages group metadata, show signed changes in product tables/cards and display each movement with its timestamp, author and before/change/after quantities.
+- Touch controls are at least 44px, mobile text inputs use 16px fonts, and narrow date filters stack to prevent clipping.
+- Changes are scoped to stock-adjustment views; stock calculations, permissions and PDF generation remain intact.
+- Validation: Vite build and Blade compilation passed; bulk adjustment tests passed (4 tests, 39 assertions); isolated browser create/edit/delete/PDF flow passed. Responsive checks cover list, form and details at 320, 375, 768 and 1440 pixels.
