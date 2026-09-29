@@ -239,8 +239,8 @@
             <!-- 3. Summary details Card -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 shadow-xs lg:col-span-3 flex flex-col justify-between">
                 <div class="border-b border-slate-100 dark:border-slate-700/40 pb-4 mb-4">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white">System Summary</h3>
-                    <p class="text-[10px] text-slate-400 font-medium">Current balances · expenses for {{ $dateLabel }}</p>
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-white">Summary</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">Today activities for the Current balances: expenses for {{ $dateLabel }}</p>
                 </div>
                 <div class="space-y-3.5 flex-1 flex flex-col justify-center">
                     <div class="flex items-center justify-between border-b border-slate-100/60 dark:border-slate-750 pb-2.5">
@@ -613,6 +613,11 @@
                             size: '68%',
                             labels: {
                                 show: true,
+                                value: {
+                                    fontSize: '14px',
+                                    fontWeight: 'bold',
+                                    color: '#334155'
+                                },
                                 total: {
                                     show: true,
                                     label: 'Total',

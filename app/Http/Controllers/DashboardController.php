@@ -28,14 +28,32 @@ class DashboardController extends Controller
             'chart_period' => 'nullable|in:today,week,month,year',
             'store_id' => 'nullable|integer|exists:stores,id',
         ]);
+        $chartPeriod = $request->input('chart_period') ?: 'today';
         $today = $request->input('date') ?: today()->toDateString();
+        
+        $startDate = $today;
+        $endDate = $today;
         $dateLabel = \Carbon\Carbon::parse($today)->isToday() ? 'Today' : \Carbon\Carbon::parse($today)->format('d M Y');
+
+        if ($chartPeriod === 'week') {
+            $startDate = \Carbon\Carbon::parse($today)->startOfWeek()->format('Y-m-d');
+            $endDate = \Carbon\Carbon::parse($today)->endOfWeek()->format('Y-m-d');
+            $dateLabel = "This Week";
+        } elseif ($chartPeriod === 'month') {
+            $startDate = \Carbon\Carbon::parse($today)->startOfMonth()->format('Y-m-d');
+            $endDate = \Carbon\Carbon::parse($today)->endOfMonth()->format('Y-m-d');
+            $dateLabel = "This Month";
+        } elseif ($chartPeriod === 'year') {
+            $startDate = \Carbon\Carbon::parse($today)->startOfYear()->format('Y-m-d');
+            $endDate = \Carbon\Carbon::parse($today)->endOfYear()->format('Y-m-d');
+            $dateLabel = "This Year";
+        }
         $enableMultiStore = Setting::get('enable_multi_store', false);
         $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : collect();
         $storeId = $request->input('store_id');
 
         // 1. Stats Cards
-        $salesQuery = DB::table('sales')->whereDate('sale_date', $today);
+        $salesQuery = DB::table('sales')->whereBetween('sale_date', [$startDate, $endDate]);
         if ($enableMultiStore && $storeId) {
             $salesQuery->where('store_id', $storeId);
         }
@@ -44,7 +62,7 @@ class DashboardController extends Controller
         $wholesaleSalesToday = (clone $salesQuery)->where('pos_type', 'wholesale')->sum('payable_amount');
         $totalProfitToday = (clone $salesQuery)->sum('total_profit_amount');
 
-        $purchaseQuery = DB::table('purchases')->whereDate('purchase_date', $today);
+        $purchaseQuery = DB::table('purchases')->whereBetween('purchase_date', [$startDate, $endDate]);
         if ($enableMultiStore && $storeId) {
             $purchaseQuery->where('store_id', $storeId);
         }
@@ -55,7 +73,7 @@ class DashboardController extends Controller
         $customerDue = DB::table('customers')->sum('balance');
         $totalSuppliers = DB::table('suppliers')->count();
         $supplierDue = DB::table('suppliers')->sum('balance');
-        $expensesQuery = DB::table('expenses')->whereDate('expense_date', $today);
+        $expensesQuery = DB::table('expenses')->whereBetween('expense_date', [$startDate, $endDate]);
         if ($enableMultiStore && $storeId) {
             $expensesQuery->where('store_id', $storeId);
         }
@@ -76,7 +94,7 @@ class DashboardController extends Controller
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
 
-        $ordersQuery = DB::table('sales')->whereDate('sale_date', $today);
+        $ordersQuery = DB::table('sales')->whereBetween('sale_date', [$startDate, $endDate]);
         if ($enableMultiStore && $storeId) {
             $ordersQuery->where('store_id', $storeId);
         }
@@ -92,7 +110,7 @@ class DashboardController extends Controller
         // 4. Recent Sales
         $rsQuery = DB::table('sales')
             ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
-            ->whereDate('sales.sale_date', $today)
+            ->whereBetween('sales.sale_date', [$startDate, $endDate])
             ->select('sales.*', 'customers.name as customer_name')
             ->orderBy('sales.id', 'desc');
         if ($enableMultiStore && $storeId) {
@@ -103,7 +121,7 @@ class DashboardController extends Controller
         // 5. Recent Purchases
         $rpQuery = DB::table('purchases')
             ->leftJoin('suppliers', 'suppliers.id', '=', 'purchases.supplier_id')
-            ->whereDate('purchases.purchase_date', $today)
+            ->whereBetween('purchases.purchase_date', [$startDate, $endDate])
             ->select('purchases.*', 'suppliers.name as supplier_name')
             ->orderBy('purchases.id', 'desc');
         if ($enableMultiStore && $storeId) {
@@ -123,7 +141,6 @@ class DashboardController extends Controller
         $lowStockAlerts = $lsQuery->take(5)->get();
 
         // 7. Sales Overview Line Chart (Dynamic Sales)
-        $chartPeriod = ($request->input('chart_period') ?: 'today'); // today, week, month, year
         
         if ($chartPeriod === 'today') {
             $chartLabels = ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'];
@@ -226,7 +243,7 @@ class DashboardController extends Controller
         // 8. Sales by Payment Method Chart Data
         $paymentMethodsData = DB::table('sale_payments')
             ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
-            ->whereDate('sale_payments.payment_date', $today)
+            ->whereBetween('sale_payments.payment_date', [$startDate, $endDate])
             ->where('sale_payments.status', 'cleared');
 
         if ($enableMultiStore && $storeId) {
