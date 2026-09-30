@@ -10,21 +10,21 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-850 dark:text-white">All Products</h2>
-            <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
+            <h2 class="text-lg font-bold text-black dark:text-white">All Products</h2>
+            <span class="text-sm bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
                 {{ $products->total() }} Products
             </span>
         </div>
         <div class="flex items-center gap-2">
             <!-- Export / Import Buttons -->
-            <a href="{{ route('products.export') }}" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 text-xs font-bold rounded-lg transition">
+            <a href="{{ route('products.export') }}" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 text-sm font-bold rounded-lg transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span>Export CSV</span>
             </a>
 
-            <button onclick="openModal('importModal')" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 text-xs font-bold rounded-lg transition cursor-pointer">
+            <button onclick="openModal('importModal')" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 text-sm font-bold rounded-lg transition cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
@@ -32,7 +32,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
             </button>
 
             @if(auth()->user()->hasPermission('products.create'))
-            <button onclick="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">
+            <button onclick="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -46,7 +46,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
     <div class="p-6 md:p-8 space-y-6 flex-1 w-full overflow-y-auto bg-slate-50">
         <!-- Success & Error Messages -->
         @if(session('success'))
-        <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl flex items-center justify-between text-emerald-800 text-xs font-medium">
+        <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl flex items-center justify-between text-emerald-800 text-sm font-medium">
             <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -58,7 +58,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
         @endif
 
         @if ($errors->any())
-        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl text-amber-800 text-xs font-medium space-y-1">
+        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl text-amber-800 text-sm font-medium space-y-1">
             <ul class="list-disc pl-5">
                 @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -77,8 +77,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search Name, SKU, IMEI..."
-                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition" />
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        class="w-full pl-9 pr-4 py-2.5 border-2 border-black rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black transition" />
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-black">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -93,24 +93,24 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     if (request('store_id')) $selectedStores[] = request('store_id');
                     $selectedText = count($selectedStores) > 0 ? \App\Models\Store::whereIn('id', $selectedStores)->pluck('name')->join(', ') : 'All Stores';
                     @endphp
-                    <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer h-[42px]" onclick="document.getElementById('filter-store-dropdown').classList.toggle('hidden')">
-                        <span id="filter-store-select-text" class="text-slate-800 truncate block mr-2 text-xs">
+                    <div class="w-full px-3 py-2 border-2 border-black rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer h-[42px]" onclick="document.getElementById('filter-store-dropdown').classList.toggle('hidden')">
+                        <span id="filter-store-select-text" class="text-black truncate block mr-2 text-sm">
                             {{ $selectedText }}
                         </span>
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-black shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </div>
 
                     <div id="filter-store-dropdown" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl hidden">
                         <div class="p-2 border-b border-slate-100">
-                            <input type="text" id="filter-store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterFilterStores()">
+                            <input type="text" id="filter-store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border-2 border-black rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterFilterStores()">
                         </div>
                         <div class="max-h-40 overflow-y-auto p-1" id="filter-store-list">
                             @foreach($stores as $st)
                             <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded filter-store-item">
                                 <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ in_array($st->id, $selectedStores) ? 'checked' : '' }} class="filter-store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateFilterStoreSelection()">
-                                <span class="text-xs font-semibold text-slate-700 filter-store-name">{{ $st->name }}</span>
+                                <span class="text-sm font-semibold text-black filter-store-name">{{ $st->name }}</span>
                             </label>
                             @endforeach
                         </div>
@@ -119,7 +119,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                 <!-- Category filter -->
                 <div>
-                    <select name="category_id" data-searchable="false" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="category_id" data-searchable="false" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black bg-white">
                         <option value="">All Categories</option>
                         @foreach($categories as $category)
                         <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -131,7 +131,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                 <!-- Brand filter -->
                 <div>
-                    <select name="brand_id" data-searchable="false" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="brand_id" data-searchable="false" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black bg-white">
                         <option value="">All Brands</option>
                         @foreach($brands as $brand)
                         <option value="{{ $brand->id }}" {{ request('brand_id') == $brand->id ? 'selected' : '' }}>
@@ -143,7 +143,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                 <!-- Status filter -->
                 <div>
-                    <select name="status" data-searchable="false" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                    <select name="status" data-searchable="false" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black bg-white">
                         <option value="">All Statuses</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -152,8 +152,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                 <!-- Buttons -->
                 <div class="flex gap-2">
-                    <button type="submit" class="flex-1 py-2 bg-slate-800 hover:bg-slate-950 text-white font-bold rounded-lg text-xs transition duration-150 cursor-pointer">Filter</button>
-                    <a href="{{ route('products.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">Clear</a>
+                    <button type="submit" class="flex-1 py-2 bg-slate-800 hover:bg-slate-950 text-white font-bold rounded-lg text-sm transition duration-150 cursor-pointer">Filter</button>
+                    <a href="{{ route('products.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-lg text-sm text-center transition duration-150 cursor-pointer">Clear</a>
                 </div>
             </form>
         </div>
@@ -163,7 +163,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 text-[11px] font-bold uppercase tracking-wider">
+                        <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[11px] font-bold uppercase tracking-wider">
                             <th class="px-6 py-4">Product</th>
                             <th class="px-6 py-4">SKU / Barcode</th>
                             <th class="px-6 py-4">Category / Brand</th>
@@ -175,7 +175,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                    <tbody class="divide-y divide-slate-100 text-black text-sm">
                         @forelse($products as $product)
                         <tr class="hover:bg-slate-50/50 transition">
                             <!-- Image & Name -->
@@ -184,28 +184,28 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                                     @if($product->image)
                                     <img src="{{ asset('storage/' . $product->image) }}" class="h-10 w-10 object-cover rounded-md border border-slate-200" alt="{{ $product->name }}">
                                     @else
-                                    <div class="h-10 w-10 bg-slate-100 text-slate-400 font-bold flex items-center justify-center rounded-md border border-slate-200 text-xs">
+                                    <div class="h-10 w-10 bg-slate-100 text-black font-bold flex items-center justify-center rounded-md border border-slate-200 text-sm">
                                         PH
                                     </div>
                                     @endif
                                     <div>
-                                        <div class="font-bold text-slate-800">{{ $product->name }}</div>
-                                        <div class="text-[10px] text-slate-400">{{ $product->unit->name ?? 'pcs' }}</div>
+                                        <div class="font-bold text-black">{{ $product->name }}</div>
+                                        <div class="text-[10px] text-black">{{ $product->unit->name ?? 'pcs' }}</div>
                                     </div>
                                 </div>
                             </td>
                             <!-- SKU / Barcode -->
                             <td class="px-6 py-4 font-mono text-[10px] space-y-0.5">
-                                <div><span class="text-slate-400">SKU:</span> {{ $product->sku }}</div>
-                                <div><span class="text-slate-400">BC:</span> {{ $product->barcode }}</div>
+                                <div><span class="text-black">SKU:</span> {{ $product->sku }}</div>
+                                <div><span class="text-black">BC:</span> {{ $product->barcode }}</div>
                             </td>
                             <!-- Category / Brand -->
-                            <td class="px-6 py-4 text-slate-500">
+                            <td class="px-6 py-4 text-black">
                                 <div>{{ $product->category->name ?? '-' }}</div>
-                                <div class="text-[10px] font-semibold text-slate-400">{{ $product->brand->name ?? '-' }}</div>
+                                <div class="text-[10px] font-semibold text-black">{{ $product->brand->name ?? '-' }}</div>
                             </td>
                             <!-- Cost Price -->
-                            <td class="px-6 py-4 text-slate-600 font-semibold">
+                            <td class="px-6 py-4 text-black font-semibold">
                                 {{ \App\Support\SystemSettings::money((float) $product->cost_price) }}
                             </td>
                             <!-- Retail Price -->
@@ -227,39 +227,39 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                                     @if($product->storeStocks && count($product->storeStocks) > 1)
                                     <div class="mb-1 space-y-0.5">
                                         @foreach($product->storeStocks as $storeStock)
-                                        <div class="text-[9px] text-slate-500 font-semibold flex justify-between gap-2 border-b border-slate-100 pb-0.5">
+                                        <div class="text-sm text-black font-semibold flex justify-between gap-2 border-b border-slate-100 pb-0.5">
                                             <span>{{ $storeStock->store->name ?? 'Store' }}:</span>
-                                            <span class="{{ $storeStock->quantity <= $alertQty ? 'text-red-600 font-bold' : 'text-slate-700' }}">
+                                            <span class="{{ $storeStock->quantity <= $alertQty ? 'text-red-600 font-bold' : 'text-black' }}">
                                                 {{ number_format((float)$storeStock->quantity) }}
                                             </span>
                                         </div>
                                         @endforeach
                                     </div>
                                     @elseif($product->storeStocks && count($product->storeStocks) === 1)
-                                    <div class="text-[9px] text-slate-500 font-semibold mb-1">
+                                    <div class="text-sm text-black font-semibold mb-1">
                                         {{ $product->storeStocks[0]->store->name ?? 'Store' }}
                                     </div>
                                     @endif
 
                                     <div class="flex items-center gap-1">
                                         @if($product->storeStocks && count($product->storeStocks) > 1)
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Total:</span>
+                                        <span class="text-sm font-bold text-black uppercase">Total:</span>
                                         @endif
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-700' }}">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isLow ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-black' }}">
                                             {{ number_format($qty) }} {{ $product->unit->short_name ?? 'pcs' }}
                                         </span>
                                     </div>
                                     @if($isLow)
-                                    <div class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Low Stock</div>
+                                    <div class="text-sm text-red-500 font-bold uppercase tracking-wider">Low Stock</div>
                                     @endif
             </div>
             </td>
             <!-- Status -->
             <td class="px-6 py-4">
                 @if($product->is_active)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">Active</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-bold bg-emerald-100 text-emerald-800">Active</span>
                 @else
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-800">Inactive</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-bold bg-red-100 text-red-800">Inactive</span>
                 @endif
             </td>
             <!-- Actions -->
@@ -268,7 +268,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     <!-- Print Barcode -->
                     <button
                         onclick="showBarcodePrint('{{ $product->name }}', '{{ $product->barcode }}')"
-                        class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition rounded-lg cursor-pointer"
+                        class="p-1.5 text-black hover:text-black hover:bg-slate-100 transition rounded-lg cursor-pointer"
                         title="Print Barcode">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -278,7 +278,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     <!-- Stock History -->
                     <button
                         onclick="showStockHistory({{ $product->id }}, '{{ $product->name }}')"
-                        class="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition rounded-lg cursor-pointer"
+                        class="p-1.5 text-black hover:text-black hover:bg-slate-100 transition rounded-lg cursor-pointer"
                         title="View Stock Ledger">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -289,7 +289,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     <!-- Edit Details -->
                     <button
                         onclick="openEditModal({{ json_encode($product) }})"
-                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                        class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                         title="Edit Product">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -300,7 +300,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     @if(auth()->user()->hasPermission('products.delete'))
                     <button
                         onclick="confirmDelete({{ $product->id }}, '{{ $product->name }}')"
-                        class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                        class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                         title="Delete Product">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -316,8 +316,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
             </tr>
             @empty
             <tr>
-                <td colspan="9" class="px-6 py-12 text-center text-slate-400">
-                    <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <td colspan="9" class="px-6 py-12 text-center text-black">
+                    <svg class="w-10 h-10 mx-auto text-black mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 8v4m0 4h.01" />
                     </svg>
@@ -340,10 +340,10 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     <!-- PRODUCT ADD / EDIT MODAL -->
     <div id="productModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300 scale-95 opacity-0 modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300 scale-95 opacity-0 modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-sm font-bold text-slate-850" id="modalTitle">Add Product</h3>
-                <button onclick="closeModal('productModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black" id="modalTitle">Add Product</h3>
+                <button onclick="closeModal('productModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="productForm" method="POST" action="" enctype="multipart/form-data" class="flex-1 overflow-hidden flex flex-col">
                 @csrf
@@ -353,24 +353,24 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                 <div class="p-6 space-y-4 overflow-y-auto flex-1">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Name *</label>
-                            <input type="text" name="name" id="prod_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. iPhone 15 Pro Max">
+                            <label class="block text-sm font-bold text-black mb-1.5">Product Name *</label>
+                            <input type="text" name="name" id="prod_name" required class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. iPhone 15 Pro Max">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Code / SKU</label>
-                            <input type="text" name="sku" id="prod_sku" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Leave blank to auto-generate">
+                            <label class="block text-sm font-bold text-black mb-1.5">Product Code / SKU</label>
+                            <input type="text" name="sku" id="prod_sku" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="Leave blank to auto-generate">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Barcode</label>
-                            <input type="text" name="barcode" id="prod_barcode" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Leave blank to auto-generate">
+                            <label class="block text-sm font-bold text-black mb-1.5">Barcode</label>
+                            <input type="text" name="barcode" id="prod_barcode" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="Leave blank to auto-generate">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Category</label>
+                            <label class="block text-sm font-bold text-black mb-1.5">Category</label>
                             <div class="flex gap-2">
-                                <select name="category_id" id="prod_category_id" onchange="handleCategoryChange(this)" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <select name="category_id" id="prod_category_id" onchange="handleCategoryChange(this)" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                                     <option value="" data-sales-tax="" data-purchase-tax="">Select Category</option>
                                     @foreach($categories as $category)
                                     <option value="{{ $category->id }}" data-sales-tax="{{ $category->default_sales_tax_profile_id }}" data-purchase-tax="{{ $category->default_purchase_tax_profile_id }}">{{ $category->name }}</option>
@@ -382,9 +382,9 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Brand</label>
+                            <label class="block text-sm font-bold text-black mb-1.5">Brand</label>
                             <div class="flex gap-2">
-                                <select name="brand_id" id="prod_brand_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <select name="brand_id" id="prod_brand_id" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                                     <option value="">Select Brand</option>
                                     @foreach($brands as $brand)
                                     <option value="{{ $brand->id }}">{{ $brand->name }}</option>
@@ -396,9 +396,9 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Unit</label>
+                            <label class="block text-sm font-bold text-black mb-1.5">Unit</label>
                             <div class="flex gap-2">
-                                <select name="unit_id" id="prod_unit_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                                <select name="unit_id" id="prod_unit_id" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                                     <option value="">Select Unit</option>
                                     @foreach($units as $unit)
                                     <option value="{{ $unit->id }}" @selected($defaultUnit && $defaultUnit->id === $unit->id)>{{ $unit->name }} ({{ $unit->short_name }})</option>
@@ -413,74 +413,74 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Cost Price *</label>
-                            <input type="number" step="any" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <label class="block text-sm font-bold text-black mb-1.5">Cost Price *</label>
+                            <input type="number" step="any" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Retail Selling Price *</label>
-                            <input type="number" step="any" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <label class="block text-sm font-bold text-black mb-1.5">Retail Selling Price *</label>
+                            <input type="number" step="any" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Wholesale Selling Price *</label>
-                            <input type="number" step="any" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                            <label class="block text-sm font-bold text-black mb-1.5">Wholesale Selling Price *</label>
+                            <input type="number" step="any" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Low Stock Alert Qty</label>
-                            <input type="number" name="stock_alert_quantity" id="prod_alert_qty" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="5" value="5">
+                            <label class="block text-sm font-bold text-black mb-1.5">Low Stock Alert Qty</label>
+                            <input type="number" name="stock_alert_quantity" id="prod_alert_qty" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="5" value="5">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div id="assign-stores-container" class="relative">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign To Stores</label>
+                            <label class="block text-sm font-bold text-black mb-1.5">Assign To Stores</label>
 
-                            <div class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500" onclick="document.getElementById('store-dropdown').classList.toggle('hidden')">
-                                <span id="store-select-text" class="text-slate-800 truncate block mr-2 font-semibold text-xs" style="max-width: 150px;">
+                            <div class="w-full px-3 py-2 border-2 border-black rounded-lg text-sm bg-white flex justify-between items-center cursor-pointer focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500" onclick="document.getElementById('store-dropdown').classList.toggle('hidden')">
+                                <span id="store-select-text" class="text-black truncate block mr-2 font-semibold text-sm" style="max-width: 150px;">
                                     {{ $stores->where('is_default', true)->pluck('name')->join(', ') ?: 'Select stores...' }}
                                 </span>
-                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-black shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </div>
 
                             <div id="store-dropdown" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg hidden">
                                 <div class="p-2 border-b border-slate-100">
-                                    <input type="text" id="store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterStores()">
+                                    <input type="text" id="store-search" placeholder="Search stores..." class="w-full px-2 py-1.5 border-2 border-black rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onkeyup="filterStores()">
                                 </div>
                                 <div class="max-h-40 overflow-y-auto p-1" id="store-list">
                                     @foreach($stores as $st)
                                     <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded store-item">
                                         <input type="checkbox" name="store_ids[]" value="{{ $st->id }}" {{ (count($stores) == 1 || $st->id == \App\Models\Setting::get('default_store_id') || $st->is_default) ? 'checked' : '' }} class="store-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" onchange="updateStoreSelection()">
-                                        <span class="text-xs font-semibold text-slate-700 store-name">{{ $st->name }}</span>
+                                        <span class="text-sm font-semibold text-black store-name">{{ $st->name }}</span>
                                     </label>
                                     @endforeach
                                 </div>
                             </div>
                         </div>
                         <div id="opening-stock-container">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Opening Stock Qty</label>
+                            <label class="block text-sm font-bold text-black mb-1.5">Opening Stock Qty</label>
                             <div id="dynamic-opening-stock-inputs" class="space-y-1.5 max-h-40 overflow-y-auto">
                                 <!-- Inputs generated by JS -->
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Image</label>
+                            <label class="block text-sm font-bold text-black mb-1.5">Product Image</label>
                             <div class="flex items-center gap-2">
-                                <input type="file" name="logo" onchange="previewProductImage(this)" class="w-full text-[10px] text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <input type="file" name="logo" onchange="previewProductImage(this)" class="w-full text-[10px] text-black file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-black hover:file:bg-slate-200 cursor-pointer">
                                 <img id="prod_image_preview" src="#" class="hidden h-10 w-10 object-cover rounded-md border border-slate-200 bg-slate-50 shrink-0" alt="Image preview">
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Product Description</label>
-                        <textarea name="description" id="prod_description" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Enter product specifics, warranty details..."></textarea>
+                        <label class="block text-sm font-bold text-black mb-1.5">Product Description</label>
+                        <textarea name="description" id="prod_description" rows="2" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="Enter product specifics, warranty details..."></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Sales Tax Profile</label>
-                            <select name="sales_tax_profile_id" id="prod_sales_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                            <label class="block text-sm font-bold text-black mb-1.5">Sales Tax Profile</label>
+                            <select name="sales_tax_profile_id" id="prod_sales_tax_profile_id" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                                 <option value="">Category Default</option>
                                 @foreach($taxProfiles as $tax)
                                 @if($tax->tax_type == 'VAT')
@@ -490,8 +490,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Purchase Tax Profile</label>
-                            <select name="purchase_tax_profile_id" id="prod_purchase_tax_profile_id" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                            <label class="block text-sm font-bold text-black mb-1.5">Purchase Tax Profile</label>
+                            <select name="purchase_tax_profile_id" id="prod_purchase_tax_profile_id" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                                 <option value="">Category Default</option>
                                 @foreach($taxProfiles as $tax)
                                 @if($tax->tax_type == 'VAT')
@@ -501,8 +501,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Tax Class Override</label>
-                            <select name="tax_classification" id="prod_tax_classification" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                            <label class="block text-sm font-bold text-black mb-1.5">Tax Class Override</label>
+                            <select name="tax_classification" id="prod_tax_classification" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                                 <option value="">Category Default</option>
                                 <option value="Standard">Standard</option>
                                 <option value="Zero Rated">Zero Rated</option>
@@ -514,32 +514,32 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                     <div class="flex items-center gap-2 pt-1.5">
                         <input type="checkbox" name="is_active" id="prod_is_active" value="1" checked class="rounded border-slate-350 text-blue-600 focus:ring-blue-500 h-4 w-4">
-                        <label for="prod_is_active" class="text-xs font-bold text-slate-700 select-none cursor-pointer">Active and available for checkout billing</label>
+                        <label for="prod_is_active" class="text-sm font-bold text-black select-none cursor-pointer">Active and available for checkout billing</label>
                     </div>
 
                     <!-- PHONE-SPECIFIC IMEI SERIAL SECTION (Accordion styled) -->
                     <div class="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/50">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <h4 class="text-sm font-bold text-black flex items-center gap-1.5">
                                 <svg class="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                                     <line x1="12" y1="18" x2="12.01" y2="18" />
                                 </svg>
                                 <span>Phone IMEI / Serial Numbers Registration</span>
                             </h4>
-                            <span class="text-[9px] bg-slate-150 text-slate-500 font-bold px-2 py-0.5 rounded">IMEI Tracking</span>
+                            <span class="text-sm bg-slate-150 text-black font-bold px-2 py-0.5 rounded">IMEI Tracking</span>
                         </div>
                         <div id="imei-input-container">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Enter IMEIs / Serials (one per line)</label>
-                            <textarea name="imeis" id="prod_imeis" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 font-mono" placeholder="IMEI-123456789012345&#10;IMEI-987654321098765"></textarea>
-                            <p class="text-[9px] text-slate-400 mt-1">If IMEIs are registered, the total stock quantity will automatically sync to match the number of available serials.</p>
+                            <label class="block text-sm font-bold text-black mb-1">Enter IMEIs / Serials (one per line)</label>
+                            <textarea name="imeis" id="prod_imeis" rows="3" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black font-mono" placeholder="IMEI-123456789012345&#10;IMEI-987654321098765"></textarea>
+                            <p class="text-sm text-black mt-1">If IMEIs are registered, the total stock quantity will automatically sync to match the number of available serials.</p>
                         </div>
                     </div>
 
                     <!-- VARIANTS ATTRIBUTES SECTION -->
                     <div id="variants-section" class="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/50">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <h4 class="text-sm font-bold text-black flex items-center gap-1.5">
                                 <svg class="w-4.5 h-4.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                 </svg>
@@ -551,9 +551,9 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
+                            <table class="w-full text-left text-sm border-collapse">
                                 <thead>
-                                    <tr class="text-[9px] font-bold text-slate-400 uppercase border-b border-slate-200">
+                                    <tr class="text-sm font-bold text-black uppercase border-b border-slate-200">
                                         <th class="pb-2 pr-2">Color</th>
                                         <th class="pb-2 pr-2">Storage</th>
                                         <th class="pb-2 pr-2">RAM</th>
@@ -575,8 +575,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                 <!-- Footer -->
                 <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 shrink-0">
-                    <button type="button" onclick="closeModal('productModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition cursor-pointer">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">Save Product</button>
+                    <button type="button" onclick="closeModal('productModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-sm font-bold rounded-lg transition cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition shadow-sm cursor-pointer">Save Product</button>
                 </div>
             </form>
         </div>
@@ -584,23 +584,23 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     @if(auth()->user()->hasPermission('categories.create'))
     <div id="quickCategoryModal" class="fixed inset-0 bg-slate-900/35 backdrop-blur-xs hidden items-center justify-center p-4" style="z-index: 9999;">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Add Category</h3>
-                <button type="button" onclick="closeQuickModal('quickCategoryModal')" class="text-slate-400 hover:text-slate-700 text-lg">x</button>
+                <h3 class="text-sm font-bold text-black">Add Category</h3>
+                <button type="button" onclick="closeQuickModal('quickCategoryModal')" class="text-black hover:text-black text-lg">x</button>
             </div>
             <form id="quickCategoryForm" onsubmit="submitQuickCategory(event)" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Category Name *</label>
-                    <input name="name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Smartphones">
+                    <label class="block text-sm font-bold text-black mb-1.5">Category Name *</label>
+                    <input name="name" required class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. Smartphones">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
-                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800"></textarea>
+                    <label class="block text-sm font-bold text-black mb-1.5">Description</label>
+                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black"></textarea>
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
-                    <button type="button" onclick="closeQuickModal('quickCategoryModal')" class="px-4 py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg">Cancel</button>
-                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg">Save Category</button>
+                    <button type="button" onclick="closeQuickModal('quickCategoryModal')" class="px-4 py-2 border border-slate-200 text-black text-sm font-bold rounded-lg">Cancel</button>
+                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg">Save Category</button>
                 </div>
             </form>
         </div>
@@ -609,23 +609,23 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     @if(auth()->user()->hasPermission('brands.create'))
     <div id="quickBrandModal" class="fixed inset-0 bg-slate-900/35 backdrop-blur-xs hidden items-center justify-center p-4" style="z-index: 9999;">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Add Brand</h3>
-                <button type="button" onclick="closeQuickModal('quickBrandModal')" class="text-slate-400 hover:text-slate-700 text-lg">x</button>
+                <h3 class="text-sm font-bold text-black">Add Brand</h3>
+                <button type="button" onclick="closeQuickModal('quickBrandModal')" class="text-black hover:text-black text-lg">x</button>
             </div>
             <form id="quickBrandForm" onsubmit="submitQuickBrand(event)" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Brand Name *</label>
-                    <input name="name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Apple">
+                    <label class="block text-sm font-bold text-black mb-1.5">Brand Name *</label>
+                    <input name="name" required class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. Apple">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Description</label>
-                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800"></textarea>
+                    <label class="block text-sm font-bold text-black mb-1.5">Description</label>
+                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black"></textarea>
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
-                    <button type="button" onclick="closeQuickModal('quickBrandModal')" class="px-4 py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg">Cancel</button>
-                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg">Save Brand</button>
+                    <button type="button" onclick="closeQuickModal('quickBrandModal')" class="px-4 py-2 border border-slate-200 text-black text-sm font-bold rounded-lg">Cancel</button>
+                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg">Save Brand</button>
                 </div>
             </form>
         </div>
@@ -634,23 +634,23 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     @if(auth()->user()->hasPermission('units.create'))
     <div id="quickUnitModal" class="fixed inset-0 bg-slate-900/35 backdrop-blur-xs hidden items-center justify-center p-4" style="z-index: 9999;">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Add Unit</h3>
-                <button type="button" onclick="closeQuickModal('quickUnitModal')" class="text-slate-400 hover:text-slate-700 text-lg">x</button>
+                <h3 class="text-sm font-bold text-black">Add Unit</h3>
+                <button type="button" onclick="closeQuickModal('quickUnitModal')" class="text-black hover:text-black text-lg">x</button>
             </div>
             <form id="quickUnitForm" onsubmit="submitQuickUnit(event)" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Unit Name *</label>
-                    <input name="name" required value="Pieces" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Pieces">
+                    <label class="block text-sm font-bold text-black mb-1.5">Unit Name *</label>
+                    <input name="name" required value="Pieces" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. Pieces">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Name *</label>
-                    <input name="short_name" required value="pcs" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. pcs">
+                    <label class="block text-sm font-bold text-black mb-1.5">Short Name *</label>
+                    <input name="short_name" required value="pcs" class="w-full px-3 py-2.5 border-2 border-black rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. pcs">
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
-                    <button type="button" onclick="closeQuickModal('quickUnitModal')" class="px-4 py-2 border border-slate-200 text-slate-500 text-xs font-bold rounded-lg">Cancel</button>
-                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg">Save Unit</button>
+                    <button type="button" onclick="closeQuickModal('quickUnitModal')" class="px-4 py-2 border border-slate-200 text-black text-sm font-bold rounded-lg">Cancel</button>
+                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg">Save Unit</button>
                 </div>
             </form>
         </div>
@@ -659,20 +659,20 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     <!-- STOCK HISTORY POPUP DIALOG -->
     <div id="stockHistoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[80vh] modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[80vh] modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-sm font-bold text-slate-850">Stock Movement Ledger</h3>
-                <button onclick="closeModal('stockHistoryModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Stock Movement Ledger</h3>
+                <button onclick="closeModal('stockHistoryModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <div class="p-6 overflow-y-auto flex-1">
-                <div class="text-xs text-slate-600 mb-4 bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
-                    <div>Product Name: <span class="font-bold text-slate-850" id="hist_product_name"></span></div>
+                <div class="text-sm text-black mb-4 bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
+                    <div>Product Name: <span class="font-bold text-black" id="hist_product_name"></span></div>
                 </div>
 
                 <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                    <table class="w-full text-left text-xs border-collapse">
+                    <table class="w-full text-left text-sm border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200">
+                            <tr class="bg-slate-50 text-sm font-bold text-blackr border-b border-slate-200">
                                 <th class="px-4 py-3">Timestamp</th>
                                 <th class="px-4 py-3">Transaction</th>
                                 <th class="px-4 py-3">Variant Details</th>
@@ -692,14 +692,14 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     <!-- BARCODE PRINT POPUP MODAL -->
     <div id="barcodePrintModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden flex flex-col modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden flex flex-col modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-sm font-bold text-slate-850">Label Barcode Sticker</h3>
-                <button onclick="closeModal('barcodePrintModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Label Barcode Sticker</h3>
+                <button onclick="closeModal('barcodePrintModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <div class="p-6 flex flex-col items-center justify-center space-y-4">
                 <div id="barcode-sticker" class="border border-dashed border-slate-350 p-6 rounded-lg bg-white flex flex-col items-center justify-center space-y-2">
-                    <div class="text-[10px] font-bold text-slate-800 uppercase tracking-wide" id="bc_label_name"></div>
+                    <div class="text-sm font-bold text-black" id="bc_label_name"></div>
                     <!-- Mockup SVG Barcode -->
                     <div class="w-48 h-12 bg-slate-900 flex items-center justify-center text-white text-[8px] font-mono select-none flex-col py-1">
                         <div class="flex items-center gap-0.5 justify-center w-full px-4 mb-1">
@@ -720,12 +720,12 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <div class="text-xs text-slate-500 font-bold">Qty to Print: <input type="number" value="1" class="w-12 border rounded px-1.5 py-0.5 text-center"></div>
+                    <div class="text-sm text-black font-bold">Qty to Print: <input type="number" value="1" class="w-12 border rounded px-1.5 py-0.5 text-center"></div>
                 </div>
             </div>
             <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 shrink-0">
-                <button type="button" onclick="closeModal('barcodePrintModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg cursor-pointer">Close</button>
-                <button type="button" onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm cursor-pointer flex items-center gap-1.5">
+                <button type="button" onclick="closeModal('barcodePrintModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-sm font-bold rounded-lg cursor-pointer">Close</button>
+                <button type="button" onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-sm cursor-pointer flex items-center gap-1.5">
                     <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                     </svg>
@@ -737,14 +737,14 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
     <!-- PRODUCT CSV IMPORT POPUP MODAL -->
     <div id="importModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden flex flex-col modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden flex flex-col modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-sm font-bold text-slate-850">Import Products</h3>
-                <button onclick="closeModal('importModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Import Products</h3>
+                <button onclick="closeModal('importModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form method="POST" action="{{ route('products.import') }}" enctype="multipart/form-data" class="p-6 space-y-4">
                 @csrf
-                <div class="text-xs text-slate-500 leading-relaxed space-y-1">
+                <div class="text-sm text-black leading-relaxed space-y-1">
                     <div>Download the Excel template to see the current products and separate category, brand, and unit reference sheets.</div>
                     <a href="{{ route('products.import-template') }}" class="inline-flex rounded-lg bg-emerald-600 px-3 py-2 font-bold text-white hover:bg-emerald-700">Download Excel Template</a>
                     <div class="font-bold">Columns structure:</div>
@@ -753,12 +753,12 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Select Spreadsheet File</label>
-                    <input type="file" name="file" accept=".xlsx,.xls,.csv,.txt" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <label class="block text-sm font-bold text-black mb-1.5">Select Spreadsheet File</label>
+                    <input type="file" name="file" accept=".xlsx,.xls,.csv,.txt" required class="w-full text-sm text-black file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-100 file:text-black hover:file:bg-slate-200 cursor-pointer">
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
-                    <button type="button" onclick="closeModal('importModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg cursor-pointer">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm cursor-pointer">Start Import</button>
+                    <button type="button" onclick="closeModal('importModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-sm font-bold rounded-lg cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-sm cursor-pointer">Start Import</button>
                 </div>
             </form>
         </div>
@@ -1022,7 +1022,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                 <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Wholesale"></td>
                 <td class="py-2 pr-2"><input type="number" name="variants[${variantIndex}][stock_quantity]" class="w-full px-2 py-1 border rounded text-sm text-center" placeholder="0" value="${variant.stock_quantity || 0}"></td>
                 <td class="py-2 text-right">
-                    <button type="button" onclick="removeVariantRow(${variantIndex})" class="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
+                    <button type="button" onclick="removeVariantRow(${variantIndex})" class="text-red-500 hover:text-red-700 text-sm font-bold">✕</button>
                 </td>
             `;
 
@@ -1071,7 +1071,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
             // Clear old data
             const tbody = document.getElementById('hist-table-body');
-            tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Loading ledger logs...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-black">Loading ledger logs...</td></tr>`;
 
             openModal('stockHistoryModal');
 
@@ -1081,7 +1081,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                 .then(data => {
                     tbody.innerHTML = '';
                     if (data.history.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No stock movements recorded.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-black">No stock movements recorded.</td></tr>`;
                         return;
                     }
 
@@ -1092,12 +1092,12 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-slate-50/50 transition">
-                                <td class="px-4 py-3 text-slate-500 font-mono text-[10px]">${log.created_at}</td>
-                                <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-150 text-slate-700">${log.type}</span></td>
-                                <td class="px-4 py-3 text-slate-500 text-[10px]">${log.variant}</td>
+                                <td class="px-4 py-3 text-black font-mono text-[10px]">${log.created_at}</td>
+                                <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-sm font-bold bg-slate-150 text-black">${log.type}</span></td>
+                                <td class="px-4 py-3 text-black text-[10px]">${log.variant}</td>
                                 <td class="px-4 py-3 text-center ${changeColor}">${changeText}</td>
-                                <td class="px-4 py-3 text-center text-slate-800 font-semibold">${log.new_quantity}</td>
-                                <td class="px-4 py-3 text-slate-500">${log.creator}</td>
+                                <td class="px-4 py-3 text-center text-black font-semibold">${log.new_quantity}</td>
+                                <td class="px-4 py-3 text-black">${log.creator}</td>
                             </tr>
                         `;
                     });
@@ -1163,10 +1163,10 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                         div.className = 'mb-3';
                         div.innerHTML = `
                             <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-semibold text-slate-600 w-28 truncate" title="${storeName}">${storeName}</span>
-                                <input type="number" name="${inputName}" value="${qty}" class="flex-1 px-2 py-1.5 border border-amber-300 bg-amber-50 rounded-md text-xs focus:ring-1 focus:ring-amber-500 text-slate-800" placeholder="0">
+                                <span class="text-[10px] font-semibold text-black w-28 truncate" title="${storeName}">${storeName}</span>
+                                <input type="number" name="${inputName}" value="${qty}" class="flex-1 px-2 py-1.5 border border-amber-300 bg-amber-50 rounded-md text-sm focus:ring-1 focus:ring-amber-500 text-black" placeholder="0">
                             </div>
-                            <p class="text-[9px] text-amber-600 mt-0.5 ml-[120px] font-medium leading-tight">⚠ Warning: Modifying this will overwrite current stock.</p>
+                            <p class="text-sm text-amber-600 mt-0.5 ml-[120px] font-medium leading-tight">⚠ Warning: Modifying this will overwrite current stock.</p>
                         `;
                         stockContainer.appendChild(div);
                     }
@@ -1181,8 +1181,8 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     let div = document.createElement('div');
                     div.className = 'flex items-center gap-2';
                     div.innerHTML = `
-                        <span class="text-[10px] font-semibold text-slate-600 w-28 truncate" title="${storeName}">New: ${storeName}</span>
-                        <input type="number" name="${inputName}" value="${val}" class="flex-1 px-2 py-1.5 border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0">
+                        <span class="text-[10px] font-semibold text-black w-28 truncate" title="${storeName}">New: ${storeName}</span>
+                        <input type="number" name="${inputName}" value="${val}" class="flex-1 px-2 py-1.5 border-2 border-black rounded-md text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0">
                     `;
                     stockContainer.appendChild(div);
                 }
