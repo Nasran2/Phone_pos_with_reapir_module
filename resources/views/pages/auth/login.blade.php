@@ -3,7 +3,7 @@
 <head>
     @include('partials.head', ['title' => __('Log in')])
 </head>
-<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased font-sans">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-black dark:text-black antialiased font-sans">
     <div class="grid lg:grid-cols-12 min-h-screen">
         
         <!-- Left Side: Promo Panel (Desktop Only) -->
@@ -28,7 +28,7 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-bold tracking-tight text-white">Phone Shop POS</h1>
-                        <p class="text-xs text-slate-400 font-medium tracking-wider uppercase mt-0.5">Retail & Wholesale Management</p>
+                        <p class="text-xs text-black font-medium tracking-wider uppercase mt-0.5">Retail & Wholesale Management</p>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                                 <polyline points="9 22 9 12 15 12 15 22"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-semibold tracking-wide text-slate-200">Retail POS</span>
+                        <span class="text-sm font-semibold tracking-wide text-black">Retail POS</span>
                     </div>
 
                     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:bg-white/10 transition group">
@@ -55,7 +55,7 @@
                                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-semibold tracking-wide text-slate-200">Wholesale POS</span>
+                        <span class="text-sm font-semibold tracking-wide text-black">Wholesale POS</span>
                     </div>
 
                     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:bg-white/10 transition group">
@@ -67,7 +67,7 @@
                                 <line x1="12" y1="22.08" x2="12" y2="12"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-semibold tracking-wide text-slate-200">Inventory</span>
+                        <span class="text-sm font-semibold tracking-wide text-black">Inventory</span>
                     </div>
 
                     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:bg-white/10 transition group">
@@ -79,7 +79,7 @@
                                 <line x1="6" y1="20" x2="6" y2="14"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-semibold tracking-wide text-slate-200">Accounting</span>
+                        <span class="text-sm font-semibold tracking-wide text-black">Accounting</span>
                     </div>
                 </div>
 
@@ -100,7 +100,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-bold text-white tracking-wide">Fast & Easy POS</h4>
-                        <p class="text-[10px] text-slate-400">Speed up your sales</p>
+                        <p class="text-[10px] text-black">Speed up your sales</p>
                     </div>
                 </div>
                 <div class="flex gap-3 items-start">
@@ -111,7 +111,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-bold text-white tracking-wide">Real-time Reports</h4>
-                        <p class="text-[10px] text-slate-400">Make better decisions</p>
+                        <p class="text-[10px] text-black">Make better decisions</p>
                     </div>
                 </div>
                 <div class="flex gap-3 items-start">
@@ -123,7 +123,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-bold text-white tracking-wide">Secure & Reliable</h4>
-                        <p class="text-[10px] text-slate-400">Your data is protected</p>
+                        <p class="text-[10px] text-black">Your data is protected</p>
                     </div>
                 </div>
                 <div class="flex gap-3 items-start">
@@ -136,7 +136,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-bold text-white tracking-wide">Multi Device</h4>
-                        <p class="text-[10px] text-slate-400">Works on all devices</p>
+                        <p class="text-[10px] text-black">Works on all devices</p>
                     </div>
                 </div>
             </div>
@@ -157,8 +157,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Phone Shop POS</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Retail & Wholesale Management System</p>
+                    <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Phone Shop POS</h1>
+                    <p class="text-xs text-black dark:text-black font-medium">Retail & Wholesale Management System</p>
                 </div>
             </div>
 
@@ -176,8 +176,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Welcome Back</h2>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Please enter your credentials to log in.</p>
+                        <h2 class="text-2xl font-bold text-black dark:text-white">Welcome Back</h2>
+                        <p class="text-sm text-black dark:text-black mt-1">Please enter your credentials to log in.</p>
                     </div>
                 </div>
 
@@ -224,9 +224,9 @@
 
                     <!-- Username / Email Input -->
                     <div>
-                        <label for="email-input" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Username or Email</label>
+                        <label for="email-input" class="block text-sm font-semibold text-black dark:text-black mb-1.5">Username or Email</label>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black dark:text-black">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                     <circle cx="9" cy="7" r="4" />
@@ -242,7 +242,7 @@
                                 autofocus 
                                 value="{{ old('email') }}"
                                 placeholder="Enter username or email" 
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white text-sm transition shadow-inner"
+                                class="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-900 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black dark:text-white text-sm transition shadow-inner"
                             />
                         </div>
                     </div>
@@ -250,7 +250,7 @@
                     <!-- Password Input -->
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label for="password-input" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
+                            <label for="password-input" class="text-sm font-semibold text-black dark:text-black">Password</label>
                             @if (Route::has('password.request'))
                                 <a href="{{ route('password.request') }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:underline">
                                     Forgot password?
@@ -258,7 +258,7 @@
                             @endif
                         </div>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black dark:text-black">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -271,13 +271,13 @@
                                 required 
                                 autocomplete="current-password"
                                 placeholder="Enter password" 
-                                class="w-full pl-11 pr-11 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-white text-sm transition shadow-inner"
+                                class="w-full pl-11 pr-11 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-900 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black dark:text-white text-sm transition shadow-inner"
                             />
                             <!-- Show/Hide Password Icon Toggle Button -->
                             <button 
                                 type="button" 
                                 onclick="togglePasswordVisibility()" 
-                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition focus:outline-none"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black dark:text-black hover:text-black dark:hover:text-black transition focus:outline-none"
                                 title="Toggle Password Visibility"
                             >
                                 <!-- Eye Open Icon -->
@@ -300,9 +300,9 @@
                             id="remember-checkbox" 
                             name="remember" 
                             type="checkbox" 
-                            class="h-4.5 w-4.5 text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 rounded-md bg-slate-50 dark:bg-slate-800 transition"
+                            class="h-4.5 w-4.5 text-blue-600 focus:ring-blue-500 border-slate-900 dark:border-slate-700 rounded-md bg-slate-50 dark:bg-slate-800 transition"
                         />
-                        <label for="remember-checkbox" class="ml-2.5 block text-sm font-semibold text-slate-700 dark:text-slate-300 select-none">
+                        <label for="remember-checkbox" class="ml-2.5 block text-sm font-semibold text-black dark:text-black select-none">
                             Remember me
                         </label>
                     </div>
@@ -338,7 +338,7 @@
                     $devUrl = 'https://' . $devUrl;
                 }
             @endphp
-            <div class="text-center text-xs text-slate-400 dark:text-slate-500 mt-8 border-t border-slate-100 dark:border-slate-800 pt-5">
+            <div class="text-center text-xs text-black dark:text-black mt-8 border-t border-slate-100 dark:border-slate-800 pt-5">
                 <span>Powered by </span>
                 <a href="{{ $devUrl }}" target="_blank" rel="noopener" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline hover:text-blue-700 dark:hover:text-blue-300 transition">
                     {{ $devName }}

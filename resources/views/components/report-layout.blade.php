@@ -93,8 +93,8 @@
                         </div>
                         <div>
                             <p class="text-xs font-black uppercase tracking-[0.24em] text-blue-600 dark:text-cyan-300">Reports</p>
-                            <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white md:text-3xl">{{ $title }}</h1>
-                            <p class="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-slate-400">{{ $description }}</p>
+                            <h1 class="mt-1 text-2xl font-black tracking-tight text-black dark:text-white md:text-3xl">{{ $title }}</h1>
+                            <p class="mt-1 max-w-2xl text-sm font-medium text-black dark:text-black">{{ $description }}</p>
                         </div>
                     </div>
 
@@ -103,7 +103,7 @@
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-2.64-6.36M21 3v6h-6" /></svg>
                             Refresh
                         </a>
-                        <a href="{{ request()->fullUrlWithQuery(['type' => 'pdf']) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-xs font-black text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                        <a href="{{ request()->fullUrlWithQuery(['type' => 'pdf']) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-xs font-black text-black shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-black">
                             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                             Print / PDF
                         </a>
@@ -155,18 +155,18 @@
                         <div>
                             <div class="flex items-center justify-between gap-3">
                                 <div>
-                                    <h2 class="text-sm font-black text-slate-900 dark:text-white">Quick Filters</h2>
-                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Choose a period or refine with the fields below.</p>
+                                    <h2 class="text-sm font-black text-black dark:text-white">Quick Filters</h2>
+                                    <p class="text-xs font-medium text-black dark:text-black">Choose a period or refine with the fields below.</p>
                                 </div>
                             </div>
                             <div class="report-quick-filters mt-3 flex flex-wrap gap-2"></div>
                         </div>
 
-                        <div class="[&_label]:mb-1 [&_label]:text-xs [&_label]:font-black [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-slate-500 [&_input]:rounded-xl [&_input]:border-slate-200 [&_input]:bg-slate-50 [&_input]:text-sm [&_input]:font-semibold [&_input]:shadow-sm [&_input]:transition [&_input]:focus:border-blue-400 [&_input]:focus:ring-blue-400 [&_select]:rounded-xl [&_select]:border-slate-200 [&_select]:bg-slate-50 [&_select]:text-sm [&_select]:font-semibold [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-blue-400 [&_select]:focus:ring-blue-400 dark:[&_input]:border-slate-700 dark:[&_input]:bg-slate-950 dark:[&_input]:text-slate-200 dark:[&_select]:border-slate-700 dark:[&_select]:bg-slate-950 dark:[&_select]:text-slate-200">
+                        <div class="[&_label]:mb-1 [&_label]:text-xs [&_label]:font-black [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-black [&_input]:rounded-xl [&_input]:border-slate-900 [&_input]:bg-slate-50 [&_input]:text-sm [&_input]:font-semibold [&_input]:shadow-sm [&_input]:transition [&_input]:focus:border-blue-400 [&_input]:focus:ring-blue-400 [&_select]:rounded-xl [&_select]:border-slate-900 [&_select]:bg-slate-50 [&_select]:text-sm [&_select]:font-semibold [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-blue-400 [&_select]:focus:ring-blue-400 dark:[&_input]:border-slate-700 dark:[&_input]:bg-slate-950 dark:[&_input]:text-black dark:[&_select]:border-slate-700 dark:[&_select]:bg-slate-950 dark:[&_select]:text-black">
                             @if($enableMultiStore && !$currentBalanceReport)
                                 <div class="mb-4">
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">Store Filter</label>
-                                    <select name="store_id" class="w-full md:w-1/4 rounded-xl border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
+                                    <label class="block text-xs font-bold text-black mb-1">Store Filter</label>
+                                    <select name="store_id" class="w-full md:w-1/4 rounded-xl border-slate-900 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
                                         <option value="">All Stores</option>
                                         @foreach($stores as $store)
                                             <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
@@ -178,7 +178,7 @@
                         </div>
 
                         <div class="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
-                            <a href="{{ $resetRoute }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">Reset</a>
+                            <a href="{{ $resetRoute }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-black shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-black">Reset</a>
                             <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2 text-xs font-black text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-700">Apply Filter</button>
                         </div>
                     </form></details>
@@ -198,8 +198,8 @@
                 <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $barChart['title'] ?? 'Trend' }}</h3>
-                            <p class="text-xs font-medium text-slate-500">{{ $barChart['subtitle'] ?? 'Filtered report movement' }}</p>
+                            <h3 class="text-sm font-black text-black dark:text-white">{{ $barChart['title'] ?? 'Trend' }}</h3>
+                            <p class="text-xs font-medium text-black">{{ $barChart['subtitle'] ?? 'Filtered report movement' }}</p>
                         </div>
                         <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-600">Real data</span>
                     </div>
@@ -212,41 +212,41 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div class="mt-2 flex justify-between gap-2 text-[10px] font-bold text-slate-400">
+                        <div class="mt-2 flex justify-between gap-2 text-[10px] font-bold text-black">
                             <span>{{ $barItems->first()['label'] ?? '' }}</span>
                             <span>{{ $barItems->last()['label'] ?? '' }}</span>
                         </div>
                     @else
-                        <div class="mt-5 flex h-28 items-center justify-center rounded-2xl bg-slate-50 text-xs font-bold text-slate-400 dark:bg-slate-950">
+                        <div class="mt-5 flex h-28 items-center justify-center rounded-2xl bg-slate-50 text-xs font-bold text-black dark:bg-slate-950">
                             No chart data for selected filters.
                         </div>
                     @endif
                 </div>
                 <div class="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $donutChart['title'] ?? 'Report Mix' }}</h3>
-                    <p class="text-xs font-medium text-slate-500">{{ $donutChart['subtitle'] ?? 'Filtered distribution' }}</p>
+                    <h3 class="text-sm font-black text-black dark:text-white">{{ $donutChart['title'] ?? 'Report Mix' }}</h3>
+                    <p class="text-xs font-medium text-black">{{ $donutChart['subtitle'] ?? 'Filtered distribution' }}</p>
                     <div class="mx-auto mt-5 h-28 w-28 rounded-full p-4" style="background: {{ $donutBackground }}">
-                        <div class="flex h-full w-full items-center justify-center rounded-full bg-white text-xs font-black text-slate-700 dark:bg-slate-900 dark:text-slate-200">{{ $formatChartValue($donutTotal, $donutChart['type'] ?? 'number') }}</div>
+                        <div class="flex h-full w-full items-center justify-center rounded-full bg-white text-xs font-black text-black dark:bg-slate-900 dark:text-black">{{ $formatChartValue($donutTotal, $donutChart['type'] ?? 'number') }}</div>
                     </div>
                     <div class="mt-4 space-y-1">
                         @forelse($donutItems as $item)
-                            <div class="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-500">
+                            <div class="flex items-center justify-between gap-2 text-[11px] font-bold text-black">
                                 <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full" style="background: {{ $item['color'] ?? '#2563EB' }}"></span>{{ $item['label'] ?? '-' }}</span>
                                 <span>{{ $formatChartValue($item['value'] ?? 0, $donutChart['type'] ?? 'number') }}</span>
                             </div>
                         @empty
-                            <div class="text-center text-xs font-bold text-slate-400">No distribution data.</div>
+                            <div class="text-center text-xs font-bold text-black">No distribution data.</div>
                         @endforelse
                     </div>
                 </div>
                 <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $progressChart['title'] ?? 'Health' }}</h3>
-                    <p class="text-xs font-medium text-slate-500">{{ $progressChart['subtitle'] ?? 'Filtered value split' }}</p>
+                    <h3 class="text-sm font-black text-black dark:text-white">{{ $progressChart['title'] ?? 'Health' }}</h3>
+                    <p class="text-xs font-medium text-black">{{ $progressChart['subtitle'] ?? 'Filtered value split' }}</p>
                     <div class="mt-6 space-y-3">
                         @forelse($progressItems as $item)
                             @php $width = $progressMax > 0 ? (((float) ($item['value'] ?? 0) / $progressMax) * 100) : 0; @endphp
                             <div>
-                                <div class="mb-1 flex items-center justify-between gap-2 text-[11px] font-bold text-slate-500">
+                                <div class="mb-1 flex items-center justify-between gap-2 text-[11px] font-bold text-black">
                                     <span>{{ $item['label'] ?? '-' }}</span>
                                     <span>{{ $formatChartValue($item['value'] ?? 0, $progressChart['type'] ?? 'number') }}</span>
                                 </div>
@@ -255,7 +255,7 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="flex h-24 items-center justify-center rounded-2xl bg-slate-50 text-xs font-bold text-slate-400 dark:bg-slate-950">
+                            <div class="flex h-24 items-center justify-center rounded-2xl bg-slate-50 text-xs font-bold text-black dark:bg-slate-950">
                                 No health data.
                             </div>
                         @endforelse
@@ -271,7 +271,7 @@
                     <div class="border-t border-blue-100 bg-blue-50/80 px-4 py-3 dark:border-slate-800 dark:bg-blue-950/20">
                         <div class="flex flex-wrap items-center justify-end gap-3">
                             @foreach($summary as $label => $value)
-                                <div class="rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-blue-100 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700">
+                                <div class="rounded-xl bg-white px-3 py-2 text-xs font-black text-black shadow-sm ring-1 ring-blue-100 dark:bg-slate-900 dark:text-black dark:ring-slate-700">
                                     <span class="text-blue-600 dark:text-blue-300">{{ $label }}:</span>
                                     <span>{{ $value }}</span>
                                 </div>
@@ -313,7 +313,7 @@
                         if ((dateSelect.value || 'today') === value) {
                             button.className += ' bg-blue-600 text-white shadow-lg shadow-blue-500/20';
                         } else {
-                            button.className += ' bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600';
+                            button.className += ' bg-slate-100 text-black hover:bg-blue-50 hover:text-blue-600';
                         }
 
                         button.addEventListener('click', function () {

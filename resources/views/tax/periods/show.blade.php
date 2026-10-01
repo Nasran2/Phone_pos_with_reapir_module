@@ -1,11 +1,11 @@
 <x-layouts::app title="Period Details: {{ $period->period_name }}">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">{{ $period->period_name }}</h1>
-            <p class="text-sm text-slate-500">{{ $period->start_date->format('M d, Y') }} - {{ $period->end_date->format('M d, Y') }}</p>
+            <h1 class="text-2xl font-bold text-black">{{ $period->period_name }}</h1>
+            <p class="text-sm text-black">{{ $period->start_date->format('M d, Y') }} - {{ $period->end_date->format('M d, Y') }}</p>
         </div>
         <div class="flex gap-2">
-            <a href="{{ route('tax.periods.index') }}" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">
+            <a href="{{ route('tax.periods.index') }}" class="px-4 py-2 border border-slate-300 text-black rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">
                 Back to List
             </a>
             @if($period->period_status === 'Open')
@@ -20,18 +20,18 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Opening Payable</h3>
-            <p class="text-xl font-bold text-slate-900">Rs. {{ number_format($period->opening_payable_balance, 2) }}</p>
+            <h3 class="text-black text-xs font-semibold uppercase tracking-wider mb-2">Opening Payable</h3>
+            <p class="text-xl font-bold text-black">Rs. {{ number_format($period->opening_payable_balance, 2) }}</p>
         </div>
         
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Net Output - Input VAT</h3>
-            <p class="text-xl font-bold text-slate-900">Rs. {{ number_format($period->output_tax - $period->input_tax - $period->import_tax, 2) }}</p>
+            <h3 class="text-black text-xs font-semibold uppercase tracking-wider mb-2">Net Output - Input VAT</h3>
+            <p class="text-xl font-bold text-black">Rs. {{ number_format($period->output_tax - $period->input_tax - $period->import_tax, 2) }}</p>
         </div>
         
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Total Adjustments</h3>
-            <p class="text-xl font-bold text-slate-900">Rs. {{ number_format($period->adjustments, 2) }}</p>
+            <h3 class="text-black text-xs font-semibold uppercase tracking-wider mb-2">Total Adjustments</h3>
+            <p class="text-xl font-bold text-black">Rs. {{ number_format($period->adjustments, 2) }}</p>
         </div>
         
         <div class="bg-white rounded-xl border-blue-200 p-5 shadow-sm bg-blue-50/50">
@@ -42,11 +42,11 @@
 
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
         <div class="border-b border-slate-200 px-6 py-4 flex justify-between items-center bg-slate-50">
-            <h2 class="font-semibold text-slate-800">Daily VAT Breakdown</h2>
+            <h2 class="font-semibold text-black">Daily VAT Breakdown</h2>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
-                <thead class="bg-slate-100 border-b border-slate-200 text-slate-600">
+                <thead class="bg-slate-100 border-b border-slate-200 text-black">
                     <tr>
                         <th class="px-6 py-3 font-medium">Date</th>
                         <th class="px-6 py-3 font-medium text-center">Bills (Out/In)</th>
@@ -59,7 +59,7 @@
                         <th class="px-6 py-3 font-medium text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-black">
                     @forelse($dailySummaries as $day)
                     @php
                         $netDaily = $day['output_vat'] - $day['input_vat'] - $day['import_vat'];
@@ -75,7 +75,7 @@
                         <td class="px-6 py-3 text-right">Rs. {{ number_format($day['taxable_purchases'], 2) }}</td>
                         <td class="px-6 py-3 text-right text-orange-600">Rs. {{ number_format($day['input_vat'], 2) }}</td>
                         <td class="px-6 py-3 text-right text-red-600">Rs. {{ number_format($day['import_vat'], 2) }}</td>
-                        <td class="px-6 py-3 text-right font-bold {{ $netDaily >= 0 ? 'text-slate-900' : 'text-green-600' }}">
+                        <td class="px-6 py-3 text-right font-bold {{ $netDaily >= 0 ? 'text-black' : 'text-green-600' }}">
                             Rs. {{ number_format($netDaily, 2) }}
                         </td>
                         <td class="px-6 py-3 text-center">
@@ -84,7 +84,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-8 text-center text-slate-500">
+                        <td colspan="9" class="px-6 py-8 text-center text-black">
                             No tax transactions recorded in this period.
                         </td>
                     </tr>
@@ -92,12 +92,12 @@
                 </tbody>
                 <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
                     <tr>
-                        <td colspan="3" class="px-6 py-3 text-right text-slate-700">Totals:</td>
+                        <td colspan="3" class="px-6 py-3 text-right text-black">Totals:</td>
                         <td class="px-6 py-3 text-right text-blue-700">Rs. {{ number_format($period->output_tax, 2) }}</td>
                         <td class="px-6 py-3"></td>
                         <td class="px-6 py-3 text-right text-orange-700">Rs. {{ number_format($period->input_tax, 2) }}</td>
                         <td class="px-6 py-3 text-right text-red-700">Rs. {{ number_format($period->import_tax, 2) }}</td>
-                        <td class="px-6 py-3 text-right text-slate-900">Rs. {{ number_format($period->output_tax - $period->input_tax - $period->import_tax, 2) }}</td>
+                        <td class="px-6 py-3 text-right text-black">Rs. {{ number_format($period->output_tax - $period->input_tax - $period->import_tax, 2) }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -110,8 +110,8 @@
         <div class="flex min-h-screen items-center justify-center p-4">
             <div class="relative w-full max-w-5xl transform overflow-hidden rounded-xl bg-white shadow-2xl transition-all">
                 <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
-                    <h3 class="text-lg font-semibold text-slate-800" id="modal-title">Transactions for <span id="modalDateTitle"></span></h3>
-                    <button onclick="closeDailyDetails()" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                    <h3 class="text-lg font-semibold text-black" id="modal-title">Transactions for <span id="modalDateTitle"></span></h3>
+                    <button onclick="closeDailyDetails()" class="text-black hover:text-black focus:outline-none">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
@@ -123,7 +123,7 @@
                 </div>
                 
                 <div class="border-t border-slate-200 bg-slate-50 px-6 py-4 flex justify-end">
-                    <button onclick="closeDailyDetails()" class="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm border border-slate-300 hover:bg-slate-50">Close</button>
+                    <button onclick="closeDailyDetails()" class="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black shadow-sm border border-slate-300 hover:bg-slate-50">Close</button>
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 <x-layouts::app :title="__('Print Barcodes')">
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
-        <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <h2 class="text-lg font-bold text-black dark:text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
             </svg>
             Print Barcodes
@@ -26,17 +26,17 @@
                 <!-- Product Selection -->
                 <div class="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-slate-800">Select Products to Print</h3>
-                        <div class="text-[10px] font-medium text-slate-500 bg-white px-2.5 py-1 rounded-md border border-slate-200">
-                            Products: <span x-text="items.length" class="font-bold text-slate-700">0</span>
+                        <h3 class="text-sm font-bold text-black">Select Products to Print</h3>
+                        <div class="text-[10px] font-medium text-black bg-white px-2.5 py-1 rounded-md border border-slate-200">
+                            Products: <span x-text="items.length" class="font-bold text-black">0</span>
                         </div>
                     </div>
                     
                     <div class="p-6">
                         <div class="flex gap-2 mb-6">
                             <div class="flex-1 relative">
-                                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <select x-model="selectedProduct" class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 bg-slate-50">
+                                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <select x-model="selectedProduct" class="w-full pl-9 pr-4 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 bg-slate-50">
                                     <option value="">Search Product...</option>
                                     @foreach($products as $product)
                                         <option value="{{ $product->id }}" data-name="{{ $product->name }}" data-sku="{{ $product->sku }}">{{ $product->name }} ({{ $product->sku }})</option>
@@ -52,22 +52,22 @@
                         <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider bg-slate-100">
+                                    <tr class="border-b border-slate-200 text-black text-[10px] font-bold uppercase tracking-wider bg-slate-100">
                                         <th class="px-4 py-3">Product</th>
                                         <th class="px-4 py-3 w-32 text-right">No. of Labels</th>
                                         <th class="px-4 py-3 w-16 text-center"></th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-200 text-xs text-slate-700 bg-white">
+                                <tbody class="divide-y divide-slate-200 text-xs text-black bg-white">
                                     <template x-for="(item, index) in items" :key="item.product_id">
                                         <tr>
                                             <td class="px-4 py-3">
                                                 <input type="hidden" :name="`items[${index}][product_id]`" :value="item.product_id">
-                                                <div class="font-bold text-slate-800" x-text="item.name"></div>
-                                                <div class="text-[10px] text-slate-400 font-mono" x-text="item.sku"></div>
+                                                <div class="font-bold text-black" x-text="item.name"></div>
+                                                <div class="text-[10px] text-black font-mono" x-text="item.sku"></div>
                                             </td>
                                             <td class="px-4 py-3 text-right">
-                                                <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity" min="1" step="1" required class="w-full px-2 py-1 border border-slate-200 rounded bg-slate-50 text-right text-sm focus:ring-1 focus:ring-blue-500">
+                                                <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity" min="1" step="1" required class="w-full px-2 py-1 border border-slate-900 rounded bg-slate-50 text-right text-sm focus:ring-1 focus:ring-blue-500">
                                             </td>
                                             <td class="px-4 py-3 text-center">
                                                 <button type="button" @click="removeItem(index)" class="text-rose-400 hover:text-rose-600 transition p-1 cursor-pointer">
@@ -77,7 +77,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="items.length === 0">
-                                        <td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs font-medium">
+                                        <td colspan="3" class="px-4 py-8 text-center text-black text-xs font-medium">
                                             No products selected yet.
                                         </td>
                                     </tr>
@@ -92,13 +92,13 @@
             <div class="space-y-6">
                 <div class="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden sticky top-6">
                     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                        <h3 class="text-sm font-bold text-slate-800">Print Settings</h3>
+                        <h3 class="text-sm font-bold text-black">Print Settings</h3>
                     </div>
                     
                     <div class="p-6 space-y-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Paper / Label Size</label>
-                            <select name="paper_size" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 bg-slate-50">
+                            <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Paper / Label Size</label>
+                            <select name="paper_size" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 bg-slate-50">
                                 <option value="a4">A4 Sheet (Standard 40 labels)</option>
                                 <option value="thermal_40_20">Thermal Roll (40mm x 20mm)</option>
                                 <option value="thermal_50_25">Thermal Roll (50mm x 25mm)</option>

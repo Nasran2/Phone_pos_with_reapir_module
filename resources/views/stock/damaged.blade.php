@@ -4,7 +4,7 @@
     <!-- Top Navbar / Header -->
     <div class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800">Damaged Stock</h2>
+            <h2 class="text-lg font-bold text-black">Damaged Stock</h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full">
                 {{ $damagedStocks->total() }} Logged Records
             </span>
@@ -59,9 +59,9 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search Damage No, reason, product..." 
-                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black transition"
                     />
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-black">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
@@ -72,7 +72,7 @@
                 <div>
                     <select 
                         name="status" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black transition bg-white"
                     >
                         <option value="">All Statuses</option>
                         <option value="Pending" {{ request('status') === 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -89,7 +89,7 @@
                     <button type="submit" class="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs transition duration-150 cursor-pointer">
                         Filter
                     </button>
-                    <a href="{{ route('damaged-stocks.index') }}" class="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">
+                    <a href="{{ route('damaged-stocks.index') }}" class="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">
                         Clear
                     </a>
                 </div>
@@ -101,7 +101,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 text-[11px] font-bold uppercase tracking-wider">
+                        <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[11px] font-bold uppercase tracking-wider">
                             <th class="px-6 py-4">Damage No</th>
                             <th class="px-6 py-4">Product Name</th>
                             <th class="px-6 py-4 text-center">Quantity</th>
@@ -113,20 +113,20 @@
                             <th class="px-6 py-4 text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                    <tbody class="divide-y divide-slate-100 text-black text-xs">
                         @forelse($damagedStocks as $dmg)
                         <tr class="hover:bg-slate-50/50 transition">
-                            <td class="px-6 py-4 font-mono font-bold text-slate-800">
+                            <td class="px-6 py-4 font-mono font-bold text-black">
                                 {{ $dmg->damage_no }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="font-bold text-slate-800">{{ $dmg->product->name ?? 'Deleted Product' }}</div>
-                                <div class="text-[10px] text-slate-400 font-mono">{{ $dmg->product->sku ?? '-' }}</div>
+                                <div class="font-bold text-black">{{ $dmg->product->name ?? 'Deleted Product' }}</div>
+                                <div class="text-[10px] text-black font-mono">{{ $dmg->product->sku ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4 text-center font-bold">
                                 {{ number_format($dmg->quantity, 0) }}
                             </td>
-                            <td class="px-6 py-4 font-semibold text-slate-600">
+                            <td class="px-6 py-4 font-semibold text-black">
                                 {{ $dmg->damage_type }}
                             </td>
                             <td class="px-6 py-4 text-right font-extrabold text-rose-600">
@@ -137,15 +137,15 @@
                                     @if($dmg->status === 'Returned to Stock') bg-emerald-100 text-emerald-800
                                     @elseif($dmg->status === 'Pending') bg-amber-100 text-amber-800
                                     @elseif($dmg->status === 'Repaired') bg-blue-100 text-blue-800
-                                    @else bg-slate-100 text-slate-700 @endif
+                                    @else bg-slate-100 text-black @endif
                                 ">
                                     {{ $dmg->status }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 font-medium text-slate-600">
+                            <td class="px-6 py-4 font-medium text-black">
                                 {{ $dmg->responsible_person ?: '-' }}
                             </td>
-                            <td class="px-6 py-4 text-slate-500">
+                            <td class="px-6 py-4 text-black">
                                 {{ $dmg->created_at ? $dmg->created_at->format('Y-m-d') : '-' }}
                             </td>
                             <td class="px-6 py-4 text-right whitespace-nowrap">
@@ -187,7 +187,7 @@
                                     <!-- Edit Details -->
                                     <button 
                                         onclick="openEditModal({{ json_encode($dmg) }})"
-                                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                         title="Edit Details"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -200,7 +200,7 @@
                                     <!-- Delete Record -->
                                     <button 
                                         onclick="confirmDelete({{ $dmg->id }}, '{{ $dmg->damage_no }}')"
-                                        class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                         title="Delete Damage Record"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -217,8 +217,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-12 text-center text-slate-400">
-                                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <td colspan="9" class="px-6 py-12 text-center text-black">
+                                <svg class="w-10 h-10 mx-auto text-black mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
                                 </svg>
                                 <span class="font-bold">No damaged stock logs recorded.</span>
@@ -240,22 +240,22 @@
 
     <!-- LOG NEW DAMAGE RECORD MODAL -->
     <div id="damageModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <h3 class="text-sm font-bold text-slate-855" id="modalTitle">Log Damaged Item</h3>
-                <button onclick="closeModal('damageModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <button onclick="closeModal('damageModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="damageForm" method="POST" action="" class="p-6 space-y-4" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="_method" id="formMethod" value="POST">
 
                 <div id="productSelectField">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Select Product *</label>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Select Product *</label>
                     <select 
                         name="product_id" 
                         id="dmg_product_id" 
                         onchange="calculateEstimatedLoss()"
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white"
                     >
                         <option value="">-- Choose Product --</option>
                         @foreach($products as $prod)
@@ -268,7 +268,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Quantity *</label>
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Quantity *</label>
                         <input 
                             type="number" 
                             name="quantity" 
@@ -276,17 +276,17 @@
                             required 
                             min="1" 
                             oninput="calculateEstimatedLoss()" 
-                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                            class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" 
                             placeholder="1"
                         >
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Damage Type *</label>
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Damage Type *</label>
                         <select 
                             name="damage_type" 
                             id="dmg_type" 
                             required 
-                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                            class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white"
                         >
                             <option value="Screen Crack">Screen Crack</option>
                             <option value="Water Damage">Water Damage</option>
@@ -300,42 +300,42 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Estimated Loss (Rs.)</label>
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Estimated Loss (Rs.)</label>
                         <input 
                             type="text" 
                             id="dmg_estimated_loss" 
                             readonly 
-                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-rose-600 focus:outline-none" 
+                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-900 rounded-lg text-sm font-bold text-rose-600 focus:outline-none" 
                             placeholder="Rs. 0.00"
                         >
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Responsible Person</label>
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Responsible Person</label>
                         <input 
                             type="text" 
                             name="responsible_person" 
                             id="dmg_responsible" 
-                            class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                            class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" 
                             placeholder="e.g. Sales Executive"
                         >
                     </div>
                 </div>
 
                 <div id="documentUploadField">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Attach Proof Photo / Document</label>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Attach Proof Photo / Document</label>
                     <input 
                         type="file" 
                         name="document" 
-                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5.5 file:px-3.5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                        class="w-full text-sm text-black file:mr-4 file:py-2.5.5 file:px-3.5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                     >
                 </div>
 
                 <div id="statusSelectionField">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Initial Status *</label>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Initial Status *</label>
                     <select 
                         name="status" 
                         id="dmg_status" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white"
                     >
                         <option value="Pending">Pending Audit</option>
                         <option value="Repaired">Repaired (Stays out of stock)</option>
@@ -345,30 +345,30 @@
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Reason *</label>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Reason *</label>
                     <textarea 
                         name="reason" 
                         id="dmg_reason" 
                         required 
                         rows="2" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" 
                         placeholder="Explain exactly how the damage occurred..."
                     ></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Notes</label>
                     <textarea 
                         name="notes" 
                         id="dmg_notes" 
                         rows="1" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" 
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" 
                         placeholder="Additional remarks..."
                     ></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
-                    <button type="button" onclick="closeModal('damageModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal('damageModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save Log</button>
                 </div>
             </form>

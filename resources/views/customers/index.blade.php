@@ -4,7 +4,7 @@
     <!-- Top Navbar / Header -->
     <div class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800">Customers</h2>
+            <h2 class="text-lg font-bold text-black">Customers</h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full">
                 {{ $customers->total() }} Customers
             </span>
@@ -59,8 +59,8 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Customers</div>
-                    <div class="text-xl font-extrabold text-slate-850 mt-0.5">{{ $summary['total_customers'] }}</div>
+                    <div class="text-[10px] font-bold text-black uppercase tracking-wider">Total Customers</div>
+                    <div class="text-xl font-extrabold text-black mt-0.5">{{ $summary['total_customers'] }}</div>
                 </div>
             </div>
 
@@ -72,8 +72,8 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Accounts</div>
-                    <div class="text-xl font-extrabold text-slate-850 mt-0.5">{{ $summary['active_customers'] }}</div>
+                    <div class="text-[10px] font-bold text-black uppercase tracking-wider">Active Accounts</div>
+                    <div class="text-xl font-extrabold text-black mt-0.5">{{ $summary['active_customers'] }}</div>
                 </div>
             </div>
 
@@ -85,7 +85,7 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Due Balance</div>
+                    <div class="text-[10px] font-bold text-black uppercase tracking-wider">Total Due Balance</div>
                     <div class="text-xl font-extrabold text-rose-600 mt-0.5">Rs. {{ number_format($summary['total_due'], 2) }}</div>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's Collections</div>
+                    <div class="text-[10px] font-bold text-black uppercase tracking-wider">Today's Collections</div>
                     <div class="text-xl font-extrabold text-blue-650 mt-0.5">Rs. {{ number_format($summary['today_payments'], 2) }}</div>
                 </div>
             </div>
@@ -113,10 +113,10 @@
                         type="text" 
                         name="search"
                         value="{{ request('search') }}"
-                        placeholder="Search by name, phone, email..." 
-                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
+                        placeholder="Search by name, phone..." 
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black transition"
                     />
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-black">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
@@ -127,7 +127,7 @@
                 <div>
                     <select 
                         name="status" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition bg-white"
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black transition bg-white"
                     >
                         <option value="">All Statuses</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Only</option>
@@ -142,7 +142,7 @@
                     <button type="submit" class="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs transition duration-150 cursor-pointer">
                         Filter
                     </button>
-                    <a href="{{ route('customers.index') }}" class="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">
+                    <a href="{{ route('customers.index') }}" class="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">
                         Clear
                     </a>
                 </div>
@@ -154,10 +154,9 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 text-[11px] font-bold uppercase tracking-wider">
+                        <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[11px] font-bold uppercase tracking-wider">
                             <th class="px-6 py-4">Customer Name</th>
                             <th class="px-6 py-4">Phone</th>
-                            <th class="px-6 py-4">Email</th>
                             <th class="px-6 py-4">Total Sales</th>
                             <th class="px-6 py-4">Due Balance</th>
                             <th class="px-6 py-4">Status</th>
@@ -165,7 +164,7 @@
                             <th class="px-6 py-4 text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                    <tbody class="divide-y divide-slate-100 text-black text-xs">
                         @forelse($customers as $customer)
                         <tr class="hover:bg-slate-50/50 transition">
                             <td class="px-6 py-4">
@@ -173,14 +172,11 @@
                                     {{ $customer->name }}
                                 </a>
                             </td>
-                            <td class="px-6 py-4 font-semibold text-slate-600">
+                            <td class="px-6 py-4 font-semibold text-black">
                                 {{ $customer->phone }}
                             </td>
-                            <td class="px-6 py-4 text-slate-500">
-                                {{ $customer->email ?: '-' }}
-                            </td>
                             <td class="px-6 py-4 font-medium">
-                                <span class="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-bold">
+                                <span class="px-2 py-0.5 bg-slate-100 rounded text-black font-bold">
                                     {{ $customer->sales_count }} Sales
                                 </span>
                             </td>
@@ -202,7 +198,7 @@
                                 </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-slate-500">
+                            <td class="px-6 py-4 text-black">
                                 {{ $customer->created_at ? $customer->created_at->format('Y-m-d') : '-' }}
                             </td>
                             <td class="px-6 py-4 text-right whitespace-nowrap">
@@ -225,7 +221,7 @@
                                     <a 
                                         href="https://wa.me/{{ '94' . ltrim(preg_replace('/[^0-9]/', '', $customer->phone), '0') }}" 
                                         target="_blank"
-                                        class="p-1 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition rounded-lg cursor-pointer"
+                                        class="p-1 text-black hover:text-emerald-500 hover:bg-emerald-50 transition rounded-lg cursor-pointer"
                                         title="WhatsApp Contact"
                                     >
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -237,7 +233,7 @@
                                     <!-- Edit Customer -->
                                     <button 
                                         onclick="openEditModal({{ json_encode($customer) }})"
-                                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                         title="Edit Details"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -250,7 +246,7 @@
                                     <!-- Delete Customer -->
                                     <button 
                                         onclick="confirmDelete({{ $customer->id }}, '{{ $customer->name }}')"
-                                        class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                         title="Delete Customer"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -267,8 +263,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center text-slate-400">
-                                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <td colspan="8" class="px-6 py-12 text-center text-black">
+                                <svg class="w-10 h-10 mx-auto text-black mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
                                 </svg>
                                 <span class="font-bold">No customers found matching the search filters.</span>
@@ -290,10 +286,10 @@
 
     <!-- CUSTOMER ADD / EDIT MODAL -->
     <div id="customerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850" id="modalTitle">Add New Customer</h3>
-                <button onclick="closeModal('customerModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black" id="modalTitle">Add New Customer</h3>
+                <button onclick="closeModal('customerModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="customerForm" method="POST" action="" class="p-6 space-y-4">
                 @csrf
@@ -301,34 +297,34 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Customer Name *</label>
-                        <input type="text" name="name" id="cust_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Priyantha Perera">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Customer Name *</label>
+                        <input type="text" name="name" id="cust_name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. Priyantha Perera">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Phone Number *</label>
-                        <input type="text" name="phone" id="cust_phone" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 0771234567">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Phone Number *</label>
+                        <input type="text" name="phone" id="cust_phone" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. 0771234567">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Email Address</label>
-                        <input type="email" name="email" id="cust_email" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="name@domain.com">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Email Address</label>
+                        <input type="email" name="email" id="cust_email" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="name@domain.com">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Credit Limit (Rs.)</label>
-                        <input type="number" step="any" name="credit_limit" id="cust_credit_limit" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. 50000">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Credit Limit (Rs.)</label>
+                        <input type="number" step="any" name="credit_limit" id="cust_credit_limit" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. 50000">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div id="openingBalanceField">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Opening Due Balance (Rs.)</label>
-                        <input type="number" step="any" name="opening_balance" id="cust_opening_balance" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Opening Due Balance (Rs.)</label>
+                        <input type="number" step="any" name="opening_balance" id="cust_opening_balance" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Status *</label>
-                        <select name="status" id="cust_status" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Status *</label>
+                        <select name="status" id="cust_status" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                             <option value="1">Active</option>
                             <option value="0">Inactive</option>
                         </select>
@@ -336,17 +332,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Address</label>
-                    <input type="text" name="address" id="cust_address" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Galle Road, Colombo 03">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Address</label>
+                    <input type="text" name="address" id="cust_address" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. Galle Road, Colombo 03">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
-                    <textarea name="notes" id="cust_notes" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Write any specific notes here..."></textarea>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Notes</label>
+                    <textarea name="notes" id="cust_notes" rows="2" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="Write any specific notes here..."></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
-                    <button type="button" onclick="closeModal('customerModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal('customerModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save Customer</button>
                 </div>
             </form>
@@ -355,37 +351,37 @@
 
     <!-- RECORD DUE PAYMENT MODAL -->
     <div id="paymentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Record Customer Payment</h3>
-                <button onclick="closeModal('paymentModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Record Customer Payment</h3>
+                <button onclick="closeModal('paymentModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="paymentForm" method="POST" action="" class="p-6 space-y-4">
                 @csrf
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-150 flex justify-between items-center text-xs">
                     <div>
-                        <span class="text-slate-400 block font-semibold uppercase tracking-wider text-[9px]">Paying Customer</span>
-                        <span class="font-bold text-slate-800" id="pay_cust_name">-</span>
+                        <span class="text-black block font-semibold uppercase tracking-wider text-[9px]">Paying Customer</span>
+                        <span class="font-bold text-black" id="pay_cust_name">-</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-slate-400 block font-semibold uppercase tracking-wider text-[9px]">Current Due</span>
+                        <span class="text-black block font-semibold uppercase tracking-wider text-[9px]">Current Due</span>
                         <span class="font-bold text-rose-600" id="pay_cust_due">Rs. 0.00</span>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Payment Amount (Rs.) *</label>
-                    <input type="number" step="any" min="0.01" name="amount" id="pay_amount" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="0.00">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Payment Amount (Rs.) *</label>
+                    <input type="number" step="any" min="0.01" name="amount" id="pay_amount" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Payment Date *</label>
-                        <input type="date" name="payment_date" required value="{{ now()->toDateString() }}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-slate-800">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Payment Date *</label>
+                        <input type="date" name="payment_date" required value="{{ now()->toDateString() }}" class="w-full px-3 py-2 border border-slate-900 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 text-black">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Payment Method *</label>
-                        <select name="payment_method" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Payment Method *</label>
+                        <select name="payment_method" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="Card">Card</option>
@@ -396,17 +392,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Reference / Slip Number</label>
-                    <input type="text" name="reference_no" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="e.g. Txn-45214">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Reference / Slip Number</label>
+                    <input type="text" name="reference_no" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="e.g. Txn-45214">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Note</label>
-                    <textarea name="note" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800" placeholder="Payment receipt details..."></textarea>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Note</label>
+                    <textarea name="note" rows="2" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="Payment receipt details..."></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
-                    <button type="button" onclick="closeModal('paymentModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal('paymentModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Record Payment</button>
                 </div>
             </form>

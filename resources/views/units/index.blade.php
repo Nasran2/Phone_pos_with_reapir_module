@@ -4,7 +4,7 @@
 
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Product Measurement Units</h2>
+            <h2 class="text-lg font-bold text-black dark:text-white">Product Measurement Units</h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
                 {{ $units->count() }} Units
             </span>
@@ -62,20 +62,20 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 text-[11px] font-bold uppercase tracking-wider">
+                        <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[11px] font-bold uppercase tracking-wider">
                             <th class="px-6 py-4">Unit Name</th>
                             <th class="px-6 py-4">Short Name</th>
                             <th class="px-6 py-4">Associated Products</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                    <tbody class="divide-y divide-slate-100 text-black text-xs">
                         @forelse($units as $unit)
                         <tr class="hover:bg-slate-50/50 transition">
-                            <td class="px-6 py-4 font-bold text-slate-800">
+                            <td class="px-6 py-4 font-bold text-black">
                                 {{ $unit->name }}
                             </td>
-                            <td class="px-6 py-4 font-mono text-[11px] text-slate-500">
+                            <td class="px-6 py-4 font-mono text-[11px] text-black">
                                 {{ $unit->short_name }}
                             </td>
                             <td class="px-6 py-4">
@@ -88,7 +88,7 @@
                                     @if(auth()->user()->hasPermission('units.edit'))
                                     <button 
                                         onclick="openEditModal({{ json_encode($unit) }})"
-                                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                         title="Edit Unit"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -100,7 +100,7 @@
                                     @if(auth()->user()->hasPermission('units.delete'))
                                     <button 
                                         onclick="confirmDelete({{ $unit->id }}, '{{ $unit->name }}')"
-                                        class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                         title="Delete Unit"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -117,8 +117,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-12 text-center text-slate-400">
-                                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <td colspan="4" class="px-6 py-12 text-center text-black">
+                                <svg class="w-10 h-10 mx-auto text-black mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
                                 </svg>
                                 <span class="font-bold">No units registered yet.</span>
@@ -133,27 +133,27 @@
 
     <!-- UNIT CREATE / EDIT MODAL -->
     <div id="unitModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850" id="modalTitle">Create Unit</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black" id="modalTitle">Create Unit</h3>
+                <button onclick="closeModal()" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="unitForm" method="POST" action="" class="p-6 space-y-4">
                 @csrf
                 <input type="hidden" name="_method" id="formMethod" value="POST">
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Unit Full Name *</label>
-                    <input type="text" name="name" id="unit_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Piece">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Unit Full Name *</label>
+                    <input type="text" name="name" id="unit_name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. Piece">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Name *</label>
-                    <input type="text" name="short_name" id="unit_short_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. pcs">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Short Name *</label>
+                    <input type="text" name="short_name" id="unit_short_name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. pcs">
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save Unit</button>
                 </div>
             </form>

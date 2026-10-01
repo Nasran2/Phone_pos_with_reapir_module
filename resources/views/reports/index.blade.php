@@ -89,8 +89,8 @@
                     </div>
                     <div>
                         <p class="text-xs font-black uppercase tracking-[0.26em] text-blue-600 dark:text-cyan-300">ERP Reports</p>
-                        <h1 class="mt-1 text-3xl font-black tracking-tight text-slate-950 dark:text-white">Reports Dashboard</h1>
-                        <p class="mt-2 max-w-2xl text-sm font-medium text-slate-500 dark:text-slate-400">Premium command center for sales, inventory, finance, customer, supplier, and system intelligence.</p>
+                        <h1 class="mt-1 text-3xl font-black tracking-tight text-black dark:text-white">Reports Dashboard</h1>
+                        <p class="mt-2 max-w-2xl text-sm font-medium text-black dark:text-black">Premium command center for sales, inventory, finance, customer, supplier, and system intelligence.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
@@ -121,8 +121,8 @@
                                     <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5a2 2 0 012-2h10l4 4v12a2 2 0 01-2 2H6a2 2 0 01-2-2zM8 13h8M8 17h5M8 9h3" /></svg>
                                 </div>
                                 <div>
-                                    <h2 class="text-xl font-black text-slate-950">{{ $group['title'] }}</h2>
-                                    <p class="mt-1 text-sm font-medium text-slate-500">{{ $group['description'] }}</p>
+                                    <h2 class="text-xl font-black text-black">{{ $group['title'] }}</h2>
+                                    <p class="mt-1 text-sm font-medium text-black">{{ $group['description'] }}</p>
                                 </div>
                             </div>
                             <span class="rounded-full px-3 py-1 text-xs font-black" style="background: {{ $group['soft'] }}; color: {{ $group['color'] }}">{{ $group['routes']->count() }} reports</span>
@@ -136,8 +136,8 @@
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $report['label'] }}</h3>
-                                        <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{{ $report['description'] }}</p>
+                                        <h3 class="text-sm font-black text-black dark:text-white">{{ $report['label'] }}</h3>
+                                        <p class="mt-1 text-xs font-medium text-black dark:text-black">{{ $report['description'] }}</p>
                                     </div>
                                 </div>
                             </a>
@@ -146,11 +146,11 @@
                 </section>
             @empty
                 <div class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-black">
                         <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M5 3h14v18H5z" /></svg>
                     </div>
-                    <h2 class="mt-4 text-lg font-black text-slate-900 dark:text-white">No reports available</h2>
-                    <p class="mt-1 text-sm text-slate-500">Your role does not currently have report permissions.</p>
+                    <h2 class="mt-4 text-lg font-black text-black dark:text-white">No reports available</h2>
+                    <p class="mt-1 text-sm text-black">Your role does not currently have report permissions.</p>
                 </div>
             @endforelse
         </div>

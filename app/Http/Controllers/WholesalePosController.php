@@ -85,11 +85,46 @@ class WholesalePosController extends Controller
         }
         $variants = $variantsQuery->get()->groupBy('product_id');
 
+        $allocations = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
+            ->leftJoin('product_variants as allocated_variant', 'allocated_variant.id', '=', 'sale_items.variant_id')
+            ->whereIn('sale_items.product_id', $products->pluck('id'))
+            ->whereIn('sales.status', ['final', 'completed'])
+            ->whereNull('sales.stock_deducted_at')
+            ->when($sourceType === 'lorry' && $activeLorryId, function ($query) use ($activeLorryId) {
+                $query->where('sales.source_type', 'lorry')->where('sales.lorry_id', $activeLorryId);
+            }, function ($query) use ($storeId) {
+                $query->where(fn ($source) => $source->where('sales.source_type', 'store')->orWhereNull('sales.source_type'))
+                    ->whereRaw('COALESCE(sales.store_id, ?) = ?', [(int) Setting::get('default_store_id', 1), (int) $storeId]);
+            })
+            ->select('sale_items.product_id', 'sale_items.variant_id', 'sales.id as sale_id', 'sales.invoice_no', 'customers.name as customer_name', 'allocated_variant.color', 'allocated_variant.storage', 'allocated_variant.ram', 'allocated_variant.sku as variant_sku')
+            ->selectRaw('SUM(sale_items.quantity) as quantity')
+            ->groupBy('sale_items.product_id', 'sale_items.variant_id', 'sales.id', 'sales.invoice_no', 'customers.name', 'allocated_variant.color', 'allocated_variant.storage', 'allocated_variant.ram', 'allocated_variant.sku')
+            ->orderByDesc('sales.id')
+            ->get()
+            ->map(function ($allocation) {
+                $labelParts = array_filter([$allocation->color, $allocation->storage, $allocation->ram]);
+
+                return [
+                    'product_id' => $allocation->product_id,
+                    'sale_id' => $allocation->sale_id,
+                    'invoice_no' => $allocation->invoice_no,
+                    'invoice_url' => route('sales.show', $allocation->sale_id),
+                    'customer_name' => $allocation->customer_name ?? 'Walk-in Customer',
+                    'quantity' => (float) $allocation->quantity,
+                    'variant_id' => $allocation->variant_id,
+                    'variant_label' => $allocation->variant_id ? ($labelParts ? implode(' / ', $labelParts) : $allocation->variant_sku) : null,
+                ];
+            })
+            ->groupBy('product_id');
+
         $taxRates = DB::table('tax_rates')->where('is_active', true)->get()->keyBy('id');
         $categoriesList = DB::table('categories')->get()->keyBy('id');
         $defaultVat = $taxRates->where('is_default', true)->where('tax_type', 'VAT')->first();
 
-        $products = $products->map(function ($product) use ($variants, $sourceType, $taxRates, $categoriesList, $defaultVat) {
+        $products = $products->map(function ($product) use ($variants, $allocations, $sourceType, $taxRates, $categoriesList, $defaultVat) {
+            $product->allocations = ($allocations[$product->id] ?? collect())->values();
             $cat = $categoriesList->get($product->category_id);
             // In DB it might be default_sales_tax_profile_id in products as well, let me check the migration...
             // Oh, migration added `sales_tax_profile_id` and `purchase_tax_profile_id` for products, but in my earlier update I added `default_sales_tax_profile_id` to Product fillable! Let's just check both or fix later.

@@ -13,6 +13,8 @@ use App\Models\StockHistory;
 use App\Services\LorryAccessService;
 use App\Services\SaleInventoryService;
 use App\Support\SystemSettings;
+use Barryvdh\DomPDF\Facade\Pdf;
+use DOMElement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -103,34 +105,33 @@ class SaleController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $sale->load(['customer', 'items.product', 'items.variant']);
-        $lines = [
-            $sale->is_tax_invoice ? 'Tax Invoice: '.$sale->invoice_no : 'Invoice: '.$sale->invoice_no,
-            'Date: '.$sale->created_at->format('Y-m-d h:i A'),
-            'TIN: '.SystemSettings::get('company_tin', 'N/A', 'tax_settings'),
-            'VAT Reg: '.SystemSettings::get('vat_registration_number', 'N/A', 'tax_settings'),
-            'Customer: '.($sale->customer->name ?? 'Walk-in Customer'),
-            'Sale Type: '.ucfirst($sale->pos_type),
-            'Subtotal: '.SystemSettings::money((float) $sale->total_amount),
-            'Discount: '.SystemSettings::money((float) $sale->discount_amount),
-            'Tax Amount: '.SystemSettings::money((float) $sale->tax_amount),
-            'Grand Total: '.SystemSettings::money((float) $sale->payable_amount),
-            'Paid: '.SystemSettings::money((float) $sale->paid_amount),
-            'Due: '.SystemSettings::money((float) $sale->due_amount),
-            '',
-            'Items:',
-        ];
+        $sale->load(['customer', 'cashier', 'items.product', 'items.variant', 'items.productSerial', 'payments', 'invoicePayments.cheque', 'taxTransactions']);
 
-        foreach ($sale->items as $item) {
-            $name = $item->product->name ?? 'Product';
-            $variant = $item->variantLabel();
-            $lines[] = trim($name.($variant ? ' - '.$variant : '')).' x '.(float) $item->quantity.' = '.SystemSettings::money((float) ($item->line_total ?: $item->subtotal));
-        }
+        $isPdf = true;
 
-        return response($this->simplePdf('Sales Invoice '.$sale->invoice_no, $lines), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$sale->invoice_no.'.pdf"',
-        ]);
+        $pdf = Pdf::loadView('sales.print', compact('sale', 'isPdf'))
+            ->setOption('defaultMediaType', 'print')
+            ->setPaper('a4', 'portrait');
+
+        // Match the print layout's bottom-aligned footer after pagination is resolved.
+        $pdf->getDomPDF()->setCallbacks([[
+            'event' => 'begin_frame',
+            'f' => static function ($frame, $canvas) {
+                $node = $frame->get_node();
+                if (! ($node instanceof DOMElement) || $node->getAttribute('class') !== 'invoice-footer') {
+                    return;
+                }
+
+                $box = $frame->get_border_box();
+                // The print page has a 10mm margin and 2mm bottom sheet padding.
+                $offset = $canvas->get_height() - (12 * 72 / 25.4) - $box['y'] - $box['h'];
+                if ($offset > 0) {
+                    $frame->move(0, $offset);
+                }
+            },
+        ]]);
+
+        return $pdf->download($sale->invoice_no.'.pdf');
     }
 
     public function storePayment(Request $request, Sale $sale)
@@ -179,6 +180,9 @@ class SaleController extends Controller
             $sale->save();
 
             $deductStockNow = (bool) ($validated['deduct_stock_now'] ?? false);
+            if (array_key_exists('deduct_stock_now', $validated)) {
+                $sale->forceFill(['stock_release_on_payment' => $deductStockNow])->save();
+            }
             $inventoryFinalized = false;
 
             try {
@@ -207,6 +211,41 @@ class SaleController extends Controller
         });
 
         return back()->with('success', 'Payment recorded successfully. Inventory was updated when required.');
+    }
+
+    public function updateStockRelease(Request $request, Sale $sale, LorryAccessService $access)
+    {
+        $validated = $request->validate(['stock_release_enabled' => ['required', 'boolean']]);
+        if ($access->isLorryUser($request->user()) && ! $access->isUnrestricted($request->user())) {
+            abort_unless($sale->source_type === 'lorry' && $sale->lorry_id, 403);
+            $access->authorize($request->user(), (int) $sale->lorry_id);
+        }
+
+        DB::transaction(function () use ($sale, $validated) {
+            $sale = Sale::query()->lockForUpdate()->findOrFail($sale->id);
+            if (! in_array($sale->status, ['final', 'completed'], true)) {
+                throw ValidationException::withMessages(['stock_release_enabled' => 'Stock release can only be edited on an active invoice.']);
+            }
+            if ($sale->returns()->exists()) {
+                throw ValidationException::withMessages(['stock_release_enabled' => 'This invoice has product returns. Stock release cannot be changed.']);
+            }
+
+            $release = (bool) $validated['stock_release_enabled'];
+            $sale->forceFill(['stock_release_on_payment' => $release])->save();
+            try {
+                $inventory = app(SaleInventoryService::class);
+                $changed = $release
+                    ? $inventory->finalizeNow($sale, 'Stock release enabled by operator.')
+                    : $inventory->restore($sale, 'Stock returned to customer allocation by operator.', 'sale_reallocated');
+            } catch (\RuntimeException $e) {
+                throw ValidationException::withMessages(['stock_release_enabled' => $e->getMessage()]);
+            }
+            if ($changed) {
+                ActivityLog::log('Stock Release', 'Sales Module', ($release ? 'Released stock for invoice ' : 'Returned stock to allocation for invoice ').$sale->invoice_no);
+            }
+        });
+
+        return back()->with('success', $validated['stock_release_enabled'] ? 'Stock release saved. Payments were unchanged.' : 'Products returned to allocated stock. Payments were unchanged.');
     }
 
     public function destroy(Sale $sale)

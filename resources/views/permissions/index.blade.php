@@ -1,8 +1,8 @@
 <x-layouts::app :title="__('System Permissions Map')">
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white">System Permissions Map</h2>
-            <span class="text-xs bg-slate-100 text-slate-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-slate-900/30 dark:text-slate-300">
+            <h2 class="text-lg font-bold text-black dark:text-white">System Permissions Map</h2>
+            <span class="text-xs bg-slate-100 text-black font-semibold px-2.5 py-0.5 rounded-full dark:bg-slate-900/30 dark:text-black">
                 {{ \App\Models\Permission::count() }} Unique Codes
             </span>
         </div>
@@ -26,8 +26,8 @@
                 <div>
                     <!-- Header -->
                     <div class="bg-slate-50/70 border-b border-slate-100 px-5 py-4 flex items-center justify-between">
-                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">{{ $moduleName }}</h4>
-                        <span class="text-[10px] bg-slate-150 text-slate-650 px-2 py-0.5 rounded-md font-bold">
+                        <h4 class="text-xs font-bold text-black uppercase tracking-wide">{{ $moduleName }}</h4>
+                        <span class="text-[10px] bg-slate-150 text-black px-2 py-0.5 rounded-md font-bold">
                             {{ $modulePerms->count() }} Codes
                         </span>
                     </div>
@@ -40,14 +40,14 @@
                         @endphp
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <span class="text-xs font-bold text-slate-800 block">
+                                <span class="text-xs font-bold text-black block">
                                     {{ $permissionAction }}
                                 </span>
-                                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block leading-none">
+                                <span class="text-[10px] text-black font-mono mt-0.5 block leading-none">
                                     {{ $perm->name }}
                                 </span>
                             </div>
-                            <span class="inline-block px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[8px] font-mono select-all">
+                            <span class="inline-block px-1.5 py-0.5 bg-slate-100 text-black rounded text-[8px] font-mono select-all">
                                 web
                             </span>
                         </div>

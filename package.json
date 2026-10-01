@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "test:pos": "node --test tests/Browser/pos-cart.test.cjs",
         "build": "vite build",
         "dev": "vite"
     },

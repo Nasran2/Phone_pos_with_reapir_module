@@ -1,8 +1,8 @@
 <x-layouts::app title="Tax Payments">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Tax Payments</h1>
-            <p class="text-sm text-slate-500">Manage, record, and approve payments made to tax authorities.</p>
+            <h1 class="text-2xl font-bold text-black">Tax Payments</h1>
+            <p class="text-sm text-black">Manage, record, and approve payments made to tax authorities.</p>
         </div>
         
         @if(auth()->user()->hasPermission('tax_payments.create'))
@@ -27,7 +27,7 @@
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
-                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                <thead class="bg-slate-50 border-b border-slate-200 text-black">
                     <tr>
                         <th class="px-4 py-3 font-medium">Payment Date</th>
                         <th class="px-4 py-3 font-medium">Payment No.</th>
@@ -38,20 +38,20 @@
                         <th class="px-4 py-3 font-medium text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-black">
                     @forelse($payments as $payment)
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 text-slate-900">{{ $payment->payment_date->format('M d, Y') }}</td>
+                        <td class="px-4 py-3 text-black">{{ $payment->payment_date->format('M d, Y') }}</td>
                         <td class="px-4 py-3 font-medium text-blue-600">
                             {{ $payment->payment_number }}
                         </td>
                         <td class="px-4 py-3">
-                            <span class="text-slate-600">{{ $payment->payment_method }}</span>
+                            <span class="text-black">{{ $payment->payment_method }}</span>
                             @if($payment->bank_reference)
-                                <span class="text-xs text-slate-400 block">{{ $payment->bank_reference }}</span>
+                                <span class="text-xs text-black block">{{ $payment->bank_reference }}</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-right font-semibold text-slate-900">
+                        <td class="px-4 py-3 text-right font-semibold text-black">
                             Rs. {{ number_format($payment->total_amount, 2) }}
                         </td>
                         <td class="px-4 py-3 text-center">
@@ -63,7 +63,7 @@
                                 <span class="px-2 py-1 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 uppercase tracking-wider">Reversed</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-center text-slate-500">
+                        <td class="px-4 py-3 text-center text-black">
                             {{ $payment->enterer?->name ?? 'System' }}
                         </td>
                         <td class="px-4 py-3 text-center">
@@ -72,7 +72,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-slate-500">
+                        <td colspan="7" class="px-4 py-8 text-center text-black">
                             No tax payments found.
                         </td>
                     </tr>

@@ -1,7 +1,7 @@
 <x-layouts::app :title="__('Users Management')">
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Users</h2>
+            <h2 class="text-lg font-bold text-black dark:text-white">Users</h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
                 {{ $users->total() }} Total
             </span>
@@ -70,9 +70,9 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search name, email, phone..." 
-                        class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 transition"
+                        class="w-full pl-9 pr-4 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black transition"
                     />
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-black">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
@@ -83,7 +83,7 @@
                 <div>
                     <select 
                         name="role" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition"
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black transition"
                     >
                         <option value="">All Roles</option>
                         @foreach($roles as $role)
@@ -98,7 +98,7 @@
                 <div>
                     <select 
                         name="status" 
-                        class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 transition"
+                        class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-black transition"
                     >
                         <option value="">All Statuses</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
@@ -111,7 +111,7 @@
                     <button type="submit" class="flex-1 py-2 bg-slate-800 hover:bg-slate-950 text-white font-bold rounded-lg text-xs transition duration-150 cursor-pointer">
                         Filter
                     </button>
-                    <a href="{{ route('users.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">
+                    <a href="{{ route('users.index') }}" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-lg text-xs text-center transition duration-150 cursor-pointer">
                         Clear
                     </a>
                 </div>
@@ -123,7 +123,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 text-[11px] font-bold uppercase tracking-wider">
+                        <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[11px] font-bold uppercase tracking-wider">
                             <th class="px-6 py-4">User</th>
                             <th class="px-6 py-4">Username</th>
                             <th class="px-6 py-4">Phone</th>
@@ -133,7 +133,7 @@
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                    <tbody class="divide-y divide-slate-100 text-black text-xs">
                         @forelse($users as $user)
                         <tr class="hover:bg-slate-50/50 transition">
                             <td class="px-6 py-4">
@@ -142,19 +142,19 @@
                                         {{ $user->initials() }}
                                     </div>
                                     <div>
-                                        <div class="font-bold text-slate-800">{{ $user->name }}</div>
-                                        <div class="text-[10px] text-slate-400 font-medium">{{ $user->email }}</div>
+                                        <div class="font-bold text-black">{{ $user->name }}</div>
+                                        <div class="text-[10px] text-black font-medium">{{ $user->email }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-mono text-[11px] text-slate-500">
+                            <td class="px-6 py-4 font-mono text-[11px] text-black">
                                 {{ $user->username }}
                             </td>
-                            <td class="px-6 py-4 text-slate-600">
+                            <td class="px-6 py-4 text-black">
                                 {{ $user->phone ?? '-' }}
                             </td>
                             <td class="px-6 py-4">
-                                <span class="px-2 py-1 bg-slate-100 text-slate-700 font-semibold rounded-md text-[10px]">
+                                <span class="px-2 py-1 bg-slate-100 text-black font-semibold rounded-md text-[10px]">
                                     {{ $user->roles->first()->name ?? 'No Role' }}
                                 </span>
                             </td>
@@ -191,7 +191,7 @@
                                     @endif
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-slate-500">
+                            <td class="px-6 py-4 text-black">
                                 {{ $user->created_at ? $user->created_at->format('M d, Y H:i') : '-' }}
                             </td>
                             <td class="px-6 py-4 text-right whitespace-nowrap">
@@ -200,7 +200,7 @@
                                     <!-- Edit details -->
                                     <button 
                                         onclick="openEditModal({{ json_encode($user) }}, {{ $user->roles->first()->id ?? 'null' }})"
-                                        class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                         title="Edit Details"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -211,7 +211,7 @@
                                     <!-- Reset password -->
                                     <button 
                                         onclick="openPasswordModal({{ json_encode($user) }})"
-                                        class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition rounded-lg cursor-pointer"
+                                        class="p-1.5 text-black hover:text-amber-600 hover:bg-amber-50 transition rounded-lg cursor-pointer"
                                         title="Change Password"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -228,7 +228,7 @@
                                         <button 
                                             type="submit" 
                                             onclick="return confirmAction(event, 'Are you sure you want to delete user {{ $user->name }}?')"
-                                            class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                                            class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                             title="Delete User"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -242,8 +242,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-slate-400">
-                                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <td colspan="7" class="px-6 py-12 text-center text-black">
+                                <svg class="w-10 h-10 mx-auto text-black mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
                                 </svg>
                                 <span class="font-bold">No users found matching query parameters.</span>
@@ -267,41 +267,41 @@
     <div id="addUserModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Add New User Account</h3>
-                <button onclick="closeModal('addUserModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Add New User Account</h3>
+                <button onclick="closeModal('addUserModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form method="POST" action="{{ route('users.store') }}" class="p-6 space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Full Name *</label>
-                        <input type="text" name="name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. John Doe">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Full Name *</label>
+                        <input type="text" name="name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. John Doe">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Username *</label>
-                        <input type="text" name="username" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. johndoe">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Email Address *</label>
-                        <input type="email" name="email" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="name@company.com">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Phone Number</label>
-                        <input type="text" name="phone" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. 0771234567">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Username *</label>
+                        <input type="text" name="username" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. johndoe">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Password *</label>
-                        <input type="password" name="password" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="••••••••">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Email Address *</label>
+                        <input type="email" name="email" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="name@company.com">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign System Role *</label>
-                        <select name="role_id" required onchange="toggleLorryManagerCard(this, 'addLorryManagerCard')" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-800 bg-white">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Phone Number</label>
+                        <input type="text" name="phone" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. 0771234567">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Password *</label>
+                        <input type="password" name="password" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Assign System Role *</label>
+                        <select name="role_id" required onchange="toggleLorryManagerCard(this, 'addLorryManagerCard')" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                             <option value="">Select Role</option>
                             @foreach($roles as $role)
                                 <option value="{{ $role->id }}" data-lorry-manager="{{ $role->name === 'Lorry Manager' ? '1' : '0' }}">{{ $role->name }}</option>
@@ -312,17 +312,17 @@
 
                 <div class="flex items-center gap-2 pt-2">
                     <input type="checkbox" name="is_active" id="addUserActive" value="1" checked class="rounded border-slate-350 text-blue-600 focus:ring-blue-500 h-4 w-4">
-                    <label for="addUserActive" class="text-xs font-bold text-slate-700 select-none cursor-pointer">Activate user account immediately</label>
+                    <label for="addUserActive" class="text-xs font-bold text-black select-none cursor-pointer">Activate user account immediately</label>
                 </div>
 
                 <div id="addLorryManagerCard" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4">
-                    <h4 class="text-sm font-black text-slate-900">Lorry Manager Assignment</h4><p class="mt-1 text-xs text-slate-500">This user will only be able to manage the selected lorry.</p>
-                    <label class="mt-4 block text-[10px] font-bold uppercase text-slate-500">Assigned Lorry *<select name="lorry_id" class="mt-1 w-full rounded-lg border-slate-200 text-sm"><option value="">Select active lorry</option>@foreach($lorries as $lorry)<option value="{{ $lorry->id }}">{{ $lorry->lorry_no }} — {{ $lorry->name }}</option>@endforeach</select></label>
+                    <h4 class="text-sm font-black text-black">Lorry Manager Assignment</h4><p class="mt-1 text-xs text-black">This user will only be able to manage the selected lorry.</p>
+                    <label class="mt-4 block text-[10px] font-bold uppercase text-black">Assigned Lorry *<select name="lorry_id" class="mt-1 w-full rounded-lg border-slate-900 text-sm"><option value="">Select active lorry</option>@foreach($lorries as $lorry)<option value="{{ $lorry->id }}">{{ $lorry->lorry_no }} — {{ $lorry->name }}</option>@endforeach</select></label>
                     <div class="mt-4 flex flex-wrap gap-3 text-xs">@foreach(['can_view_cost'=>'View cost','can_view_profit'=>'View profit','can_reconcile'=>'Submit reconciliation'] as $key=>$label)<label><input type="checkbox" name="{{ $key }}" value="1" class="rounded"> {{ $label }}</label>@endforeach</div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeModal('addUserModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal('addUserModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save User</button>
                 </div>
             </form>
@@ -333,37 +333,37 @@
     <div id="editUserModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Edit User Profile Details</h3>
-                <button onclick="closeModal('editUserModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Edit User Profile Details</h3>
+                <button onclick="closeModal('editUserModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="editUserForm" method="POST" action="" class="p-6 space-y-4">
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Full Name *</label>
-                        <input type="text" name="name" id="edit_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Full Name *</label>
+                        <input type="text" name="name" id="edit_name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Username *</label>
-                        <input type="text" name="username" id="edit_username" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Username *</label>
+                        <input type="text" name="username" id="edit_username" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Email Address *</label>
-                        <input type="email" name="email" id="edit_email" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Email Address *</label>
+                        <input type="email" name="email" id="edit_email" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Phone Number</label>
-                        <input type="text" name="phone" id="edit_phone" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Phone Number</label>
+                        <input type="text" name="phone" id="edit_phone" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Assign System Role *</label>
-                    <select name="role_id" id="edit_role_id" required onchange="toggleLorryManagerCard(this, 'editLorryManagerCard')" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-slate-850 bg-white">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Assign System Role *</label>
+                    <select name="role_id" id="edit_role_id" required onchange="toggleLorryManagerCard(this, 'editLorryManagerCard')" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black bg-white">
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}" data-lorry-manager="{{ $role->name === 'Lorry Manager' ? '1' : '0' }}">{{ $role->name }}</option>
                         @endforeach
@@ -372,16 +372,16 @@
 
                 <div class="flex items-center gap-2 pt-2">
                     <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="rounded border-slate-350 text-blue-600 focus:ring-blue-500 h-4 w-4">
-                    <label for="edit_is_active" class="text-xs font-bold text-slate-700 select-none cursor-pointer">Keep this account active</label>
+                    <label for="edit_is_active" class="text-xs font-bold text-black select-none cursor-pointer">Keep this account active</label>
                 </div>
 
                 <div id="editLorryManagerCard" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4">
-                    <h4 class="text-sm font-black text-slate-900">Lorry Manager Assignment</h4><p class="mt-1 text-xs text-slate-500">This user will only be able to manage the selected lorry.</p>
-                    <label class="mt-4 block text-[10px] font-bold uppercase text-slate-500">Assigned Lorry *<select name="lorry_id" id="edit_lorry_id" class="mt-1 w-full rounded-lg border-slate-200 text-sm"><option value="">Select active lorry</option>@foreach($lorries as $lorry)<option value="{{ $lorry->id }}">{{ $lorry->lorry_no }} — {{ $lorry->name }}</option>@endforeach</select></label>
+                    <h4 class="text-sm font-black text-black">Lorry Manager Assignment</h4><p class="mt-1 text-xs text-black">This user will only be able to manage the selected lorry.</p>
+                    <label class="mt-4 block text-[10px] font-bold uppercase text-black">Assigned Lorry *<select name="lorry_id" id="edit_lorry_id" class="mt-1 w-full rounded-lg border-slate-900 text-sm"><option value="">Select active lorry</option>@foreach($lorries as $lorry)<option value="{{ $lorry->id }}">{{ $lorry->lorry_no }} — {{ $lorry->name }}</option>@endforeach</select></label>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeModal('editUserModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal('editUserModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Update Profile</button>
                 </div>
             </form>
@@ -392,28 +392,28 @@
     <div id="passwordUserModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850">Reset Password</h3>
-                <button onclick="closeModal('passwordUserModal')" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black">Reset Password</h3>
+                <button onclick="closeModal('passwordUserModal')" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="passwordUserForm" method="POST" action="" class="p-6 space-y-4">
                 @csrf
                 @method('PUT')
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs text-slate-600 mb-2">
-                    Updating password for user: <span class="font-bold text-slate-800" id="password_user_name"></span>
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs text-black mb-2">
+                    Updating password for user: <span class="font-bold text-black" id="password_user_name"></span>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">New Password *</label>
-                    <input type="password" name="password" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-850" placeholder="Minimum 8 characters">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">New Password *</label>
+                    <input type="password" name="password" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="Minimum 8 characters">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Confirm Password *</label>
-                    <input type="password" name="password_confirmation" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-850" placeholder="Confirm new password">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Confirm Password *</label>
+                    <input type="password" name="password_confirmation" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="Confirm new password">
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeModal('passwordUserModal')" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal('passwordUserModal')" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer font-bold">Update Password</button>
                 </div>
             </form>

@@ -1,8 +1,8 @@
 <x-layouts::app title="Expense Categories">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Expense Categories</h1>
-            <p class="text-sm text-slate-500">Manage categories for your expenses</p>
+            <h1 class="text-2xl font-bold text-black">Expense Categories</h1>
+            <p class="text-sm text-black">Manage categories for your expenses</p>
         </div>
         <button onclick="document.getElementById('add-category-modal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -36,19 +36,19 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category Name</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Description</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Expenses Count</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Action</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider">Category Name</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider">Description</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider text-center">Expenses Count</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($categories as $category)
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-4 font-medium text-slate-900 text-sm">{{ $category->name }}</td>
-                            <td class="p-4 text-sm text-slate-600">{{ $category->description ?? '-' }}</td>
+                            <td class="p-4 font-medium text-black text-sm">{{ $category->name }}</td>
+                            <td class="p-4 text-sm text-black">{{ $category->description ?? '-' }}</td>
                             <td class="p-4 text-center text-sm font-medium">
-                                <span class="bg-slate-100 text-slate-800 py-0.5 px-2 rounded-full text-xs">
+                                <span class="bg-slate-100 text-black py-0.5 px-2 rounded-full text-xs">
                                     {{ $category->expenses_count }}
                                 </span>
                             </td>
@@ -66,7 +66,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="p-8 text-center text-slate-500">No categories found.</td>
+                            <td colspan="4" class="p-8 text-center text-black">No categories found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -83,8 +83,8 @@
     <div id="add-category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-slate-800 text-lg">Add Category</h3>
-                <button onclick="document.getElementById('add-category-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition">
+                <h3 class="font-bold text-black text-lg">Add Category</h3>
+                <button onclick="document.getElementById('add-category-modal').classList.add('hidden')" class="text-black hover:text-black transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
@@ -92,16 +92,16 @@
                 @csrf
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Category Name *</label>
-                        <input type="text" name="name" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <label class="block text-sm font-bold text-black mb-1">Category Name *</label>
+                        <input type="text" name="name" required class="w-full rounded-lg border-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Description</label>
-                        <textarea name="description" rows="3" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+                        <label class="block text-sm font-bold text-black mb-1">Description</label>
+                        <textarea name="description" rows="3" class="w-full rounded-lg border-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('add-category-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
+                    <button type="button" onclick="document.getElementById('add-category-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium text-black bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">Save Category</button>
                 </div>
             </form>
@@ -112,8 +112,8 @@
     <div id="edit-category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-slate-800 text-lg">Edit Category</h3>
-                <button onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition">
+                <h3 class="font-bold text-black text-lg">Edit Category</h3>
+                <button onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="text-black hover:text-black transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
@@ -122,16 +122,16 @@
                 @method('PUT')
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Category Name *</label>
-                        <input type="text" name="name" id="edit-name" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <label class="block text-sm font-bold text-black mb-1">Category Name *</label>
+                        <input type="text" name="name" id="edit-name" required class="w-full rounded-lg border-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Description</label>
-                        <textarea name="description" id="edit-description" rows="3" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+                        <label class="block text-sm font-bold text-black mb-1">Description</label>
+                        <textarea name="description" id="edit-description" rows="3" class="w-full rounded-lg border-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
+                    <button type="button" onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium text-black bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">Update Category</button>
                 </div>
             </form>

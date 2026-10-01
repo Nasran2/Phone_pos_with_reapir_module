@@ -4,7 +4,7 @@
     @include('partials.head', ['title' => __('Retail POS')])
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="pos-shell h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-50 text-slate-800 antialiased font-sans flex flex-col" x-data="retailPosApp()">
+<body class="pos-shell h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-50 text-black antialiased font-sans flex flex-col" x-data="retailPosApp()">
 
     <!-- SCREEN 7: Hamburger Menu Drawer (Overlay) -->
     <div x-show="showMenuDrawer"
@@ -14,7 +14,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="translate-x-0"
          x-transition:leave-end="-translate-x-full"
-         class="fixed inset-y-0 left-0 w-[min(88vw,20rem)] bg-[#0c1630] border-r border-[#182647] text-slate-300 z-50 flex flex-col justify-between shadow-2xl"
+         class="fixed inset-y-0 left-0 w-[min(88vw,20rem)] bg-[#0c1630] border-r border-[#182647] text-black z-50 flex flex-col justify-between shadow-2xl"
          x-cloak>
 
         <div>
@@ -40,10 +40,10 @@
                                 </template>
                             </span>
                         </div>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">Navigation Menu</p>
+                        <p class="text-[10px] text-black uppercase tracking-wider mt-0.5">Navigation Menu</p>
                     </div>
                 </div>
-                <button @click="showMenuDrawer = false" class="text-slate-400 hover:text-white cursor-pointer">
+                <button @click="showMenuDrawer = false" class="text-black hover:text-white cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
@@ -75,12 +75,12 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-bold text-white leading-none">{{ auth()->user()->name }}</h4>
-                    <p class="text-xs text-slate-400 font-semibold mt-1">Administrator</p>
+                    <p class="text-xs text-black font-semibold mt-1">Administrator</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="text-slate-450 hover:text-red-500 cursor-pointer" title="Log Out">
+                <button type="submit" class="text-black hover:text-red-500 cursor-pointer" title="Log Out">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </button>
             </form>
@@ -99,7 +99,7 @@
         <!-- TOP HEADER BAR -->
         <header class="bg-[#0c1630] border-b border-[#182647] text-white min-h-16 h-auto px-3 sm:px-4 py-2 sm:py-0 flex flex-wrap items-center justify-between gap-2 shrink-0 z-30">
             <div class="flex min-w-0 items-center gap-2 sm:gap-4">
-                <button @click="showMenuDrawer = true" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-350 hover:text-white cursor-pointer" title="Toggle Navigation" aria-label="Open navigation">
+                <button @click="showMenuDrawer = true" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-black hover:text-white cursor-pointer" title="Toggle Navigation" aria-label="Open navigation">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
                     </svg>
@@ -115,7 +115,7 @@
                             <h1 class="text-sm font-black tracking-wide leading-none">Retail POS</h1>
                             <span class="hidden sm:inline-flex px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-md text-[8px] font-black uppercase tracking-wider">Retail Mode</span>
                         </div>
-                        <p class="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
+                        <p class="hidden sm:block text-[9px] text-black font-bold uppercase tracking-wider mt-0.5">Phone Shop POS / ERP</p>
                     </div>
                 </div>
             </div>
@@ -123,13 +123,13 @@
             <!-- Running digital clock -->
             <div class="hidden sm:flex items-center gap-2 bg-[#091024] border border-[#182647] px-3.5 py-1 rounded-xl">
                 <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-bold text-slate-300 font-mono" x-text="liveTime"></span>
+                <span class="text-xs font-bold text-black font-mono" x-text="liveTime"></span>
             </div>
 
                 <div class="flex w-full sm:w-auto min-w-0 items-center justify-start sm:justify-end gap-1.5 sm:gap-3 overflow-x-auto scrollbar-hide">
                     @if($enableMultiStore ?? false)
                     <div class="flex items-center gap-2 mr-2">
-                        <select onchange="window.location.href='{{ route('pos.retail') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500">
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?store_id=' + this.value" class="bg-[#091024] border border-[#182647] text-black text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500">
                             @foreach($stores as $s)
                                 <option value="{{ $s->id }}" {{ ($activeStoreId ?? 1) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                             @endforeach
@@ -138,19 +138,19 @@
                     @endif
                     @if($distributionEnabled ?? false && ($lorries ?? collect())->isNotEmpty())
                     <div class="flex items-center gap-2 mr-2">
-                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Retail stock source">
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-black text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Retail stock source">
                             <option value="store" {{ ($sourceType ?? 'store') === 'store' ? 'selected' : '' }}>Store Stock</option>
                             <option value="lorry" {{ ($sourceType ?? 'store') === 'lorry' ? 'selected' : '' }}>Lorry Stock</option>
                         </select>
                         @if(($sourceType ?? 'store') === 'lorry')
-                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select lorry">
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-black text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select lorry">
                             <option value="">Select Lorry</option>
                             @foreach($lorries as $lorry)
                                 <option value="{{ $lorry->id }}" {{ (string) ($activeLorryId ?? '') === (string) $lorry->id ? 'selected' : '' }}>{{ $lorry->lorry_no }}</option>
                             @endforeach
                         </select>
                         @if(($distributionTrips ?? collect())->isNotEmpty())
-                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id={{ $activeLorryId ?? '' }}&trip_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select trip">
+                        <select onchange="window.location.href='{{ route('pos.retail') }}?source_type=lorry&lorry_id={{ $activeLorryId ?? '' }}&trip_id=' + this.value + '&store_id={{ $activeStoreId ?? 1 }}'" class="bg-[#091024] border border-[#182647] text-black text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500" title="Select trip">
                             <option value="">No Trip</option>
                             @foreach($distributionTrips as $trip)
                                 <option value="{{ $trip->id }}" {{ (string) ($activeTripId ?? '') === (string) $trip->id ? 'selected' : '' }}>{{ $trip->trip_no }}</option>
@@ -168,7 +168,7 @@
                     </button>
                     <div class="text-right hidden md:block">
                         <p class="text-xs font-bold leading-none">{{ auth()->user()->name }}</p>
-                        <span class="text-[9px] text-slate-400 uppercase font-black">Cashier</span>
+                        <span class="text-[9px] text-black uppercase font-black">Cashier</span>
                     </div>
                 </div>
         </header>
@@ -178,20 +178,20 @@
             <div class="flex min-w-0 items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-1">
                 <button @click="selectedCategory = 'all'"
                         class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
-                        :class="selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
+                        :class="selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-black'">
                     All Products
                 </button>
                 @foreach($categories as $category)
                     <button @click="selectedCategory = '{{ $category->slug }}'"
                             class="px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap"
-                            :class="selectedCategory === '{{ $category->slug }}' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
+                            :class="selectedCategory === '{{ $category->slug }}' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-black'">
                         {{ $category->name }}
                     </button>
                 @endforeach
             </div>
 
             <!-- Mobile Toggle Tabs -->
-            <div class="flex shrink-0 items-center gap-1 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-slate-600">
+            <div class="flex shrink-0 items-center gap-1 lg:hidden bg-slate-100 p-0.5 rounded-lg text-xs font-bold text-black">
                 <button @click="mobileTab = 'products'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md" :class="mobileTab === 'products' ? 'bg-white text-blue-600 shadow-xs' : ''">Products</button>
                 <button @click="mobileTab = 'cart'" class="min-h-10 px-2.5 sm:px-3 py-1 rounded-md relative" :class="mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : ''">
                     <span>Cart</span>
@@ -216,13 +216,13 @@
                             id="search-input"
                             class="w-full pl-10 pr-12 py-3 bg-white border border-slate-250 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
                         />
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                             </svg>
                         </div>
-                        <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 gap-1.5">
-                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-bold text-slate-500 bg-slate-100 border rounded-md shadow-2xs">F1</kbd>
+                        <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black gap-1.5">
+                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-bold text-black bg-slate-100 border rounded-md shadow-2xs">F1</kbd>
                             <svg class="w-5 h-5 text-blue-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M3 5h2v14H3zm4 0h1v14H7zm3 0h3v14h-3zm5 0h1v14h-1zm3 0h3v14h-3z"/>
                             </svg>
@@ -237,8 +237,8 @@
                                  :class="product.stock <= 0 ? 'opacity-50 cursor-not-allowed border-slate-200' : ''">
 
                                 <!-- Image & Stock Alert Tag -->
-                                <div class="h-16 sm:h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:scale-102 transition shrink-0 relative overflow-hidden">
-                                    <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <div class="h-16 sm:h-20 rounded-lg bg-slate-50 flex items-center justify-center text-black group-hover:scale-102 transition shrink-0 relative overflow-hidden">
+                                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                         <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
                                         <line x1="8" y1="21" x2="16" y2="21"/>
                                         <line x1="12" y1="17" x2="12" y2="21"/>
@@ -254,9 +254,9 @@
                                 <div class="mt-2 space-y-0.5 w-full min-w-0">
                                     <!-- Dynamic Color badges -->
                                     <div class="flex items-center gap-1 mb-1">
-                                        <span class="text-[8px] px-1 py-0.2 rounded bg-slate-100 text-slate-650 font-bold" x-text="product.category_slug === 'smartphones' ? 'Device' : 'Accessory'"></span>
+                                        <span class="text-[8px] px-1 py-0.2 rounded bg-slate-100 text-black font-bold" x-text="product.category_slug === 'smartphones' ? 'Device' : 'Accessory'"></span>
                                     </div>
-                                    <h4 class="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2 h-7 group-hover:text-blue-600 transition" x-text="product.name"></h4>
+                                    <h4 class="text-[11px] font-bold text-black leading-tight line-clamp-2 h-7 group-hover:text-blue-600 transition" x-text="product.name"></h4>
                                     <h5 class="text-xs font-black text-blue-600 pt-0.5">Rs. <span x-text="formatMoney(product.retail_price)"></span></h5>
                                 </div>
                             </div>
@@ -266,14 +266,14 @@
             </div>
 
             <!-- RIGHT COLUMN: CART & CUSTOMER DETAILS -->
-            <div class="pos-cart-panel pos-cart-retail w-full lg:w-96 border-l border-slate-200/80 bg-white p-3 sm:p-4 flex flex-col overflow-hidden shrink-0 select-none"
+            <div class="pos-cart-panel pos-cart-retail w-full lg:w-96 border-l border-slate-900/80 bg-white p-3 sm:p-4 flex flex-col overflow-hidden shrink-0 select-none"
                  :class="mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'">
 
                 <!-- Customer info header -->
                 <div class="space-y-3 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="relative flex-1">
-                            <input x-show="customers.length > 10" type="search" x-model.debounce.200ms="customerSearch" placeholder="Search customer or phone" aria-label="Search customer or phone" class="w-full mb-2 rounded-lg border border-slate-200" />
+                            <input x-show="customers.length > 10" type="search" x-model.debounce.200ms="customerSearch" placeholder="Search customer or phone" aria-label="Search customer or phone" class="w-full mb-2 rounded-lg border border-slate-900" />
                             <select aria-label="Customer" x-model="selectedCustomerId" class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition">
                                 <template x-for="cust in customers.filter(c => c.id == selectedCustomerId || (c.name + ' ' + (c.phone || '')).toLowerCase().includes(customerSearch.toLowerCase()))" :key="cust.id">
                                     <option :value="cust.id" x-text="cust.name + (cust.phone !== 'N/A' ? ' (' + cust.phone + ')' : '')"></option>
@@ -289,14 +289,14 @@
 
                     <!-- Customer loyalty info if non-default customer -->
                     <template x-if="getSelectedCustomer() && getSelectedCustomer().id !== 1">
-                        <div class="p-2.5 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                        <div class="p-2.5 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] font-bold text-black flex items-center justify-between">
                             <span class="flex items-center gap-1"><span class="text-blue-600 font-extrabold uppercase">Loyalty:</span> <span x-text="getSelectedCustomer().points"></span> pts</span>
                             <span class="flex items-center gap-1"><span class="text-red-500 font-extrabold uppercase">Due Bal:</span> Rs. <span x-text="formatMoney(getSelectedCustomer().balance)"></span></span>
                         </div>
                     </template>
 
                     <!-- Cart Item Table Header -->
-                    <div class="pos-cart-columns grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-100">
+                    <div class="pos-cart-columns grid grid-cols-12 text-[10px] font-bold text-black uppercase tracking-wider pb-1 border-b border-slate-100">
                         <span class="col-span-6">Item details</span>
                         <span class="col-span-3 text-center">Qty</span>
                         <span class="col-span-3 text-right">Total</span>
@@ -310,7 +310,7 @@
 
                             <!-- Product Details & Serial Selector -->
                             <div class="col-span-6 space-y-1">
-                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate hover:text-blue-600 cursor-pointer transition"
+                                <h4 class="text-xs font-bold text-black leading-snug truncate hover:text-blue-600 cursor-pointer transition"
                                     @click="openEditItemModal(item, index)"
                                     x-text="item.name"
                                     title="Click to edit item discount, qty, and price"></h4>
@@ -321,8 +321,8 @@
                                 <!-- Serial/IMEI Selection (Only visible for Smartphones) -->
                                 <template x-if="item.is_smartphone && item.serials.length > 0">
                                     <div>
-                                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">IMEI / Serial</label>
-                                        <select x-model="item.serial_no" class="w-full mt-0.5 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-bold focus:outline-none text-slate-700">
+                                        <label class="text-[9px] font-bold text-black uppercase tracking-wider block">IMEI / Serial</label>
+                                        <select x-model="item.serial_no" class="w-full mt-0.5 px-1.5 py-0.5 bg-slate-50 border border-slate-900 rounded text-[9px] font-bold focus:outline-none text-black">
                                             <template x-for="sn in item.serials" :key="sn">
                                                 <option :value="sn" x-text="sn"></option>
                                             </template>
@@ -331,26 +331,26 @@
                                 </template>
 
                                 <label class="pos-line-price flex items-center gap-1">
-                                    <span class="text-[8px] text-slate-400 uppercase font-black">Unit price (Rs)</span>
+                                    <span class="text-[8px] text-black uppercase font-black">Unit price (Rs)</span>
                                     <input type="number"
                                            aria-label="Unit price" inputmode="decimal" min="0" step="any"
                                        x-model.number="item.selling_price"
                                            @input="updateLineTotal(item)"
-                                           class="w-16 px-1 py-0.5 border border-slate-200 rounded text-[9px] font-semibold focus:outline-none" />
+                                           class="w-16 px-1 py-0.5 border border-slate-900 rounded text-[9px] font-semibold focus:outline-none" />
                                 </label>
                             </div>
 
                             <!-- Qty Steppers / Manual input -->
                             <div class="pos-line-quantity col-span-3 flex flex-col items-center justify-center gap-1">
                                 <div class="flex items-center gap-1">
-                                    <button aria-label="Decrease quantity" @click="decrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
+                                    <button aria-label="Decrease quantity" @click="decrementQty(item)" class="p-1 text-black hover:text-black hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     </button>
                                     <input type="number"
                                            x-model.number="item.quantity"
                                            @input="clampCartQuantity(item)"
-                                           class="w-10 h-8 p-0 text-center border border-slate-200 rounded text-xs font-bold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                                    <button aria-label="Increase quantity" @click="incrementQty(item)" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
+                                           class="w-10 h-8 p-0 text-center border border-slate-900 rounded text-xs font-bold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                    <button aria-label="Increase quantity" @click="incrementQty(item)" class="p-1 text-black hover:text-black hover:bg-slate-100 rounded focus:outline-none cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     </button>
                                 </div>
@@ -358,15 +358,15 @@
 
                             <!-- Line subtotal / remove action -->
                             <div class="col-span-3 flex flex-col items-end justify-center">
-                                <span class="text-xs font-black text-slate-800">Rs. <span x-text="formatMoney(item.line_total)"></span></span>
+                                <span class="text-xs font-black text-black">Rs. <span x-text="formatMoney(item.line_total)"></span></span>
                                 <button @click="removeFromCart(index)" class="text-[9px] text-red-500 hover:text-red-650 font-bold mt-1.5 opacity-60 hover:opacity-100 cursor-pointer">Remove</button>
                             </div>
                         </div>
                     </template>
 
                     <template x-if="cart.length === 0">
-                        <div class="flex flex-col items-center justify-center h-full gap-2 text-slate-400 py-16">
-                            <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <div class="flex flex-col items-center justify-center h-full gap-2 text-black py-16">
+                            <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                 <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                             </svg>
                             <span class="text-xs font-bold">Your Retail POS Cart is empty</span>
@@ -378,48 +378,48 @@
                 <p x-show="editSale" class="text-sm p-3 rounded-lg bg-amber-50 text-amber-900 shrink-0">Editing preserves payments already received. Save the corrected invoice, then receive any remaining balance from Sales.</p>
                 <div class="pos-checkout border-t border-slate-200/80 pt-4 space-y-3 shrink-0">
                     <div class="space-y-1.5 text-xs">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="font-bold text-slate-700">Items</span>
-                            <span class="font-bold text-slate-800" x-text="cart.length"></span>
+                        <div class="flex items-center justify-between text-black">
+                            <span class="font-bold text-black">Items</span>
+                            <span class="font-bold text-black" x-text="cart.length"></span>
                         </div>
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="font-bold text-slate-700">Subtotal</span>
-                            <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(calculateSubtotal())"></span></span>
+                        <div class="flex items-center justify-between text-black">
+                            <span class="font-bold text-black">Subtotal</span>
+                            <span class="font-bold text-black">Rs <span x-text="formatMoney(calculateSubtotal())"></span></span>
                         </div>
                         <template x-if="totals.addedTax > 0 || (totals.addedTax == 0 && totals.includedTax == 0)">
-                            <div class="flex items-center justify-between text-slate-500">
-                                <span class="font-bold text-slate-700">Taxable Amount</span>
-                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.subTotal - totals.discount)"></span></span>
+                            <div class="flex items-center justify-between text-black">
+                                <span class="font-bold text-black">Taxable Amount</span>
+                                <span class="font-bold text-black">Rs <span x-text="formatMoney(totals.subTotal - totals.discount)"></span></span>
                             </div>
                         </template>
                         <template x-if="totals.addedTax > 0">
-                            <div class="flex items-center justify-between text-slate-500">
-                                <span class="font-bold text-slate-700">Added VAT</span>
-                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.addedTax)"></span></span>
+                            <div class="flex items-center justify-between text-black">
+                                <span class="font-bold text-black">Added VAT</span>
+                                <span class="font-bold text-black">Rs <span x-text="formatMoney(totals.addedTax)"></span></span>
                             </div>
                         </template>
                         <template x-if="totals.includedTax > 0">
-                            <div class="flex items-center justify-between text-slate-500">
-                                <span class="font-bold text-slate-700">Tax Included</span>
-                                <span class="font-bold text-slate-800">Rs <span x-text="formatMoney(totals.includedTax)"></span></span>
+                            <div class="flex items-center justify-between text-black">
+                                <span class="font-bold text-black">Tax Included</span>
+                                <span class="font-bold text-black">Rs <span x-text="formatMoney(totals.includedTax)"></span></span>
                             </div>
                         </template>
-                        <div class="flex items-center justify-between text-slate-800 font-black text-sm pt-1 mt-1 border-t border-slate-200">
+                        <div class="flex items-center justify-between text-black font-black text-sm pt-1 mt-1 border-t border-slate-200">
                             <span>Payable</span>
                             <span>Rs <span x-text="formatMoney(calculateGrandTotal())"></span></span>
                         </div>
 
                         <div class="flex items-center gap-2 mt-2 pt-2">
-                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
-                                <input type="radio" value="fixed" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-black">
+                                <input type="radio" value="fixed" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-900">
                                 Fixed
                             </label>
-                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-slate-700">
-                                <input type="radio" value="percentage" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300">
+                            <label class="flex items-center gap-1 cursor-pointer text-xs font-bold text-black">
+                                <input type="radio" value="percentage" x-model="globalDiscountType" class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-900">
                                 %
                             </label>
                             <div class="flex-1 ml-1">
-                                <input type="number" step="any" min="0" placeholder="Discount" x-model.number="globalDiscountValue" class="w-full text-left px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500" />
+                                <input type="number" step="any" min="0" placeholder="Discount" x-model.number="globalDiscountValue" class="w-full text-left px-3 py-2 border border-slate-900 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500" />
                             </div>
                         </div>
                     </div>
@@ -458,10 +458,10 @@
              @click.away="showVariantModal = false">
             <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-850">Select Variation</h3>
-                    <p class="text-[10px] text-slate-400 truncate max-w-[260px]" x-text="selectedVariantProduct ? selectedVariantProduct.name : ''"></p>
+                    <h3 class="text-sm font-bold text-black">Select Variation</h3>
+                    <p class="text-[10px] text-black truncate max-w-[260px]" x-text="selectedVariantProduct ? selectedVariantProduct.name : ''"></p>
                 </div>
-                <button @click="showVariantModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                <button @click="showVariantModal = false" class="text-black hover:text-black cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -474,12 +474,12 @@
                             :disabled="variant.stock_quantity <= 0">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs font-black text-slate-850" x-text="variant.label"></div>
-                                <div class="text-[10px] text-slate-500 font-bold" x-text="'SKU: ' + (variant.sku || '-')"></div>
+                                <div class="text-xs font-black text-black" x-text="variant.label"></div>
+                                <div class="text-[10px] text-black font-bold" x-text="'SKU: ' + (variant.sku || '-')"></div>
                             </div>
                             <div class="text-right">
                                 <div class="text-xs font-black text-blue-600">Rs. <span x-text="formatMoney(variant.retail_price)"></span></div>
-                                <div class="text-[10px] font-bold" :class="variant.stock_quantity <= 0 ? 'text-red-600' : 'text-slate-500'" x-text="'Stock: ' + parseInt(variant.stock_quantity)"></div>
+                                <div class="text-[10px] font-bold" :class="variant.stock_quantity <= 0 ? 'text-red-600' : 'text-black'" x-text="'Stock: ' + parseInt(variant.stock_quantity)"></div>
                             </div>
                         </div>
                     </button>
@@ -495,28 +495,28 @@
 
             <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-850" x-text="activeEditIndex === -1 ? 'Add Product' : 'Edit Cart Item'"></h3>
-                    <p class="text-[10px] text-slate-500 whitespace-normal" x-text="activeEditItem ? activeEditItem.name : ''"></p>
+                    <h3 class="text-sm font-bold text-black" x-text="activeEditIndex === -1 ? 'Add Product' : 'Edit Cart Item'"></h3>
+                    <p class="text-[10px] text-black whitespace-normal" x-text="activeEditItem ? activeEditItem.name : ''"></p>
                 </div>
-                <button @click="showEditItemModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                <button @click="showEditItemModal = false" class="text-black hover:text-black cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
             <div class="space-y-4 text-xs font-bold">
                 <div class="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3">
-                    <div><span class="block text-slate-500">Cost price</span><span x-text="'Rs. ' + formatMoney(activeEditItem?.cost_price || 0)"></span></div>
-                    <div><span class="block text-slate-500">Retail price</span><span class="text-blue-600" x-text="'Rs. ' + formatMoney(activeEditItem?.retail_price ?? activeEditItem?.selling_price ?? 0)"></span></div>
+                    <div><span class="block text-black">Cost price</span><span x-text="'Rs. ' + formatMoney(activeEditItem?.cost_price || 0)"></span></div>
+                    <div><span class="block text-black">Retail price</span><span class="text-blue-600" x-text="'Rs. ' + formatMoney(activeEditItem?.retail_price ?? activeEditItem?.selling_price ?? 0)"></span></div>
                 </div>
                 <!-- Unit Price -->
                 <div>
-                    <label class="block text-slate-500 mb-1">Unit Price (Rs.)</label>
+                    <label class="block text-black mb-1">Unit Price (Rs.)</label>
                     <input type="number" aria-label="Selling price" min="0" step="any" inputmode="decimal" x-model.number="editModalPrice" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold" />
                 </div>
 
                 <!-- Quantity -->
                 <div>
-                    <label class="block text-slate-500 mb-1">Quantity (Stock: <span x-text="activeEditItem ? parseInt(activeEditItem.stock) : 0"></span>)</label>
+                    <label class="block text-black mb-1">Quantity (Stock: <span x-text="activeEditItem ? parseInt(activeEditItem.stock) : 0"></span>)</label>
                     <input type="number" aria-label="Quantity" x-model.number="editModalQty"
                            :max="activeEditItem ? activeEditItem.stock : null"
                            min="1"
@@ -526,7 +526,7 @@
 
                 <!-- Discount Type & Value -->
                 <div>
-                    <label class="block text-slate-500 mb-1">Line Discount</label>
+                    <label class="block text-black mb-1">Line Discount</label>
                     <div class="flex gap-2">
                         <!-- Discount Type Selector -->
                         <select x-model="editModalDiscountType" class="px-2 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none text-xs font-bold">
@@ -538,8 +538,8 @@
                     </div>
                 </div>
 
-                <label class="block text-slate-500">Note
-                    <input type="text" x-model="editModalNote" class="w-full mt-1 rounded-xl border border-slate-200" placeholder="Optional line note">
+                <label class="block text-black">Note
+                    <input type="text" x-model="editModalNote" class="w-full mt-1 rounded-xl border border-slate-900" placeholder="Optional line note">
                 </label>
                 <template x-if="activeEditItem && activeEditItem.serials.length">
                     <label class="block">IMEI / Serial<select x-model="activeEditItem.serial_no" class="w-full rounded-xl border">
@@ -548,12 +548,12 @@
                 </template>
                 <!-- Modal Subtotal preview -->
                 <div class="p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between text-xs font-bold">
-                    <span class="text-slate-650">Line Total:</span>
+                    <span class="text-black">Line Total:</span>
                     <span class="text-blue-600 text-sm font-black">Rs. <span x-text="formatMoney(calculateEditModalLineTotal())"></span></span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
-                    <button @click="showEditItemModal = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
+                    <button @click="showEditItemModal = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-black transition cursor-pointer">Cancel</button>
                     <button @click="saveEditItem()" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg transition cursor-pointer" x-text="activeEditIndex === -1 ? 'Add to Cart' : 'Save Changes'"></button>
                 </div>
             </div>
@@ -567,22 +567,22 @@
 
             <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-850">POS Checkout Split Payments</h3>
-                    <p class="text-[10px] text-slate-400">Complete sale using single or split payment methods</p>
+                    <h3 class="text-sm font-bold text-black">POS Checkout Split Payments</h3>
+                    <p class="text-[10px] text-black">Complete sale using single or split payment methods</p>
                 </div>
-                <button @click="showPaymentPopup = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                <button @click="showPaymentPopup = false" class="text-black hover:text-black cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
             <!-- Grand Total Alert -->
             <div class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between text-xs font-bold">
-                <span class="text-slate-600">Total Payable:</span>
+                <span class="text-black">Total Payable:</span>
                 <span class="text-blue-600 text-lg font-black">Rs. <span x-text="formatMoney(calculateGrandTotal())"></span></span>
             </div>
 
             <div class="space-y-3">
-                <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
+                <div class="flex items-center justify-between"><label class="text-[10px] font-bold text-black uppercase tracking-wider">Payment Allocations</label><button @click="addPaymentRow()" class="text-xs font-bold text-blue-600">+ Add Payment</button></div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <template x-for="pm in [{name: 'Cash', label: 'Cash', shortcut: 'F7'}, {name: 'Bank Transfer', label: 'Bank', shortcut: 'F8'}, {name: 'Cheque', label: 'Cheque', shortcut: 'F9'}, {name: 'Customer Credit / Due', label: 'Due', shortcut: ''}]">
                         <button @click="addPaymentRow(pm.name)" class="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-[10px] font-bold hover:border-blue-400 relative flex items-center justify-center">
@@ -593,15 +593,15 @@
                 </div>
                 <div class="max-h-80 space-y-2 overflow-y-auto pr-1"><template x-for="(row,index) in paymentRows" :key="row.id"><div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <div class="grid grid-cols-1 sm:grid-cols-[1fr_130px_44px] gap-2">
-                        <select x-model="row.method" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs">
+                        <select x-model="row.method" class="rounded-lg border border-slate-900 bg-white px-2 py-2 text-xs">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="Other">Other</option>
                             <option value="Cheque">Cheque</option>
                             <option value="Customer Credit / Due">Customer Credit / Due</option>
                         </select>
-                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="min-h-11 rounded-lg border border-red-200 bg-red-50 text-xl text-red-500" aria-label="Remove payment">×</button></div>
-                    <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
+                        <input type="number" min="0.01" step="0.01" x-model.number="row.amount" class="rounded-lg border border-slate-900 bg-white px-2 py-2 text-right text-xs font-bold"><button @click="removePaymentRow(index)" class="min-h-11 rounded-lg border border-red-200 bg-red-50 text-xl text-red-500" aria-label="Remove payment">×</button></div>
+                    <input x-show="!['Cash','Customer Credit / Due','Cheque'].includes(row.method)" x-model="row.reference_no" class="w-full rounded-lg border border-slate-900 bg-white px-2 py-2 text-xs" placeholder="Reference number / account">
                     <div x-show="row.method === 'Cheque'" class="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2"><input x-model="row.cheque.cheque_number" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Cheque number *"><input type="date" x-model="row.cheque.cheque_date" class="rounded border border-amber-300 px-2 py-2 text-xs"><input x-model="row.cheque.bank_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Bank *"><input x-model="row.cheque.branch_name" class="rounded border border-amber-300 px-2 py-2 text-xs" placeholder="Branch"><input x-model="row.cheque.account_holder" class="rounded border border-amber-300 px-2 py-2 text-xs sm:col-span-2" placeholder="Account holder *"></div>
                 </div></template></div>
             </div>
@@ -609,23 +609,23 @@
             <!-- Total Paid, Balance and Change calculation summaries -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs font-bold mt-5 pt-4 border-t border-slate-100">
                 <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-2.5 text-center">
-                    <span class="block text-[8px] text-slate-400 uppercase tracking-wider mb-1">Total Paid</span>
-                    <span class="text-xs font-black text-slate-800">Rs. <span x-text="formatMoney(calculateSplitTotalPaid())"></span></span>
+                    <span class="block text-[8px] text-black uppercase tracking-wider mb-1">Total Paid</span>
+                    <span class="text-xs font-black text-black">Rs. <span x-text="formatMoney(calculateSplitTotalPaid())"></span></span>
                 </div>
                 <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-2.5 text-center">
-                    <span class="block text-[8px] text-slate-400 uppercase tracking-wider mb-1">Change Due</span>
+                    <span class="block text-[8px] text-black uppercase tracking-wider mb-1">Change Due</span>
                     <span class="text-xs font-black text-emerald-600">Rs. <span x-text="formatMoney(calculateSplitChange())"></span></span>
                 </div>
                 <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-2.5 text-center"
                      :class="calculateSplitRemainingDue() > 0 ? 'bg-red-50/50 border-red-100' : ''">
-                    <span class="block text-[8px] text-slate-400 uppercase tracking-wider mb-1">Due Amount</span>
+                    <span class="block text-[8px] text-black uppercase tracking-wider mb-1">Due Amount</span>
                     <span class="text-xs font-black text-red-600">Rs. <span x-text="formatMoney(calculateSplitRemainingDue())"></span></span>
                 </div>
             </div>
 
             <!-- Submit details button -->
             <div class="grid grid-cols-2 gap-3 text-xs font-bold mt-6">
-                <button @click="showPaymentPopup = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
+                <button @click="showPaymentPopup = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-black transition cursor-pointer">Cancel</button>
                 <button @click="submitPOSCheckout()"
                         class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition cursor-pointer flex items-center justify-center gap-1.5"
 
@@ -643,10 +643,10 @@
 
             <div class="border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-850">Hold Invoices Queue</h3>
-                    <p class="text-[10px] text-slate-400">Recall transactions back into the active checkout cart</p>
+                    <h3 class="text-sm font-bold text-black">Hold Invoices Queue</h3>
+                    <p class="text-[10px] text-black">Recall transactions back into the active checkout cart</p>
                 </div>
-                <button @click="showHoldSalesModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                <button @click="showHoldSalesModal = false" class="text-black hover:text-black cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -656,23 +656,23 @@
                 <template x-for="hold in holdSales" :key="hold.id">
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-4">
                         <div class="space-y-1">
-                            <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <div class="text-xs font-bold text-black flex items-center gap-1.5">
                                 <span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wide">Held</span>
                                 <span>Ref: <span x-text="hold.reference_no"></span></span>
                             </div>
-                            <p class="text-[10px] text-slate-500 font-semibold">
+                            <p class="text-[10px] text-black font-semibold">
                                 <span x-text="hold.customer_name"></span> &bull; <span x-text="hold.hold_date"></span>
                             </p>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span class="text-xs font-black text-slate-800">Rs. <span x-text="formatMoney(hold.total_amount)"></span></span>
+                            <span class="text-xs font-black text-black">Rs. <span x-text="formatMoney(hold.total_amount)"></span></span>
                             <button @click="resumeHoldFromQueue(hold)" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer">Recall</button>
                         </div>
                     </div>
                 </template>
                 <template x-if="holdSales.length === 0">
-                    <div class="py-12 text-center text-slate-400 font-semibold text-xs flex flex-col items-center justify-center gap-2">
-                        <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div class="py-12 text-center text-black font-semibold text-xs flex flex-col items-center justify-center gap-2">
+                        <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <span>No transactions currently on hold.</span>
                     </div>
                 </template>
@@ -687,10 +687,10 @@
 
             <div class="border-b border-slate-100 pb-3.5 mb-4 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-850">Add Retail Customer</h3>
-                    <p class="text-[10px] text-slate-400">Quick-create customer details</p>
+                    <h3 class="text-sm font-bold text-black">Add Retail Customer</h3>
+                    <p class="text-[10px] text-black">Quick-create customer details</p>
                 </div>
-                <button @click="showAddCustomerModal = false" class="text-slate-400 hover:text-white cursor-pointer">
+                <button @click="showAddCustomerModal = false" class="text-black hover:text-white cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -698,20 +698,20 @@
             <!-- Inputs -->
             <div class="space-y-4 text-xs font-bold">
                 <div>
-                    <label class="block text-slate-500 mb-1">Customer Name *</label>
+                    <label class="block text-black mb-1">Customer Name *</label>
                     <input type="text" x-model="newCustName" required placeholder="e.g. John Doe" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none" />
                 </div>
                 <div>
-                    <label class="block text-slate-500 mb-1">Mobile / Phone</label>
+                    <label class="block text-black mb-1">Mobile / Phone</label>
                     <input type="tel" x-model="newCustPhone" placeholder="e.g. 0771234567" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none" />
                 </div>
                 <div>
-                    <label class="block text-slate-500 mb-1">Email Address</label>
+                    <label class="block text-black mb-1">Email Address</label>
                     <input type="email" x-model="newCustEmail" placeholder="e.g. john@example.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl focus:outline-none" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
-                    <button @click="showAddCustomerModal = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition cursor-pointer">Cancel</button>
+                    <button @click="showAddCustomerModal = false" class="py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-black transition cursor-pointer">Cancel</button>
                     <button @click="submitQuickCustomer()" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg transition cursor-pointer">Save Customer</button>
                 </div>
             </div>
@@ -727,16 +727,16 @@
                 <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <h3 class="text-base font-black text-slate-800 leading-none">Checkout Successful</h3>
-                <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">Invoice registered successfully</p>
+                <h3 class="text-base font-black text-black leading-none">Checkout Successful</h3>
+                <p class="text-[10px] text-black mt-1 uppercase font-bold tracking-wider">Invoice registered successfully</p>
             </div>
 
             <!-- Receipt layout inside modal -->
-            <div class="my-4 bg-slate-50 border border-slate-200/50 rounded-2xl p-4 font-mono text-[10px] text-slate-700 space-y-3 max-h-[300px] overflow-y-auto leading-relaxed" id="receipt-print-area">
+            <div class="my-4 bg-slate-50 border border-slate-200/50 rounded-2xl p-4 font-mono text-[10px] text-black space-y-3 max-h-[300px] overflow-y-auto leading-relaxed" id="receipt-print-area">
                 <div class="text-center">
-                    <h4 class="font-extrabold text-xs text-slate-900 uppercase">{{ \App\Support\SystemSettings::get('business_name', 'Phone Shop POS', 'business_settings') }}</h4>
-                    <p class="text-[9px] text-slate-500 leading-tight">Retail POS & Accessories System</p>
-                    <p class="text-[8px] text-slate-500">{{ \App\Support\SystemSettings::get('business_address', '', 'business_settings') }} {{ \App\Support\SystemSettings::get('business_phone', '', 'business_settings') }}</p>
+                    <h4 class="font-extrabold text-xs text-black uppercase">{{ \App\Support\SystemSettings::get('business_name', 'Phone Shop POS', 'business_settings') }}</h4>
+                    <p class="text-[9px] text-black leading-tight">Retail POS & Accessories System</p>
+                    <p class="text-[8px] text-black">{{ \App\Support\SystemSettings::get('business_address', '', 'business_settings') }} {{ \App\Support\SystemSettings::get('business_phone', '', 'business_settings') }}</p>
                 </div>
 
                 <div class="border-t border-dashed border-slate-300 pt-2 space-y-0.5">
@@ -746,7 +746,7 @@
                     <p><strong>Customer:</strong> <span x-text="successData ? successData.customer : ''"></span></p>
                 </div>
 
-                <table class="w-full border-t border-dashed border-slate-300 pt-2 text-left">
+                <table class="w-full border-t border-dashed border-slate-200 pt-2 text-left">
                     <thead>
                         <tr class="font-bold border-b border-slate-200 pb-1">
                             <th>Item</th>
@@ -760,7 +760,7 @@
                                 <td class="py-1">
                                     <span x-text="item.name"></span>
                                     <template x-if="item.serial_no">
-                                        <span class="block text-[8px] text-slate-500 font-bold" x-text="'IMEI: ' + item.serial_no"></span>
+                                        <span class="block text-[8px] text-black font-bold" x-text="'IMEI: ' + item.serial_no"></span>
                                     </template>
                                 </td>
                                 <td class="text-center py-1" x-text="item.quantity"></td>
@@ -779,7 +779,7 @@
                         <span>Discount:</span>
                         <span x-text="'-Rs. ' + formatMoney(successData ? successData.discount : 0)"></span>
                     </div>
-                    <div class="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1">
+                    <div class="flex justify-between font-bold text-black border-t border-slate-200 pt-1">
                         <span>Total Payable:</span>
                         <span x-text="'Rs. ' + formatMoney(successData ? successData.payable : 0)"></span>
                     </div>
@@ -793,14 +793,14 @@
                                         <span x-text="'Rs. ' + formatMoney(row.amount)"></span>
                                     </div>
                                     <template x-if="row.method === 'Cheque'">
-                                        <div class="text-[9px] text-slate-500 text-left mt-0.5 leading-tight">
+                                        <div class="text-[9px] text-black text-left mt-0.5 leading-tight">
                                             <span x-text="'Chq No: ' + (row.cheque?.cheque_number || 'N/A')"></span><br>
                                             <span x-text="'Date: ' + (row.cheque?.cheque_date || 'N/A')"></span><br>
                                             <span x-text="'Bank: ' + (row.cheque?.bank_name || 'N/A')"></span>
                                         </div>
                                     </template>
                                     <template x-if="row.method === 'Bank Transfer' && row.reference_number">
-                                        <div class="text-[9px] text-slate-500 text-left mt-0.5">
+                                        <div class="text-[9px] text-black text-left mt-0.5">
                                             <span x-text="'Ref: ' + row.reference_number"></span>
                                         </div>
                                     </template>
@@ -825,7 +825,7 @@
                     </template>
                 </div>
 
-                <div class="text-center border-t border-dashed border-slate-300 pt-2 mt-2 text-[8px] text-slate-400">
+                <div class="text-center border-t border-dashed border-slate-300 pt-2 mt-2 text-[8px] text-black">
                     <p>Thank you for shopping with us!</p>
                     <p class="font-extrabold uppercase mt-1 text-[7px] tracking-wider">Powered by {{ config('app.developer.name', 'twinsofte.com') }}</p>
                 </div>
@@ -838,7 +838,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2m-2-9v10H8V9"/></svg>
                         <span>Print A4 Invoice</span>
                     </button>
-                    <button @click="showSuccessModal = false" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer">
+                    <button @click="showSuccessModal = false" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-black rounded-xl transition cursor-pointer">
                         Close Preview
                     </button>
                 </div>
@@ -1434,6 +1434,7 @@
                     this.globalDiscountType = 'fixed';
                     this.globalDiscountValue = 0;
                     this.shippingCost = 0;
+                    this.recalculateCartTotals();
                 },
 
                 recallHeldSale(hold, fromServer = false) {
@@ -1453,6 +1454,7 @@
                     }
 
                     this.showHoldSalesModal = false;
+                    this.recalculateCartTotals();
                 },
 
                 resumeHoldFromQueue(hold) {
@@ -1639,6 +1641,8 @@
                             this.globalDiscountValue = 0;
                             this.shippingCost = 0;
                             this.currentHoldId = null;
+                            this.editSale = null;
+                            this.resumeHold = null;
                             this.showPaymentPopup = false;
                             this.recalculateCartTotals();
 
@@ -1670,6 +1674,7 @@
                     const url = new URL(window.location.href);
                     url.searchParams.delete('edit_sale_id');
                     url.searchParams.delete('hold_id');
+                    window.history.replaceState(window.history.state, '', url);
                     fetch(url, { headers: { 'Accept': 'application/json' } })
                         .then(response => {
                             if (!response.ok) throw new Error('Stock refresh failed');

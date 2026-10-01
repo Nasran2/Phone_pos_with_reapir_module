@@ -9,7 +9,7 @@
     }
 @endphp
 
-<footer class="mt-auto border-t border-slate-200 bg-white px-6 py-4 text-[11px] font-semibold text-slate-500">
+<footer class="mt-auto border-t border-slate-200 bg-white px-6 py-4 text-[11px] font-semibold text-black">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <span>&copy; {{ now()->year }} {{ \App\Support\SystemSettings::get('system_name', config('app.name', 'Phone Shop POS'), 'business_settings') }}. All rights reserved.</span>
         <span>
@@ -17,10 +17,10 @@
             @if($developerUrl)
                 <a href="{{ $developerUrl }}" target="_blank" rel="noopener" class="font-extrabold text-blue-600 hover:text-blue-700 hover:underline">{{ $developerName }}</a>
             @else
-                <span class="font-extrabold text-slate-700">{{ $developerName }}</span>
+                <span class="font-extrabold text-black">{{ $developerName }}</span>
             @endif
             @if($developerPhone)
-                <span class="text-slate-300">|</span> {{ $developerPhone }}
+                <span class="text-black">|</span> {{ $developerPhone }}
             @endif
         </span>
     </div>

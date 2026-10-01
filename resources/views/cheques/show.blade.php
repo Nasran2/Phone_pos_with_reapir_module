@@ -1,8 +1,8 @@
 <x-layouts::app :title="$cheque->cheque_reference">
     <div class="flex h-16 items-center justify-between border-b border-slate-200 bg-white/70 backdrop-blur-xl px-6 sticky top-0 z-10">
         <div>
-            <h1 class="text-xl font-black text-slate-900 tracking-tight">{{ $cheque->cheque_reference }}</h1>
-            <p class="text-xs font-semibold text-slate-500 flex items-center gap-2 mt-0.5">
+            <h1 class="text-xl font-black text-black tracking-tight">{{ $cheque->cheque_reference }}</h1>
+            <p class="text-xs font-semibold text-black flex items-center gap-2 mt-0.5">
                 <span>Cheque #{{ $cheque->cheque_number }}</span>
                 <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
                 <span>{{ ucfirst($cheque->cheque_type) }}</span>
@@ -28,7 +28,7 @@
                         <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         </div>
-                        <h2 class="text-lg font-extrabold text-slate-800">Cheque Details</h2>
+                        <h2 class="text-lg font-extrabold text-black">Cheque Details</h2>
                     </div>
 
                     <dl class="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -45,15 +45,15 @@
                             ['Source Lorry', $cheque->lorry_id ? ($cheque->lorry->lorry_no ?? 'Lorry ' . $cheque->lorry_id) : '-']
                         ] as $d)
                             <div class="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50">
-                                <dt class="text-[10px] font-black tracking-wider uppercase text-slate-400">{{ $d[0] }}</dt>
-                                <dd class="mt-1.5 text-sm font-extrabold text-slate-800">{{ $d[1] }}</dd>
+                                <dt class="text-[10px] font-black tracking-wider uppercase text-black">{{ $d[0] }}</dt>
+                                <dd class="mt-1.5 text-sm font-extrabold text-black">{{ $d[1] }}</dd>
                             </div>
                         @endforeach
                     </dl>
 
                     @if($cheque->attachment_path)
                         <div class="mt-8 pt-6 border-t border-slate-100">
-                            <a target="_blank" href="{{ asset('storage/'.$cheque->attachment_path) }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-bold text-slate-700 transition">
+                            <a target="_blank" href="{{ asset('storage/'.$cheque->attachment_path) }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-bold text-black transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                                 View Attachment
                             </a>
@@ -64,8 +64,8 @@
                 <!-- Activity Timeline -->
                 <div class="rounded-3xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
                     <div class="bg-slate-50/80 border-b border-slate-200/60 p-5 px-6">
-                        <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h2 class="text-sm font-extrabold text-black flex items-center gap-2">
+                            <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             Activity Timeline
                         </h2>
                     </div>
@@ -84,9 +84,9 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-bold text-slate-800">{{ ucwords(str_replace('_',' ',$log->action_type)) }}</p>
-                                    <p class="text-sm text-slate-500 mt-0.5">{{ $log->note }}</p>
-                                    <p class="mt-2 flex items-center gap-2 text-[10px] font-semibold text-slate-400 tracking-wide uppercase">
+                                    <p class="text-sm font-bold text-black">{{ ucwords(str_replace('_',' ',$log->action_type)) }}</p>
+                                    <p class="text-sm text-black mt-0.5">{{ $log->note }}</p>
+                                    <p class="mt-2 flex items-center gap-2 text-[10px] font-semibold text-black tracking-wide uppercase">
                                         <span>{{ $log->created_at?->format('Y-m-d h:i A') }}</span>
                                         <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
                                         <span>{{ $log->user?->name ?? 'System' }}</span>
@@ -94,7 +94,7 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="p-8 text-center text-sm font-medium text-slate-400">
+                            <div class="p-8 text-center text-sm font-medium text-black">
                                 No activity recorded yet.
                             </div>
                         @endforelse

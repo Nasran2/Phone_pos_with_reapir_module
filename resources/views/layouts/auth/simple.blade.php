@@ -16,7 +16,7 @@
                     {{ $slot }}
                 </div>
             </div>
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{{ \App\Support\SystemSettings::get('system_name','Phone Shop POS','business_settings') }} · Secure Account Access</p>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-black">{{ \App\Support\SystemSettings::get('system_name','Phone Shop POS','business_settings') }} · Secure Account Access</p>
         </div>
 
         <style>input:not([type=checkbox]):not([type=radio]){border:1.5px solid #cbd5e1!important;background:#fff!important;border-radius:.6rem!important;min-height:46px!important}input:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,.14)!important}button[type=submit]{background:#2563eb!important;color:#fff!important;border-radius:.6rem!important;min-height:46px!important;font-weight:700!important}button[type=submit]:hover{background:#1d4ed8!important}</style>

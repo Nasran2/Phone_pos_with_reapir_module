@@ -9,7 +9,7 @@
     </script>
     <!-- Alpine.js (standard Laravel helper or lightweight CDN if needed, but simple vanilla JS is loaded easily) -->
 </head>
-<body class="app-shell min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased font-sans flex flex-col lg:flex-row overflow-x-hidden">
+<body class="app-shell min-h-screen bg-slate-50 dark:bg-slate-900 text-black dark:text-black antialiased font-sans flex flex-col lg:flex-row overflow-x-hidden">
     @php
         $reportPermissions = [
             'reports.view',
@@ -106,7 +106,7 @@
     </aside>
     @else
     <!-- Desktop Sidebar (Hidden on mobile) -->
-    <aside class="w-64 bg-[#0c1630] text-slate-300 flex flex-col border-r border-[#182647] h-screen max-h-screen overflow-hidden sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
+    <aside class="w-64 bg-[#0c1630] text-slate-400 flex flex-col border-r border-[#182647] h-screen max-h-screen overflow-hidden sticky top-0 left-0 hidden lg:flex shrink-0 z-40">
         <!-- Brand Logo Header -->
         <div class="flex items-center gap-3 px-6 py-5 border-b border-[#182647] bg-[#091024] shrink-0">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 shrink-0 overflow-hidden">
@@ -155,7 +155,7 @@
                             </svg>
                             <span>User Management</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('activity-logs.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('activity-logs.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -186,7 +186,7 @@
                             </svg>
                             <span>Products</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock-adjustments.*') || request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock-adjustments.*') || request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('brands.*') || request()->routeIs('units.*') || request()->routeIs('hs-codes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -214,7 +214,7 @@
                             </svg>
                             <span>Purchase</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') || request()->routeIs('import-shipments.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-returns.*') || request()->routeIs('import-shipments.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -238,7 +238,7 @@
                             </svg>
                             <span>Sales</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('sales.*') || request()->routeIs('sales-returns.*') || request()->routeIs('hold-sales.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('sales.*') || request()->routeIs('sales-returns.*') || request()->routeIs('hold-sales.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -284,7 +284,7 @@
                             </svg>
                             <span>Distribution</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ $isDistributionActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ $isDistributionActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -308,7 +308,7 @@
                             </svg>
                             <span>Store Stock</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock.index') || request()->routeIs('damaged-stocks.*') || request()->routeIs('stock-transfers.*') || request()->routeIs('barcodes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock.index') || request()->routeIs('damaged-stocks.*') || request()->routeIs('stock-transfers.*') || request()->routeIs('barcodes.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -337,7 +337,7 @@
                             </svg>
                             <span>Stock Adjustments</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock-adjustments.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('stock-adjustments.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -361,7 +361,7 @@
                             </svg>
                             <span>Expenses</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('accounting.expenses.*') || request()->routeIs('accounting.expense-categories.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('accounting.expenses.*') || request()->routeIs('accounting.expense-categories.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -383,7 +383,7 @@
                             </svg>
                             <span>Accounting</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('accounting.*') && !request()->routeIs('accounting.expenses.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('accounting.*') && !request()->routeIs('accounting.expenses.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -409,7 +409,7 @@
                 <div>
                     <button onclick="toggleSubmenu(this)" class="group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition hover:bg-[#182647] hover:text-white {{ request()->routeIs('cheques.*') ? 'bg-[#182647]/50 text-white' : '' }}">
                         <div class="flex items-center gap-3"><svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h6M7 14h3M16 13l1.5 1.5L20 12"/></svg><span>Cheque Management</span>@if($chequeBadge)<span class="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-bold text-white">{{ $chequeBadge }}</span>@endif</div>
-                        <svg class="chevron-icon h-4 w-4 text-slate-500 {{ request()->routeIs('cheques.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                        <svg class="chevron-icon h-4 w-4 text-slate-400 {{ request()->routeIs('cheques.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div class="mt-0.5 space-y-1 rounded-lg bg-[#091024]/40 py-1 pl-10 pr-2 {{ request()->routeIs('cheques.*') ? '' : 'hidden' }}">
                         <a href="{{ route('cheques.dashboard') }}" class="block py-2 text-xs {{ request()->routeIs('cheques.dashboard')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Cheque Dashboard</a>
@@ -431,7 +431,7 @@
                             </svg>
                             <span>Tax Management</span>
                         </div>
-                        <svg class="chevron-icon h-4 w-4 text-slate-500 {{ request()->routeIs('tax.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                        <svg class="chevron-icon h-4 w-4 text-slate-400 {{ request()->routeIs('tax.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div class="mt-0.5 space-y-1 rounded-lg bg-[#091024]/40 py-1 pl-10 pr-2 {{ request()->routeIs('tax.*') ? '' : 'hidden' }}">
                         <a href="{{ route('tax.dashboard') }}" class="block py-2 text-xs {{ request()->routeIs('tax.dashboard')?'font-semibold text-blue-400':'text-slate-400 hover:text-white' }}">Tax Dashboard</a>
@@ -452,7 +452,7 @@
                             <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v1a3 3 0 106 0v-1m-6 0a3 3 0 006 0m-6 0V9a3 3 0 013-3v0a3 3 0 013 3v8M5 21h14M5 21a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5z"></path></svg>
                             <span>Reports</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="{{ request()->routeIs('reports.*') ? '' : 'hidden' }} mt-1 space-y-1 pl-11">
                         @include('layouts.app.partials.reports-nav')
@@ -480,7 +480,7 @@
                             </svg>
                             <span>Settings</span>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ $isSettingsActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ $isSettingsActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </button>
@@ -541,7 +541,7 @@
                             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                         </svg>
                     </button>
-                    <div id="user-menu-dropdown" class="hidden absolute bottom-12 right-0 w-48 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl py-2 z-50 text-slate-700 dark:text-slate-200">
+                    <div id="user-menu-dropdown" class="hidden absolute bottom-12 right-0 w-48 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl py-2 z-50 text-black dark:text-black">
                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2.5 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-900 transition flex items-center gap-2">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -567,7 +567,7 @@
     <!-- Mobile Navigation Top Bar (Hidden on desktop) -->
     <header class="mobile-topbar w-full bg-[#0c1630] border-b border-[#182647] flex items-center justify-between px-3 py-2.5 text-white lg:hidden z-40 sticky top-0 shrink-0">
         <div class="flex min-w-0 items-center gap-2.5">
-            <button id="mobile-menu-button" type="button" onclick="toggleMobileSidebar(true)" class="mobile-touch-button text-slate-300 hover:text-white focus:outline-none cursor-pointer" aria-label="Open navigation menu" aria-controls="mobile-sidebar" aria-expanded="false">
+            <button id="mobile-menu-button" type="button" onclick="toggleMobileSidebar(true)" class="mobile-touch-button text-slate-400 hover:text-white focus:outline-none cursor-pointer" aria-label="Open navigation menu" aria-controls="mobile-sidebar" aria-expanded="false">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
@@ -607,14 +607,14 @@
                 <!-- Nav Links replicated inside mobile panel -->
                 <nav class="p-4 space-y-1">
                     @if (auth()->user()->hasPermission('dashboard.view'))
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/10' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/10' : 'text-slate-400 hover:bg-[#182647] hover:text-white' }}">
                         <span>Dashboard</span>
                     </a>
                     @endif
 
                     @if (auth()->user()->hasPermission('users.view') || auth()->user()->hasPermission('roles.view') || auth()->user()->hasPermission('permissions.view') || auth()->user()->hasPermission('activity_logs.view'))
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">User Management</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">User Management</span>
                         <div class="mt-1 space-y-1 pl-3 max-h-[44vh] overflow-y-auto custom-scrollbar">
                             @if (auth()->user()->hasPermission('users.view'))
                             <a href="{{ route('users.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('users.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Users</a>
@@ -634,7 +634,7 @@
 
                     @if (auth()->user()->hasPermission('products.view'))
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Products</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Products</span>
                         <div class="mt-1 space-y-1 pl-3">
                             <a href="{{ route('products.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('products.index') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">All Products</a>
                         @if(auth()->user()->hasPermission('stock.adjustment.view'))
@@ -649,7 +649,7 @@
 
                     @if (($moduleSettings['retail_sales'] || $moduleSettings['wholesale_sales']) && auth()->user()->hasPermission('sales.view'))
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sales</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sales</span>
                         <div class="mt-1 space-y-1 pl-3">
                             <a href="{{ route('sales.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('sales.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Sales Ledger</a>
                             @if (auth()->user()->hasPermission('sales_return.view'))
@@ -664,7 +664,7 @@
 
                     @if ($moduleSettings['purchase'] && auth()->user()->hasPermission('purchase.view'))
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Purchase</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Purchase</span>
                         <div class="mt-1 space-y-1 pl-3">
                             <a href="{{ route('purchases.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('purchases.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Purchases</a>
                             @if (auth()->user()->hasPermission('purchase.return'))
@@ -676,7 +676,7 @@
 
                     @if ($moduleSettings['stock'] && auth()->user()->hasPermission('stock.view'))
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Store Stock</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Store Stock</span>
                         <div class="mt-1 space-y-1 pl-3">
                             <a href="{{ route('stock.index') }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('stock.index') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">Current Stock</a>
                             @if (auth()->user()->hasPermission('stock.adjustment.view'))
@@ -690,15 +690,15 @@
                     @endif
 
                     @if (auth()->user()->hasPermission('customers.view'))
-                    <a href="{{ route('customers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('customers.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Customers</a>
+                    <a href="{{ route('customers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('customers.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:bg-[#182647] hover:text-white' }}">Customers</a>
                     @endif
                     @if (auth()->user()->hasPermission('suppliers.view'))
-                    <a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('suppliers.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Suppliers</a>
+                    <a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('suppliers.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:bg-[#182647] hover:text-white' }}">Suppliers</a>
                     @endif
 
                     @if ($canAccessDistribution)
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Distribution</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Distribution</span>
                         <div class="mt-1 space-y-1 pl-3 max-h-[44vh] overflow-y-auto custom-scrollbar">
                             @foreach ($distributionMenu as $item)
                                 @if (auth()->user()->hasPermission($item['permission']))
@@ -710,33 +710,33 @@
                     @endif
 
                     @if ($moduleSettings['expense'] && (auth()->user()->hasPermission('expenses.view') || auth()->user()->hasPermission('reports.expense')))
-                    <a href="{{ route('accounting.expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('accounting.expenses.*') ? 'text-white bg-[#182647]' : 'text-slate-350 hover:bg-[#182647] hover:text-white' }}">Expenses</a>
+                    <a href="{{ route('accounting.expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('accounting.expenses.*') ? 'text-white bg-[#182647]' : 'text-slate-400 hover:bg-[#182647] hover:text-white' }}">Expenses</a>
                     @endif
 
                     @if ($canAccessCheques)
-                    <div class="py-1"><span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Cheque Management @if($chequeBadge) ({{ $chequeBadge }}) @endif</span><div class="mt-1 space-y-1 pl-3"><a href="{{ route('cheques.dashboard') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Dashboard</a><a href="{{ route('cheques.received.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Received</a><a href="{{ route('cheques.issued.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Issued</a><a href="{{ route('cheques.list','upcoming') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Upcoming</a><a href="{{ route('cheques.list','overdue') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Overdue</a><a href="{{ route('cheques.calendar') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Calendar</a><a href="{{ route('cheques.reports') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Reports</a></div></div>
+                    <div class="py-1"><span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Cheque Management @if($chequeBadge) ({{ $chequeBadge }}) @endif</span><div class="mt-1 space-y-1 pl-3"><a href="{{ route('cheques.dashboard') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Dashboard</a><a href="{{ route('cheques.received.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Received</a><a href="{{ route('cheques.issued.index') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Issued</a><a href="{{ route('cheques.list','upcoming') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Upcoming</a><a href="{{ route('cheques.list','overdue') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Overdue</a><a href="{{ route('cheques.calendar') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Calendar</a><a href="{{ route('cheques.reports') }}" class="block rounded px-3 py-1.5 text-xs text-slate-400 hover:text-white">Reports</a></div></div>
                     @endif
 
                     @if($moduleSettings['accounting'] && auth()->user()->hasPermission('accounting.view'))
-                    <div class="py-1"><span class="px-3 text-xs font-bold text-slate-500">Accounting</span><div class="pl-3">
+                    <div class="py-1"><span class="px-3 text-xs font-bold text-slate-400">Accounting</span><div class="pl-3">
                         @foreach(['accounting.accounts.index' => 'Accounts', 'accounting.journal-entries.index' => 'Journal', 'accounting.ledger.index' => 'Ledger / Cash Book', 'accounting.capital-drawings.index' => 'Capital & Drawings'] as $navRoute => $navLabel)
-                        <a href="{{ route($navRoute) }}" class="rounded px-3 text-xs {{ request()->routeIs($navRoute) ? 'bg-blue-600 text-white' : 'text-slate-300' }}">{{ $navLabel }}</a>
+                        <a href="{{ route($navRoute) }}" class="rounded px-3 text-xs {{ request()->routeIs($navRoute) ? 'bg-blue-600 text-white' : 'text-slate-400' }}">{{ $navLabel }}</a>
                         @endforeach
                     </div></div>
                     @endif
                     <div class="py-1">
                         @foreach(['tax.dashboard' => ['tax_dashboard.view', 'Tax Dashboard'], 'tax.periods.index' => ['tax_periods.view', 'Tax Periods'], 'tax.payments.index' => ['tax_payments.view', 'Tax Payments'], 'tax.transactions.index' => ['tax_transactions.view', 'Tax Transactions'], 'tax.reports.index' => ['tax_reports.view', 'Tax Reports']] as $navRoute => [$navPermission, $navLabel])
-                            @if(auth()->user()->hasPermission($navPermission))<a href="{{ route($navRoute) }}" class="rounded px-3 text-xs {{ request()->routeIs($navRoute) ? 'bg-blue-600 text-white' : 'text-slate-300' }}">{{ $navLabel }}</a>@endif
+                            @if(auth()->user()->hasPermission($navPermission))<a href="{{ route($navRoute) }}" class="rounded px-3 text-xs {{ request()->routeIs($navRoute) ? 'bg-blue-600 text-white' : 'text-slate-400' }}">{{ $navLabel }}</a>@endif
                         @endforeach
                     </div>
                     @if ($canAccessReports)
                     <div>
-                        <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('reports.*') ? 'bg-[#182647]/50 text-white' : 'text-slate-350' }}">
+                        <button onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-[#182647] hover:text-white transition group focus:outline-none {{ request()->routeIs('reports.*') ? 'bg-[#182647]/50 text-white' : 'text-slate-400' }}">
                             <div class="flex items-center gap-3">
                                 <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v1a3 3 0 106 0v-1m-6 0a3 3 0 006 0m-6 0V9a3 3 0 013-3v0a3 3 0 013 3v8M5 21h14M5 21a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5z"></path></svg>
                                 <span>Reports</span>
                             </div>
-                            <svg class="w-4 h-4 text-slate-500 group-hover:text-white transition chevron-icon {{ request()->routeIs('reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition chevron-icon {{ request()->routeIs('reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
                         <div class="{{ request()->routeIs('reports.*') ? '' : 'hidden' }} mt-1 space-y-1 pl-11">
                             @include('layouts.app.partials.reports-nav')
@@ -746,7 +746,7 @@
 
                     @if ($canAccessSettings)
                     <div class="py-1">
-                        <span class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Settings</span>
+                        <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Settings</span>
                         <div class="mt-1 space-y-1 pl-3">
                             @foreach ($settingsSections as $section)
                             <a href="{{ route('settings.' . $section['route']) }}" class="block py-1.5 px-3 rounded text-xs font-medium {{ request()->routeIs('settings.' . $section['route']) ? 'text-white bg-[#182647]' : 'text-slate-400 hover:text-white' }}">{{ $section['label'] }}</a>
@@ -789,7 +789,7 @@
             const chevron = button.querySelector('.chevron-icon');
             const opening = submenu.classList.contains('hidden');
             button.closest('nav')?.querySelectorAll('button[onclick="toggleSubmenu(this)"]').forEach(other => {
-                if (other !== button) {
+                if (other !== button && (!other.nextElementSibling || !other.nextElementSibling.contains(button))) {
                     other.nextElementSibling?.classList.add('hidden');
                     other.querySelector('.chevron-icon')?.classList.remove('rotate-180');
                     other.setAttribute('aria-expanded', 'false');

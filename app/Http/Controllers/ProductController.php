@@ -15,6 +15,7 @@ use App\Models\StockHistory;
 use App\Models\Store;
 use App\Models\TaxRate;
 use App\Models\Unit;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -31,14 +32,26 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        $defaultStoreId = (int) Setting::get('default_store_id', 1);
         $storeIds = $request->input('store_ids', []);
         if ($request->filled('store_id')) {
             // Fallback for older links using single store_id
             $storeIds = [$request->input('store_id')];
         }
 
-        $query = Product::with(['category', 'brand', 'unit', 'variants', 'serials', 'storeStocks' => function ($q) use ($storeIds) {
+        $query = Product::with(['category', 'brand', 'unit', 'variants' => function ($q) {
+            $q->select('product_variants.*')->selectSub(
+                $this->heldStockQuery()->whereColumn('sale_items.variant_id', 'product_variants.id'),
+                'held_quantity',
+            );
+        }, 'serials', 'storeStocks' => function ($q) use ($storeIds, $defaultStoreId) {
             $q->with('store');
+            $q->select('product_store_stock.*')->selectSub(
+                $this->heldStockQuery()->whereNull('sale_items.variant_id')
+                    ->whereColumn('sale_items.product_id', 'product_store_stock.product_id')
+                    ->whereRaw('COALESCE(sales.store_id, ?) = product_store_stock.store_id', [$defaultStoreId]),
+                'held_quantity',
+            );
             if (! empty($storeIds)) {
                 $q->whereIn('store_id', $storeIds);
             }
@@ -47,9 +60,17 @@ class ProductController extends Controller
         $stockSubquery = DB::table('product_store_stock')
             ->selectRaw('COALESCE(SUM(quantity), 0)')
             ->whereColumn('product_id', 'products.id');
+        $heldSubquery = $this->heldStockQuery()->whereNull('sale_items.variant_id')
+            ->whereColumn('sale_items.product_id', 'products.id');
 
         if (! empty($storeIds)) {
             $stockSubquery->whereIn('store_id', $storeIds);
+            $heldSubquery->where(function ($q) use ($storeIds, $defaultStoreId) {
+                $q->whereIn('sales.store_id', $storeIds);
+                if (in_array($defaultStoreId, $storeIds)) {
+                    $q->orWhereNull('sales.store_id');
+                }
+            });
 
             // Only show products assigned to at least one of the selected stores
             $query->whereHas('storeStocks', function ($q) use ($storeIds) {
@@ -58,6 +79,7 @@ class ProductController extends Controller
         }
 
         $query->selectSub($stockSubquery, 'current_stock');
+        $query->selectSub($heldSubquery, 'held_stock');
 
         // Search in Name, SKU, Barcode or Serial
         if ($request->filled('search')) {
@@ -94,6 +116,15 @@ class ProductController extends Controller
         }
 
         $products = $query->latest()->paginate(10)->withQueryString();
+        foreach ($products as $product) {
+            $product->setAttribute('available_stock', (float) $product->current_stock - (float) $product->held_stock);
+            foreach ($product->storeStocks as $stock) {
+                $stock->setAttribute('available_quantity', (float) $stock->quantity - (float) $stock->held_quantity);
+            }
+            foreach ($product->variants as $variant) {
+                $variant->setAttribute('available_quantity', (float) $variant->stock_quantity - (float) $variant->held_quantity);
+            }
+        }
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
@@ -101,6 +132,18 @@ class ProductController extends Controller
         $taxProfiles = TaxRate::where('is_active', true)->orderBy('name')->get();
 
         return view('products.index', compact('products', 'categories', 'brands', 'units', 'stores', 'taxProfiles'));
+    }
+
+    private function heldStockQuery(): Builder
+    {
+        return DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->selectRaw('COALESCE(SUM(sale_items.quantity), 0)')
+            ->whereNull('sales.stock_deducted_at')
+            ->whereIn('sales.status', ['final', 'completed'])
+            ->where(function ($query) {
+                $query->where('sales.source_type', 'store')->orWhereNull('sales.source_type');
+            });
     }
 
     /**

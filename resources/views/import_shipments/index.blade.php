@@ -1,8 +1,8 @@
 <x-layouts::app title="Import Shipments">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Import Shipments</h1>
-            <p class="text-sm text-slate-500">Manage foreign supplier invoices, shipments and landed costs.</p>
+            <h1 class="text-2xl font-bold text-black">Import Shipments</h1>
+            <p class="text-sm text-black">Manage foreign supplier invoices, shipments and landed costs.</p>
         </div>
         <a href="{{ route('import-shipments.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -26,29 +26,29 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date & Ref</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Supplier</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Foreign Total</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Landed Cost (LKR)</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
-                        <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Action</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider">Date & Ref</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider">Supplier</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider text-right">Foreign Total</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider text-right">Landed Cost (LKR)</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider text-center">Status</th>
+                        <th class="p-4 text-xs font-bold text-black uppercase tracking-wider text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($shipments as $shipment)
                         <tr class="hover:bg-slate-50 transition-colors">
                             <td class="p-4">
-                                <div class="font-bold text-slate-900 text-sm">{{ $shipment->reference_no }}</div>
-                                <div class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($shipment->shipment_date)->format('M d, Y') }}</div>
+                                <div class="font-bold text-black text-sm">{{ $shipment->reference_no }}</div>
+                                <div class="text-xs text-black">{{ \Carbon\Carbon::parse($shipment->shipment_date)->format('M d, Y') }}</div>
                             </td>
                             <td class="p-4">
-                                <div class="text-sm font-medium text-slate-700">{{ $shipment->supplier->name }}</div>
+                                <div class="text-sm font-medium text-black">{{ $shipment->supplier->name }}</div>
                             </td>
                             <td class="p-4 text-right">
-                                <div class="text-sm font-bold text-slate-800">{{ $shipment->currency->symbol }} {{ number_format($shipment->foreign_total_amount, 2) }}</div>
-                                <div class="text-xs text-slate-500">Rate: {{ number_format($shipment->exchange_rate, 4) }}</div>
+                                <div class="text-sm font-bold text-black">{{ $shipment->currency->symbol }} {{ number_format($shipment->foreign_total_amount, 2) }}</div>
+                                <div class="text-xs text-black">Rate: {{ number_format($shipment->exchange_rate, 4) }}</div>
                             </td>
-                            <td class="p-4 text-right text-sm font-bold text-slate-800">
+                            <td class="p-4 text-right text-sm font-bold text-black">
                                 Rs. {{ number_format($shipment->total_landed_cost_local, 2) }}
                             </td>
                             <td class="p-4 text-center">
@@ -64,7 +64,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="p-8 text-center text-slate-500">
+                            <td colspan="6" class="p-8 text-center text-black">
                                 No import shipments found.
                             </td>
                         </tr>

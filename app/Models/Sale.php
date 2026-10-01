@@ -28,6 +28,7 @@ class Sale extends Model
         'due_amount',
         'payment_status',
         'stock_deducted_at',
+        'stock_release_on_payment',
         'total_cost_amount',
         'total_profit_amount',
         'status',
@@ -51,6 +52,7 @@ class Sale extends Model
         'total_profit_amount' => 'decimal:2',
         'cancelled_at' => 'datetime',
         'stock_deducted_at' => 'datetime',
+        'stock_release_on_payment' => 'boolean',
     ];
 
     public function customer()
@@ -120,7 +122,7 @@ class Sale extends Model
 
     public function inventoryStatus(): string
     {
-        return $this->stock_deducted_at ? 'Deducted' : 'Awaiting Payment';
+        return $this->stock_deducted_at ? 'Deducted' : ($this->stock_release_on_payment === false ? 'Allocated' : 'Awaiting Payment');
     }
 
     public function store()

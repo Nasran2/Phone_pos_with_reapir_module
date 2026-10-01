@@ -189,7 +189,7 @@ test('waiting payment popup supports partial payments and one-time manual stock 
         ->assertSee('Receive Customer Payment')
         ->assertSee('Total Bill')
         ->assertSee('Already Paid')
-        ->assertSee('Deduct stock now')
+        ->assertSee('Release stock with this payment')
         ->assertDontSee('All Cashiers');
 
     // An ordinary partial payment keeps inventory waiting.

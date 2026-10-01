@@ -4,10 +4,10 @@
 
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <a href="{{ route('stock-transfers.index') }}" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer">
+            <a href="{{ route('stock-transfers.index') }}" class="p-1.5 text-black hover:text-black hover:bg-slate-100 rounded-lg transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Transfer {{ $stockTransfer->reference_no }}</h2>
+            <h2 class="text-lg font-bold text-black dark:text-white">Transfer {{ $stockTransfer->reference_no }}</h2>
             @if($stockTransfer->status === 'completed')
                 <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded text-[10px] uppercase tracking-wider ml-2 border border-emerald-200">Completed</span>
             @else
@@ -54,26 +54,26 @@
                 <!-- Items Table -->
                 <div class="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                        <h3 class="text-sm font-bold text-slate-800">Transfer Items</h3>
+                        <h3 class="text-sm font-bold text-black">Transfer Items</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                                <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[10px] font-bold uppercase tracking-wider">
                                     <th class="px-6 py-3">#</th>
                                     <th class="px-6 py-3">Product Name</th>
                                     <th class="px-6 py-3 text-right">Quantity</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                            <tbody class="divide-y divide-slate-100 text-black text-xs">
                                 @foreach($stockTransfer->items as $index => $item)
                                 <tr class="hover:bg-slate-50/50 transition">
-                                    <td class="px-6 py-3 text-slate-400 font-medium">{{ $index + 1 }}</td>
+                                    <td class="px-6 py-3 text-black font-medium">{{ $index + 1 }}</td>
                                     <td class="px-6 py-3">
-                                        <div class="font-bold text-slate-800">{{ $item->product->name ?? 'Unknown Product' }}</div>
-                                        <div class="text-[10px] text-slate-500 font-mono">{{ $item->product->sku ?? '' }}</div>
+                                        <div class="font-bold text-black">{{ $item->product->name ?? 'Unknown Product' }}</div>
+                                        <div class="text-[10px] text-black font-mono">{{ $item->product->sku ?? '' }}</div>
                                     </td>
-                                    <td class="px-6 py-3 text-right font-bold text-slate-800">
+                                    <td class="px-6 py-3 text-right font-bold text-black">
                                         {{ (float) $item->quantity }}
                                     </td>
                                 </tr>
@@ -81,8 +81,8 @@
                             </tbody>
                             <tfoot class="bg-slate-50 border-t border-slate-200/60 font-bold text-xs">
                                 <tr>
-                                    <td colspan="2" class="px-6 py-3 text-right text-slate-600">Total Quantity:</td>
-                                    <td class="px-6 py-3 text-right text-slate-800">{{ (float) $stockTransfer->items->sum('quantity') }}</td>
+                                    <td colspan="2" class="px-6 py-3 text-right text-black">Total Quantity:</td>
+                                    <td class="px-6 py-3 text-right text-black">{{ (float) $stockTransfer->items->sum('quantity') }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -93,36 +93,36 @@
             <div class="space-y-6">
                 <div class="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                        <h3 class="text-sm font-bold text-slate-800">Transfer Information</h3>
+                        <h3 class="text-sm font-bold text-black">Transfer Information</h3>
                     </div>
                     <div class="p-6 space-y-4 text-sm">
                         <div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Transfer Date</div>
-                            <div class="font-medium text-slate-800">{{ \Carbon\Carbon::parse($stockTransfer->transfer_date)->format('M d, Y') }}</div>
+                            <div class="text-[10px] font-bold text-black uppercase tracking-wider mb-1">Transfer Date</div>
+                            <div class="font-medium text-black">{{ \Carbon\Carbon::parse($stockTransfer->transfer_date)->format('M d, Y') }}</div>
                         </div>
                         <div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Source Store</div>
-                            <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <div class="text-[10px] font-bold text-black uppercase tracking-wider mb-1">Source Store</div>
+                            <div class="font-bold text-black flex items-center gap-1.5">
                                 <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 {{ $stockTransfer->fromStore->name ?? 'Unknown' }}
                             </div>
                         </div>
                         <div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Destination Store</div>
-                            <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <div class="text-[10px] font-bold text-black uppercase tracking-wider mb-1">Destination Store</div>
+                            <div class="font-bold text-black flex items-center gap-1.5">
                                 <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 {{ $stockTransfer->toStore->name ?? 'Unknown' }}
                             </div>
                         </div>
                         <div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Created By</div>
-                            <div class="font-medium text-slate-800">{{ $stockTransfer->creator->name ?? 'System' }}</div>
+                            <div class="text-[10px] font-bold text-black uppercase tracking-wider mb-1">Created By</div>
+                            <div class="font-medium text-black">{{ $stockTransfer->creator->name ?? 'System' }}</div>
                         </div>
                         
                         @if($stockTransfer->notes)
                         <div class="pt-4 border-t border-slate-100">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Notes</div>
-                            <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/60">{{ $stockTransfer->notes }}</p>
+                            <div class="text-[10px] font-bold text-black uppercase tracking-wider mb-1">Notes</div>
+                            <p class="text-xs text-black bg-slate-50 p-3 rounded-xl border border-slate-200/60">{{ $stockTransfer->notes }}</p>
                         </div>
                         @endif
                     </div>

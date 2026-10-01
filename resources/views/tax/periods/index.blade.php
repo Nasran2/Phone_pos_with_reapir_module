@@ -1,8 +1,8 @@
 <x-layouts::app title="Monthly Tax Balances">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Monthly Tax Balances</h1>
-            <p class="text-sm text-slate-500">Manage tax reporting periods, view liabilities, and carry forward balances.</p>
+            <h1 class="text-2xl font-bold text-black">Monthly Tax Balances</h1>
+            <p class="text-sm text-black">Manage tax reporting periods, view liabilities, and carry forward balances.</p>
         </div>
     </div>
 
@@ -16,7 +16,7 @@
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
-                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                <thead class="bg-slate-50 border-b border-slate-200 text-black">
                     <tr>
                         <th class="px-4 py-3 font-medium">Period</th>
                         <th class="px-4 py-3 font-medium">Date Range</th>
@@ -30,11 +30,11 @@
                         <th class="px-4 py-3 font-medium text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-black">
                     @forelse($periods as $period)
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 font-medium text-slate-900">{{ $period->period_name }}</td>
-                        <td class="px-4 py-3 text-slate-500">
+                        <td class="px-4 py-3 font-medium text-black">{{ $period->period_name }}</td>
+                        <td class="px-4 py-3 text-black">
                             {{ $period->start_date->format('M d') }} - {{ $period->end_date->format('M d, Y') }}
                         </td>
                         <td class="px-4 py-3 text-right">
@@ -49,7 +49,7 @@
                         <td class="px-4 py-3 text-right text-green-600">
                             Rs. {{ number_format($period->total_payments, 2) }}
                         </td>
-                        <td class="px-4 py-3 text-right font-semibold text-slate-900">
+                        <td class="px-4 py-3 text-right font-semibold text-black">
                             Rs. {{ number_format($period->closing_payable_balance, 2) }}
                         </td>
                         <td class="px-4 py-3 text-right font-medium text-blue-600">
@@ -59,7 +59,7 @@
                             @if($period->period_status === 'Open')
                                 <span class="px-2 py-1 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 uppercase tracking-wider">Open</span>
                             @else
-                                <span class="px-2 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 uppercase tracking-wider">{{ $period->period_status }}</span>
+                                <span class="px-2 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-black uppercase tracking-wider">{{ $period->period_status }}</span>
                             @endif
                             <br>
                             @if($period->payment_status === 'Paid')
@@ -76,7 +76,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="px-4 py-8 text-center text-slate-500">
+                        <td colspan="10" class="px-4 py-8 text-center text-black">
                             No tax periods found. Click "New Tax Period" to start tracking.
                         </td>
                     </tr>

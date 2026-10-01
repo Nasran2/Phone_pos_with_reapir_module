@@ -1,7 +1,7 @@
 <x-layouts::app :title="__('Roles & Permissions')">
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Roles</h2>
+            <h2 class="text-lg font-bold text-black dark:text-white">Roles</h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
                 {{ $roles->count() }} System Roles
             </span>
@@ -52,8 +52,8 @@
                     <!-- Card Header -->
                     <div class="flex items-start justify-between">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800">{{ $role->name }}</h3>
-                            <span class="inline-block mt-1 bg-slate-100 text-slate-650 font-bold px-2 py-0.5 rounded text-[10px]">
+                            <h3 class="text-sm font-bold text-black">{{ $role->name }}</h3>
+                            <span class="inline-block mt-1 bg-slate-100 text-black font-bold px-2 py-0.5 rounded text-[10px]">
                                 {{ $role->users_count }} {{ Str::plural('user', $role->users_count) }}
                             </span>
                         </div>
@@ -62,7 +62,7 @@
                             @if(auth()->user()->hasPermission('roles.edit'))
                             <button 
                                 onclick="openEditModal({{ json_encode($role) }}, {{ json_encode($role->permissions->pluck('id')) }})"
-                                class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                                class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                 title="Edit Role Permissions"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@
                                 <button 
                                     type="submit" 
                                     onclick="return confirmAction(event, 'Are you sure you want to delete role {{ $role->name }}?')"
-                                    class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                                    class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                     title="Delete Role"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -91,13 +91,13 @@
                     </div>
 
                     <!-- Role Description -->
-                    <p class="text-xs text-slate-450 leading-relaxed min-h-[36px]">
+                    <p class="text-xs text-black leading-relaxed min-h-[36px]">
                         {{ $role->description ?: 'No description provided.' }}
                     </p>
 
                     <!-- Permissions Summary -->
                     <div class="space-y-1.5 border-t border-slate-100 pt-3">
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Privileges Summary</span>
+                        <span class="block text-[10px] font-bold text-black uppercase tracking-wide">Privileges Summary</span>
                         <div class="flex flex-wrap gap-1">
                             @if($role->name === 'Super Admin')
                                 <span class="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded text-[9px] border border-blue-100">
@@ -106,11 +106,11 @@
                             @else
                                 @php $limit = 5; @endphp
                                 @forelse($role->permissions->take($limit) as $perm)
-                                    <span class="px-2 py-0.5 bg-slate-50 text-slate-600 font-medium rounded text-[9px] border border-slate-100">
+                                    <span class="px-2 py-0.5 bg-slate-50 text-black font-medium rounded text-[9px] border border-slate-100">
                                         {{ str_replace('.', ': ', $perm->name) }}
                                     </span>
                                 @empty
-                                    <span class="text-[10px] text-slate-400 font-medium">No permissions assigned.</span>
+                                    <span class="text-[10px] text-black font-medium">No permissions assigned.</span>
                                 @endforelse
 
                                 @if($role->permissions->count() > $limit)
@@ -132,8 +132,8 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300 scale-95 opacity-0 modal-container">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-sm font-bold text-slate-850" id="modalTitle">Create System Role</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black" id="modalTitle">Create System Role</h3>
+                <button onclick="closeModal()" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
 
             <!-- Modal Form -->
@@ -142,27 +142,27 @@
                 <input type="hidden" name="_method" id="formMethod" value="POST">
                 
                 <!-- Scrollable Body -->
-                <div class="p-6 space-y-5 overflow-y-auto flex-1 text-slate-800">
+                <div class="p-6 space-y-5 overflow-y-auto flex-1 text-black">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Role Identifier Name *</label>
-                            <input type="text" name="name" id="role_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Sales Executive">
-                            <p class="text-[10px] text-slate-400 mt-1">Must be alphanumeric and unique.</p>
+                            <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Role Identifier Name *</label>
+                            <input type="text" name="name" id="role_name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. Sales Executive">
+                            <p class="text-[10px] text-black mt-1">Must be alphanumeric and unique.</p>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Short Description</label>
-                            <input type="text" name="description" id="role_description" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="Summarize role duties / operational access boundary...">
+                            <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Short Description</label>
+                            <input type="text" name="description" id="role_description" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="Summarize role duties / operational access boundary...">
                         </div>
                     </div>
 
                     <!-- Permission Checkbox Grid -->
                     <div class="border-t border-slate-100 pt-4 space-y-4">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">Assign Permission Privileges</h4>
+                            <h4 class="text-xs font-extrabold text-black uppercase tracking-wide">Assign Permission Privileges</h4>
                             <div class="flex items-center gap-2">
                                 <button type="button" onclick="toggleAllCheckboxes(true)" class="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer">Select All</button>
-                                <span class="text-slate-300 text-[10px]">|</span>
-                                <button type="button" onclick="toggleAllCheckboxes(false)" class="text-[10px] font-bold text-slate-500 hover:underline cursor-pointer">Deselect All</button>
+                                <span class="text-black text-[10px]">|</span>
+                                <button type="button" onclick="toggleAllCheckboxes(false)" class="text-[10px] font-bold text-black hover:underline cursor-pointer">Deselect All</button>
                             </div>
                         </div>
 
@@ -176,7 +176,7 @@
                             @foreach($permissions as $moduleName => $modulePerms)
                             <div class="bg-slate-50/60 rounded-xl border border-slate-100 p-4 space-y-3">
                                 <div class="flex items-center justify-between border-b border-slate-200/50 pb-1.5">
-                                    <h5 class="text-xs font-bold text-slate-700">{{ $moduleName }}</h5>
+                                    <h5 class="text-xs font-bold text-black">{{ $moduleName }}</h5>
                                     <button type="button" onclick="toggleModuleCheckboxes(this, true)" class="text-[9px] font-bold text-blue-600 hover:underline cursor-pointer">All</button>
                                 </div>
                                 <div class="space-y-2">
@@ -190,11 +190,11 @@
                                             name="permissions[]" 
                                             value="{{ $perm->id }}" 
                                             id="perm_{{ $perm->id }}"
-                                            class="perm-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4 mt-0.5"
+                                            class="perm-checkbox rounded border-slate-900 text-blue-600 focus:ring-blue-500 h-4 w-4 mt-0.5"
                                         >
-                                        <label for="perm_{{ $perm->id }}" class="text-xs text-slate-650 select-none cursor-pointer leading-tight">
-                                            <span class="font-bold text-slate-800">{{ $permissionAction }}</span>
-                                            <span class="block text-[9px] text-slate-400 mt-0.5 font-mono">({{ $perm->name }})</span>
+                                        <label for="perm_{{ $perm->id }}" class="text-xs text-black select-none cursor-pointer leading-tight">
+                                            <span class="font-bold text-black">{{ $permissionAction }}</span>
+                                            <span class="block text-[9px] text-black mt-0.5 font-mono">({{ $perm->name }})</span>
                                         </label>
                                     </div>
                                     @endforeach
@@ -207,7 +207,7 @@
 
                 <!-- Modal Actions -->
                 <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 shrink-0">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save Role</button>
                 </div>
             </form>

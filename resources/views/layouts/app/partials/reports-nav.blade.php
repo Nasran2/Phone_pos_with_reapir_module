@@ -78,7 +78,7 @@
 
     @if($visibleLinks->isNotEmpty())
         <div class="pt-3">
-            <button type="button" onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 transition hover:bg-[#182647] hover:text-slate-200">
+            <button type="button" onclick="toggleSubmenu(this)" class="w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 transition hover:bg-[#182647] hover:text-white">
                 <span class="flex items-center gap-2">
                     <span class="h-3 w-1 rounded-full {{ $group['color'] }}"></span>
                     <span>{{ $group['title'] }}</span>

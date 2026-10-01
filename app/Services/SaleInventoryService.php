@@ -38,7 +38,7 @@ class SaleInventoryService
                 return false;
             }
 
-            if (! $force && ! $sale->isPaymentComplete()) {
+            if (! $force && ($sale->stock_release_on_payment === false || ! $sale->isPaymentComplete())) {
                 return false;
             }
 
@@ -101,9 +101,9 @@ class SaleInventoryService
     }
 
     /** Restore inventory only when this invoice previously deducted it. */
-    public function restore(Sale $sale, string $reason = 'Sale deleted'): bool
+    public function restore(Sale $sale, string $reason = 'Sale deleted', string $historyType = 'sale_deleted'): bool
     {
-        return DB::transaction(function () use ($sale, $reason) {
+        return DB::transaction(function () use ($sale, $reason, $historyType) {
             $sale = Sale::query()->lockForUpdate()->findOrFail($sale->id);
             if (! $sale->stock_deducted_at) {
                 return false;
@@ -122,7 +122,7 @@ class SaleInventoryService
                         $sale->invoice_no,
                     );
                 } else {
-                    $this->restoreStoreItem($sale, $item, $quantity, $reason);
+                    $this->restoreStoreItem($sale, $item, $quantity, $reason, $historyType);
                 }
             }
 
@@ -184,7 +184,7 @@ class SaleInventoryService
         ]);
     }
 
-    private function restoreStoreItem(Sale $sale, object $item, float $quantity, string $reason): void
+    private function restoreStoreItem(Sale $sale, object $item, float $quantity, string $reason, string $historyType): void
     {
         $storeId = (int) ($sale->store_id ?: Setting::get('default_store_id', 1));
 
@@ -210,7 +210,7 @@ class SaleInventoryService
             'quantity_before' => $before,
             'quantity_change' => $quantity,
             'new_quantity' => $after,
-            'type' => 'sale_deleted',
+            'type' => $historyType,
             'reference_type' => Sale::class,
             'reference_id' => $sale->id,
             'reference_no' => $sale->invoice_no,

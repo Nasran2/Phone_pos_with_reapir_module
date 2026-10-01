@@ -335,6 +335,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('sales/{sale}/payments', [SaleController::class, 'storePayment'])
         ->name('sales.payments.store')
         ->middleware('permission:sales.edit_payment');
+    Route::put('sales/{sale}/stock-release', [SaleController::class, 'updateStockRelease'])
+        ->name('sales.stock-release.update')
+        ->middleware('permission:sales.edit_payment');
     Route::delete('sales/{sale}', [SaleController::class, 'destroy'])
         ->name('sales.destroy')
         ->middleware('permission:sales.delete');
@@ -553,6 +556,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/daily-closing', [DailyClosingController::class, 'index'])->name('daily_closing')->middleware('permission:reports.daily_closing');
         Route::post('/daily-closing', [DailyClosingController::class, 'store'])->name('daily_closing.store')->middleware('permission:reports.daily_closing');
     });
+});
+
+Route::get('/migrate', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return 'Migration completed successfully!<br><br><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
 });
 
 require __DIR__.'/settings.php';

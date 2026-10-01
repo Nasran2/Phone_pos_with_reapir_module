@@ -33,16 +33,16 @@
 <x-layouts::app :title="$section['label']">
     <div class="bg-white border-b border-slate-200 h-auto lg:h-24 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-5 sticky top-0 z-20 w-full shrink-0">
         <div class="space-y-2">
-            <nav class="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <nav class="flex items-center gap-2 text-[11px] font-bold text-black uppercase tracking-wider">
                 <a href="{{ route('dashboard') }}" class="hover:text-blue-600">Dashboard</a>
                 <span>/</span>
                 <span>Settings</span>
                 <span>/</span>
-                <span class="text-slate-700">{{ $section['label'] }}</span>
+                <span class="text-black">{{ $section['label'] }}</span>
             </nav>
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-extrabold text-slate-900 leading-tight">{{ $section['label'] }}</h1>
+                    <h1 class="text-xl font-extrabold text-black leading-tight">{{ $section['label'] }}</h1>
                     <span class="relative inline-flex group">
                         <span tabindex="0" role="button" aria-label="About {{ $section['label'] }}" class="flex h-5 w-5 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[11px] font-black text-blue-600 cursor-help">i</span>
                         <span class="pointer-events-none absolute left-0 top-7 z-[9999] hidden w-80 max-w-[calc(100vw-2rem)] rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block normal-case tracking-normal">
@@ -50,7 +50,7 @@
                         </span>
                     </span>
                 </div>
-                <p class="mt-1 text-sm text-slate-500 max-w-3xl">{{ $section['description'] }}</p>
+                <p class="mt-1 text-sm text-black max-w-3xl">{{ $section['description'] }}</p>
             </div>
         </div>
 
@@ -58,7 +58,7 @@
             <form id="settings-reset-form" method="POST" action="{{ route('settings.' . $section['route'] . '.reset') }}" onsubmit="return confirmAction(event, 'Reset {{ $section['label'] }} to defaults?')">
                 @csrf
             </form>
-            <button type="submit" form="settings-reset-form" @disabled(!$canUpdateSettings) class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+            <button type="submit" form="settings-reset-form" @disabled(!$canUpdateSettings) class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-black shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M3 12a9 9 0 1 0 3-6.7M3 4v6h6"/>
                 </svg>
@@ -116,15 +116,15 @@
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <h2 class="text-base font-extrabold text-slate-900">{{ $group['title'] }}</h2>
+                                    <h2 class="text-base font-extrabold text-black">{{ $group['title'] }}</h2>
                                     <span class="relative inline-flex group">
-                                        <span tabindex="0" role="button" aria-label="About {{ $group['title'] }}" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] font-black text-slate-500 shadow-sm cursor-help">i</span>
+                                        <span tabindex="0" role="button" aria-label="About {{ $group['title'] }}" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] font-black text-black shadow-sm cursor-help">i</span>
                                         <span class="pointer-events-none absolute left-0 top-7 z-[9999] hidden w-80 max-w-[calc(100vw-2rem)] rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block">
                                             {{ $group['description'] }}
                                         </span>
                                     </span>
                                 </div>
-                                <p class="mt-1 text-sm text-slate-500">{{ $group['description'] }}</p>
+                                <p class="mt-1 text-sm text-black">{{ $group['description'] }}</p>
                             </div>
                         </div>
 
@@ -142,7 +142,7 @@
                                     @if($type === 'toggle')
                                         <label class="flex min-h-16 items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                                             <span>
-                                                <span class="flex items-center gap-2 text-sm font-bold text-slate-800">
+                                                <span class="flex items-center gap-2 text-sm font-bold text-black">
                                                     <span>{{ $field['label'] }}</span>
                                                     <span class="relative inline-flex group">
                                                         <span tabindex="0" role="button" onclick="event.preventDefault()" aria-label="About {{ $field['label'] }}" class="flex h-4 w-4 items-center justify-center rounded-full border border-blue-200 bg-white text-[10px] font-black text-blue-600 cursor-help">i</span>
@@ -151,13 +151,13 @@
                                                         </span>
                                                     </span>
                                                 </span>
-                                                <span class="mt-0.5 block text-xs text-slate-500">{{ $field['hint'] ?? 'Enable or disable this option.' }}</span>
+                                                <span class="mt-0.5 block text-xs text-black">{{ $field['hint'] ?? 'Enable or disable this option.' }}</span>
                                             </span>
                                             <input type="checkbox" name="{{ $key }}" value="1" @checked((bool) $fieldValue) class="peer sr-only">
                                             <span class="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-blue-600 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></span>
                                         </label>
                                     @else
-                                        <label for="{{ $key }}" class="flex items-center gap-2 text-sm font-bold text-slate-800">
+                                        <label for="{{ $key }}" class="flex items-center gap-2 text-sm font-bold text-black">
                                             <span>{{ $field['label'] }}</span>
                                             <span class="relative inline-flex group">
                                                 <span tabindex="0" role="button" aria-label="About {{ $field['label'] }}" class="flex h-4 w-4 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[10px] font-black text-blue-600 cursor-help">i</span>
@@ -168,31 +168,31 @@
                                         </label>
 
                                         @if($type === 'select')
-                                            <select id="{{ $key }}" name="{{ $key }}" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                            <select id="{{ $key }}" name="{{ $key }}" class="mt-2 w-full rounded-xl border border-slate-900 bg-white px-3 py-2.5 text-sm font-medium text-black shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                                 @foreach($field['options'] as $optionValue => $optionLabel)
                                                     <option value="{{ $optionValue }}" @selected((string) $fieldValue === (string) $optionValue)>{{ $optionLabel }}</option>
                                                 @endforeach
                                             </select>
                                         @elseif($type === 'store_select')
-                                            <select id="{{ $key }}" name="{{ $key }}" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                            <select id="{{ $key }}" name="{{ $key }}" class="mt-2 w-full rounded-xl border border-slate-900 bg-white px-3 py-2.5 text-sm font-medium text-black shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                                 @foreach(\App\Models\Store::orderBy('name')->pluck('name', 'id') as $optionValue => $optionLabel)
                                                     <option value="{{ $optionValue }}" @selected((string) $fieldValue === (string) $optionValue)>{{ $optionLabel }}</option>
                                                 @endforeach
                                             </select>
                                         @elseif($type === 'textarea')
-                                            <textarea id="{{ $key }}" name="{{ $key }}" rows="4" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ $fieldValue }}</textarea>
+                                            <textarea id="{{ $key }}" name="{{ $key }}" rows="4" class="mt-2 w-full rounded-xl border border-slate-900 bg-white px-3 py-2.5 text-sm text-black shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ $fieldValue }}</textarea>
                                         @elseif($type === 'file')
                                             <div class="mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
                                                 @if($fieldValue)
                                                     <div class="mb-3 flex items-center gap-3">
                                                         <img src="{{ asset('storage/' . $fieldValue) }}" alt="{{ $field['label'] }}" class="h-14 w-14 rounded-lg object-contain bg-white border border-slate-200">
-                                                        <span class="text-xs font-semibold text-slate-500">{{ $fieldValue }}</span>
+                                                        <span class="text-xs font-semibold text-black">{{ $fieldValue }}</span>
                                                     </div>
                                                 @endif
-                                                <input id="{{ $key }}" name="{{ $key }}" type="file" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-blue-700">
+                                                <input id="{{ $key }}" name="{{ $key }}" type="file" class="block w-full text-sm text-black file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-blue-700">
                                             </div>
                                         @else
-                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ $fieldValue }}" @if($type === 'number') step="any" @endif class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                            <input id="{{ $key }}" name="{{ $key }}" type="{{ $type }}" value="{{ $fieldValue }}" @if($type === 'number') step="any" @endif class="mt-2 w-full rounded-xl border border-slate-900 bg-white px-3 py-2.5 text-sm text-black shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @endif
                                     @endif
 
@@ -215,14 +215,14 @@
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <h2 class="text-base font-extrabold text-slate-900">Apply Global Tax Mode</h2>
+                                    <h2 class="text-base font-extrabold text-black">Apply Global Tax Mode</h2>
                                 </div>
-                                <p class="mt-1 text-sm text-slate-500">Update existing products with the selected global tax mode.</p>
+                                <p class="mt-1 text-sm text-black">Update existing products with the selected global tax mode.</p>
                             </div>
                         </div>
                         <div class="p-6 space-y-4">
-                            <label class="flex items-center gap-3 text-sm text-slate-700 font-medium cursor-pointer w-fit">
-                                <input type="checkbox" name="only_update_use_global" value="1" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            <label class="flex items-center gap-3 text-sm text-black font-medium cursor-pointer w-fit">
+                                <input type="checkbox" name="only_update_use_global" value="1" class="h-4 w-4 rounded border-slate-900 text-blue-600 focus:ring-blue-500">
                                 Only update products currently using the global default
                             </label>
                             
@@ -231,12 +231,12 @@
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                                     Apply Global Setting to All Products
                                 </button>
-                                <button type="submit" name="save_global_only" value="1" class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                <button type="submit" name="save_global_only" value="1" class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-black shadow-sm transition hover:bg-slate-50">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
                                     Save Global Setting Only
                                 </button>
                             </div>
-                            <div class="text-xs text-slate-500 max-w-3xl mt-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <div class="text-xs text-black max-w-3xl mt-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
                                 <ul class="list-disc pl-4 space-y-2">
                                     <li><strong>Save Global Setting Only:</strong> Saves the new global mode and affects new transactions and products using "Use Global Default". Existing individual product overrides are preserved.</li>
                                     <li><strong>Apply Global Setting to All Products:</strong> Saves the selected global mode and changes every product tax mode to "use_global", removing individual overrides (unless the checkbox above is checked).</li>

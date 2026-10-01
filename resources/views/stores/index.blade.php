@@ -3,7 +3,7 @@
 
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <div class="flex items-center gap-3">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Store Locations</h2>
+            <h2 class="text-lg font-bold text-black dark:text-white">Store Locations</h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
                 {{ $stores->total() }} Stores
             </span>
@@ -60,13 +60,13 @@
             <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-xs">
                 <form method="GET" action="{{ route('stores.index') }}" class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1 relative">
-                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search stores..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-colors">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search stores..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-colors">
                     </div>
                     <div class="sm:w-48">
-                        <select name="status" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                        <select name="status" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Statuses</option>
                             <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -76,7 +76,7 @@
                         <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer whitespace-nowrap">
                             Search
                         </button>
-                        <a href="{{ route('stores.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition cursor-pointer whitespace-nowrap">
+                        <a href="{{ route('stores.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold rounded-lg transition cursor-pointer whitespace-nowrap">
                             Reset
                         </a>
                     </div>
@@ -88,7 +88,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-650 text-[11px] font-bold uppercase tracking-wider">
+                            <tr class="bg-slate-50 border-b border-slate-200/60 text-black text-[11px] font-bold uppercase tracking-wider">
                                 <th class="px-6 py-4">Store Name</th>
                                 <th class="px-6 py-4">Code</th>
                                 <th class="px-6 py-4">Contact & Manager</th>
@@ -96,10 +96,10 @@
                                 <th class="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-700 text-xs">
+                        <tbody class="divide-y divide-slate-100 text-black text-xs">
                             @forelse($stores as $store)
                             <tr class="hover:bg-slate-50/50 transition {{ $store->status ? '' : 'bg-slate-50/30' }}">
-                                <td class="px-6 py-4 font-bold text-slate-800">
+                                <td class="px-6 py-4 font-bold text-black">
                                     <div class="flex items-center gap-2">
                                         {{ $store->name }}
                                         @if($store->is_default)
@@ -107,25 +107,25 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 font-mono text-[11px] text-slate-500 font-bold">
+                                <td class="px-6 py-4 font-mono text-[11px] text-black font-bold">
                                     {{ $store->code }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col gap-1">
                                         @if($store->manager)
-                                            <div class="flex items-center gap-1.5 text-slate-600">
-                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                            <div class="flex items-center gap-1.5 text-black">
+                                                <svg class="w-3.5 h-3.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                                 <span>{{ $store->manager }}</span>
                                             </div>
                                         @endif
                                         @if($store->phone)
-                                            <div class="flex items-center gap-1.5 text-slate-500 text-[11px]">
-                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                            <div class="flex items-center gap-1.5 text-black text-[11px]">
+                                                <svg class="w-3.5 h-3.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                                                 <span>{{ $store->phone }}</span>
                                             </div>
                                         @endif
                                         @if($store->address)
-                                            <div class="flex items-start gap-1.5 text-slate-400 text-[11px] mt-0.5">
+                                            <div class="flex items-start gap-1.5 text-black text-[11px] mt-0.5">
                                                 <svg class="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                                 <span class="truncate max-w-[200px]" title="{{ $store->address }}">{{ $store->address }}</span>
                                             </div>
@@ -136,7 +136,7 @@
                                     @if($store->status)
                                         <span class="px-2 py-1 bg-emerald-50 text-emerald-700 font-bold rounded-md text-[10px] border border-emerald-200">Active</span>
                                     @else
-                                        <span class="px-2 py-1 bg-slate-100 text-slate-500 font-bold rounded-md text-[10px] border border-slate-200">Inactive</span>
+                                        <span class="px-2 py-1 bg-slate-100 text-black font-bold rounded-md text-[10px] border border-slate-200">Inactive</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right whitespace-nowrap">
@@ -144,7 +144,7 @@
                                         @if(auth()->user()->hasPermission('stores.edit'))
                                         <button 
                                             onclick="openEditModal({{ json_encode($store) }})"
-                                            class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
+                                            class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                             title="Edit Store"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -156,7 +156,7 @@
                                         @if(auth()->user()->hasPermission('stores.delete') && !$store->is_default)
                                         <button 
                                             onclick="confirmDelete({{ $store->id }}, '{{ addslashes($store->name) }}')"
-                                            class="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
+                                            class="p-1.5 text-black hover:text-red-650 hover:bg-red-50 transition rounded-lg cursor-pointer"
                                             title="Delete Store"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -173,8 +173,8 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
-                                    <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <td colspan="5" class="px-6 py-12 text-center text-black">
+                                    <svg class="w-10 h-10 mx-auto text-black mb-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                     </svg>
                                     <span class="font-bold">No stores found.</span>
@@ -195,10 +195,10 @@
 
     <!-- STORE CREATE / EDIT MODAL -->
     <div id="storeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-slate-800">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 scale-95 opacity-0 modal-container text-black">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-850" id="modalTitle">Create Store</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+                <h3 class="text-sm font-bold text-black" id="modalTitle">Create Store</h3>
+                <button onclick="closeModal()" class="text-black hover:text-black text-lg cursor-pointer">✕</button>
             </div>
             <form id="storeForm" method="POST" action="" class="p-6 space-y-4">
                 @csrf
@@ -206,49 +206,49 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Store Name *</label>
-                        <input type="text" name="name" id="store_name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. Colombo Branch">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Store Name *</label>
+                        <input type="text" name="name" id="store_name" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. Colombo Branch">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Store Code *</label>
-                        <input type="text" name="code" id="store_code" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 uppercase" placeholder="e.g. CMB01">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Store Code *</label>
+                        <input type="text" name="code" id="store_code" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black uppercase" placeholder="e.g. CMB01">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Phone</label>
-                        <input type="text" name="phone" id="store_phone" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. 011-2345678">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Phone</label>
+                        <input type="text" name="phone" id="store_phone" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. 011-2345678">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Email</label>
-                        <input type="email" name="email" id="store_email" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="e.g. branch@example.com">
+                        <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Email</label>
+                        <input type="email" name="email" id="store_email" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="e.g. branch@example.com">
                     </div>
                 </div>
                 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Manager</label>
-                    <input type="text" name="manager" id="store_manager" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="Store Manager Name">
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Manager</label>
+                    <input type="text" name="manager" id="store_manager" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="Store Manager Name">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Address</label>
-                    <textarea name="address" id="store_address" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="Store Address"></textarea>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Address</label>
+                    <textarea name="address" id="store_address" rows="2" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="Store Address"></textarea>
                 </div>
                 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
-                    <textarea name="notes" id="store_notes" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800" placeholder="Optional notes..."></textarea>
+                    <label class="block text-[10px] font-bold text-black uppercase tracking-wide mb-1.5">Notes</label>
+                    <textarea name="notes" id="store_notes" rows="2" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-black" placeholder="Optional notes..."></textarea>
                 </div>
                 
                 <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" name="status" id="store_status" value="1" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" checked>
-                    <label for="store_status" class="text-xs font-bold text-slate-700 cursor-pointer">Active Store</label>
+                    <input type="checkbox" name="status" id="store_status" value="1" class="w-4 h-4 text-blue-600 rounded border-slate-900 focus:ring-blue-500" checked>
+                    <label for="store_status" class="text-xs font-bold text-black cursor-pointer">Active Store</label>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 -mx-6 -mb-6 p-4 mt-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-black hover:bg-slate-50 text-xs font-bold rounded-lg transition duration-150 cursor-pointer">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition duration-150 shadow-sm cursor-pointer">Save Store</button>
                 </div>
             </form>
