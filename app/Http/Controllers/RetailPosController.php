@@ -7,13 +7,15 @@ use App\Models\ActivityLog;
 use App\Models\CustomerTransaction;
 use App\Models\Sale;
 use App\Models\Setting;
-use App\Services\JournalService;
 use App\Services\InvoiceNumberService;
+use App\Services\JournalService;
 use App\Services\LorryAccessService;
 use App\Services\MixedPaymentService;
 use App\Services\SaleInventoryService;
 use App\Services\TaxCalculationService;
+use App\Support\Features;
 use App\Support\SystemSettings;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -108,11 +110,14 @@ class RetailPosController extends Controller
                     'ram' => $variant->ram,
                     'cost_price' => (float) ($variant->cost_price ?? 0),
                     'retail_price' => (float) ($variant->retail_price ?? 0),
-                    'wholesale_price' => (float) ($variant->wholesale_price ?? 0),
+                    ...(Features::wholesaleEnabled() ? ['wholesale_price' => (float) ($variant->wholesale_price ?? 0)] : []),
                     'stock_quantity' => (float) $variant->stock_quantity,
                 ];
             })->values();
 
+            if (! Features::wholesaleEnabled()) {
+                unset($product->wholesale_price);
+            }
             $product->variants = $productVariants;
             if ($productVariants->isNotEmpty()) {
                 $product->stock = $productVariants->sum('stock_quantity');
@@ -212,7 +217,9 @@ class RetailPosController extends Controller
             'edit_sale_id' => 'nullable|integer|exists:sales,id',
         ]);
 
-        if ($request->filled('edit_sale_id')) abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
+        if ($request->filled('edit_sale_id')) {
+            abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
+        }
         DB::beginTransaction();
 
         try {
@@ -222,28 +229,28 @@ class RetailPosController extends Controller
             $invoiceNo = null;
 
             if ($isEditing) {
-                $editSale = Sale::with('customer')->lockForUpdate()->findOrFail($request->edit_sale_id);
+                $editSale = Sale::with('customer')->where('pos_type', 'retail')->lockForUpdate()->findOrFail($request->edit_sale_id);
                 if ($editSale->customer_id != $request->customer_id || $editSale->returns()->exists() || $editSale->cheques()->exists()) {
                     throw ValidationException::withMessages(['edit_sale_id' => 'Keep the original customer. Invoices with returns or cheques cannot be edited; use their reversal workflow.']);
                 }
                 $invoiceNo = $editSale->invoice_no;
-                
+
                 // Revert existing stock
-                app(\App\Services\SaleInventoryService::class)->restore($editSale, 'Sale edited');
-                
+                app(SaleInventoryService::class)->restore($editSale, 'Sale edited');
+
                 // Delete previous items
                 $editSale->items()->delete();
-                
+
                 // Delete previous tax transactions
                 DB::table('tax_transactions')->where('reference_type', Sale::class)->where('reference_id', $editSale->id)->delete();
-                
+
                 // Delete previous journal entries
-                $journalService = app(\App\Services\JournalService::class);
+                $journalService = app(JournalService::class);
                 $journalService->deleteEntryByReference('Sale', $editSale->id);
             } else {
                 $invoiceNo = $invoiceNumbers->next('retail');
             }
-            
+
             $today = $isEditing ? $editSale->sale_date->format('Y-m-d') : date('Y-m-d');
 
             // --- TAX CALCULATION BEGIN ---
@@ -517,9 +524,9 @@ class RetailPosController extends Controller
                 }
                 $allocation = ['hold' => (float) $editSale->cheque_hold_amount];
             } else {
-            $allocation = $mixedPayments->allocateSale(Sale::findOrFail($saleId), $paymentRows, [
-                'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
-            ]);
+                $allocation = $mixedPayments->allocateSale(Sale::findOrFail($saleId), $paymentRows, [
+                    'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
+                ]);
             }
             $sale = Sale::findOrFail($saleId);
             app(SaleInventoryService::class)->finalizeIfPaid($sale);
@@ -576,8 +583,9 @@ class RetailPosController extends Controller
             throw $e;
         } catch (\RuntimeException $e) {
             DB::rollBack();
-            if ($e instanceof \Illuminate\Database\QueryException) {
+            if ($e instanceof QueryException) {
                 report($e);
+
                 return response()->json(['success' => false, 'message' => 'Unable to save checkout. Please try again or contact support.'], 500);
             }
 
@@ -721,7 +729,7 @@ class RetailPosController extends Controller
     private function editSalePayload(int $saleId): ?array
     {
         abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
-        $sale = \App\Models\Sale::with(['customer', 'items.product', 'items.variant', 'items.productSerial'])->find($saleId);
+        $sale = Sale::with(['customer', 'items.product', 'items.variant', 'items.productSerial'])->where('pos_type', 'retail')->find($saleId);
 
         if (! $sale) {
             return null;

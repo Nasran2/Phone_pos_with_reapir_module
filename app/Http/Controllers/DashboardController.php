@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cheque;
+use App\Models\RepairJob;
 use App\Models\Setting;
+use App\Services\ChequeAccessService;
+use App\Support\Features;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -30,39 +35,39 @@ class DashboardController extends Controller
         ]);
         $chartPeriod = $request->input('chart_period') ?: 'today';
         $today = $request->input('date') ?: today()->toDateString();
-        
+
         $startDate = $today;
         $endDate = $today;
-        $dateLabel = \Carbon\Carbon::parse($today)->isToday() ? 'Today' : \Carbon\Carbon::parse($today)->format('d M Y');
+        $dateLabel = Carbon::parse($today)->isToday() ? 'Today' : Carbon::parse($today)->format('d M Y');
 
         if ($chartPeriod === 'week') {
-            $startDate = \Carbon\Carbon::parse($today)->startOfWeek()->format('Y-m-d');
-            $endDate = \Carbon\Carbon::parse($today)->endOfWeek()->format('Y-m-d');
-            $dateLabel = "This Week";
+            $startDate = Carbon::parse($today)->startOfWeek()->format('Y-m-d');
+            $endDate = Carbon::parse($today)->endOfWeek()->format('Y-m-d');
+            $dateLabel = 'This Week';
         } elseif ($chartPeriod === 'month') {
-            $startDate = \Carbon\Carbon::parse($today)->startOfMonth()->format('Y-m-d');
-            $endDate = \Carbon\Carbon::parse($today)->endOfMonth()->format('Y-m-d');
-            $dateLabel = "This Month";
+            $startDate = Carbon::parse($today)->startOfMonth()->format('Y-m-d');
+            $endDate = Carbon::parse($today)->endOfMonth()->format('Y-m-d');
+            $dateLabel = 'This Month';
         } elseif ($chartPeriod === 'year') {
-            $startDate = \Carbon\Carbon::parse($today)->startOfYear()->format('Y-m-d');
-            $endDate = \Carbon\Carbon::parse($today)->endOfYear()->format('Y-m-d');
-            $dateLabel = "This Year";
+            $startDate = Carbon::parse($today)->startOfYear()->format('Y-m-d');
+            $endDate = Carbon::parse($today)->endOfYear()->format('Y-m-d');
+            $dateLabel = 'This Year';
         }
         $enableMultiStore = Setting::get('enable_multi_store', false);
         $stores = $enableMultiStore ? DB::table('stores')->where('status', true)->get() : collect();
         $storeId = $request->input('store_id');
 
         // 1. Stats Cards
-        $salesQuery = DB::table('sales')->whereBetween('sale_date', [$startDate, $endDate]);
+        $salesQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))->whereDate('sale_date', '>=', $startDate)->whereDate('sale_date', '<=', $endDate);
         if ($enableMultiStore && $storeId) {
             $salesQuery->where('store_id', $storeId);
         }
         $totalSalesToday = (clone $salesQuery)->sum('payable_amount');
         $retailSalesToday = (clone $salesQuery)->where('pos_type', 'retail')->sum('payable_amount');
-        $wholesaleSalesToday = (clone $salesQuery)->where('pos_type', 'wholesale')->sum('payable_amount');
+        $wholesaleSalesToday = Features::wholesaleEnabled() ? (clone $salesQuery)->where('pos_type', 'wholesale')->sum('payable_amount') : null;
         $totalProfitToday = (clone $salesQuery)->sum('total_profit_amount');
 
-        $purchaseQuery = DB::table('purchases')->whereBetween('purchase_date', [$startDate, $endDate]);
+        $purchaseQuery = DB::table('purchases')->whereDate('purchase_date', '>=', $startDate)->whereDate('purchase_date', '<=', $endDate);
         if ($enableMultiStore && $storeId) {
             $purchaseQuery->where('store_id', $storeId);
         }
@@ -73,7 +78,7 @@ class DashboardController extends Controller
         $customerDue = DB::table('customers')->sum('balance');
         $totalSuppliers = DB::table('suppliers')->count();
         $supplierDue = DB::table('suppliers')->sum('balance');
-        $expensesQuery = DB::table('expenses')->whereBetween('expense_date', [$startDate, $endDate]);
+        $expensesQuery = DB::table('expenses')->whereDate('expense_date', '>=', $startDate)->whereDate('expense_date', '<=', $endDate);
         if ($enableMultiStore && $storeId) {
             $expensesQuery->where('store_id', $storeId);
         }
@@ -94,13 +99,13 @@ class DashboardController extends Controller
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->sum(DB::raw('product_store_stock.quantity * products.cost_price'));
 
-        $ordersQuery = DB::table('sales')->whereBetween('sale_date', [$startDate, $endDate]);
+        $ordersQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))->whereDate('sale_date', '>=', $startDate)->whereDate('sale_date', '<=', $endDate);
         if ($enableMultiStore && $storeId) {
             $ordersQuery->where('store_id', $storeId);
         }
         $todayOrders = $ordersQuery->count();
 
-        $dueQuery = DB::table('sales')->where('due_amount', '>', 0);
+        $dueQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))->where('due_amount', '>', 0);
         if ($enableMultiStore && $storeId) {
             $dueQuery->where('store_id', $storeId);
         }
@@ -108,9 +113,9 @@ class DashboardController extends Controller
         $unreadNotifications = 0;
 
         // 4. Recent Sales
-        $rsQuery = DB::table('sales')
+        $rsQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))
             ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
-            ->whereBetween('sales.sale_date', [$startDate, $endDate])
+            ->whereDate('sales.sale_date', '>=', $startDate)->whereDate('sales.sale_date', '<=', $endDate)
             ->select('sales.*', 'customers.name as customer_name')
             ->orderBy('sales.id', 'desc');
         if ($enableMultiStore && $storeId) {
@@ -121,7 +126,7 @@ class DashboardController extends Controller
         // 5. Recent Purchases
         $rpQuery = DB::table('purchases')
             ->leftJoin('suppliers', 'suppliers.id', '=', 'purchases.supplier_id')
-            ->whereBetween('purchases.purchase_date', [$startDate, $endDate])
+            ->whereDate('purchases.purchase_date', '>=', $startDate)->whereDate('purchases.purchase_date', '<=', $endDate)
             ->select('purchases.*', 'suppliers.name as supplier_name')
             ->orderBy('purchases.id', 'desc');
         if ($enableMultiStore && $storeId) {
@@ -141,69 +146,72 @@ class DashboardController extends Controller
         $lowStockAlerts = $lsQuery->take(5)->get();
 
         // 7. Sales Overview Line Chart (Dynamic Sales)
-        
+
+        $retailSalesChart = [];
+        $wholesaleSalesChart = [];
+        $chartQuery = DB::table('sales');
         if ($chartPeriod === 'today') {
             $chartLabels = ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'];
             $retailSalesChart = array_fill(0, 8, 0);
-            $wholesaleSalesChart = array_fill(0, 8, 0);
-            
+            $wholesaleSalesChart = Features::wholesaleEnabled() ? array_fill(0, 8, 0) : [];
+
             $hourExpression = DB::connection()->getDriverName() === 'sqlite'
                 ? "CAST(strftime('%H', created_at) AS INTEGER)"
                 : 'HOUR(created_at)';
-            
-            $chartQuery = DB::table('sales')
+
+            $chartQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))
                 ->select('pos_type', DB::raw("FLOOR(($hourExpression) / 3) as group_index"), DB::raw('SUM(payable_amount) as total'))
                 ->whereDate('sale_date', $today)
                 ->groupBy('pos_type', 'group_index');
         } elseif ($chartPeriod === 'week') {
             $chartLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             $retailSalesChart = array_fill(0, 7, 0);
-            $wholesaleSalesChart = array_fill(0, 7, 0);
-            
-            $startOfWeek = \Carbon\Carbon::parse($today)->startOfWeek()->format('Y-m-d');
-            $endOfWeek = \Carbon\Carbon::parse($today)->endOfWeek()->format('Y-m-d');
-            
+            $wholesaleSalesChart = Features::wholesaleEnabled() ? array_fill(0, 7, 0) : [];
+
+            $startOfWeek = Carbon::parse($today)->startOfWeek()->format('Y-m-d');
+            $endOfWeek = Carbon::parse($today)->endOfWeek()->format('Y-m-d');
+
             $dayOfWeekExpression = DB::connection()->getDriverName() === 'sqlite'
                 ? "CAST(strftime('%w', sale_date) AS INTEGER)" // 0 = Sunday
-                : "DAYOFWEEK(sale_date)"; // 1 = Sunday
-                
-            $chartQuery = DB::table('sales')
+                : 'DAYOFWEEK(sale_date)'; // 1 = Sunday
+
+            $chartQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))
                 ->select('pos_type', DB::raw("$dayOfWeekExpression as group_index"), DB::raw('SUM(payable_amount) as total'))
                 ->whereDate('sale_date', '>=', $startOfWeek)->whereDate('sale_date', '<=', $endOfWeek)
                 ->groupBy('pos_type', 'group_index');
         } elseif ($chartPeriod === 'month') {
-            $daysInMonth = \Carbon\Carbon::parse($today)->daysInMonth;
+            $daysInMonth = Carbon::parse($today)->daysInMonth;
             $chartLabels = [];
             for ($i = 1; $i <= $daysInMonth; $i++) {
                 $chartLabels[] = (string) $i;
             }
             $retailSalesChart = array_fill(0, $daysInMonth, 0);
-            $wholesaleSalesChart = array_fill(0, $daysInMonth, 0);
-            
-            $startOfMonth = \Carbon\Carbon::parse($today)->startOfMonth()->format('Y-m-d');
-            $endOfMonth = \Carbon\Carbon::parse($today)->endOfMonth()->format('Y-m-d');
-            
+            $wholesaleSalesChart = Features::wholesaleEnabled() ? array_fill(0, $daysInMonth, 0) : [];
+
+            $startOfMonth = Carbon::parse($today)->startOfMonth()->format('Y-m-d');
+            $endOfMonth = Carbon::parse($today)->endOfMonth()->format('Y-m-d');
+
             $dayExpression = DB::connection()->getDriverName() === 'sqlite'
                 ? "CAST(strftime('%d', sale_date) AS INTEGER)"
-                : "DAY(sale_date)";
-                
-            $chartQuery = DB::table('sales')
+                : 'DAY(sale_date)';
+
+            $chartQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))
                 ->select('pos_type', DB::raw("$dayExpression as group_index"), DB::raw('SUM(payable_amount) as total'))
                 ->whereDate('sale_date', '>=', $startOfMonth)->whereDate('sale_date', '<=', $endOfMonth)
                 ->groupBy('pos_type', 'group_index');
         } elseif ($chartPeriod === 'year') {
             $chartLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             $retailSalesChart = array_fill(0, 12, 0);
-            $wholesaleSalesChart = array_fill(0, 12, 0);
-            
-            $startOfYear = \Carbon\Carbon::parse($today)->startOfYear()->format('Y-m-d');
-            $endOfYear = \Carbon\Carbon::parse($today)->endOfYear()->format('Y-m-d');
-            
+            $wholesaleSalesChart = Features::wholesaleEnabled() ? array_fill(0, 12, 0) : [];
+
+            $startOfYear = Carbon::parse($today)->startOfYear()->format('Y-m-d');
+            $endOfYear = Carbon::parse($today)->endOfYear()->format('Y-m-d');
+
             $monthExpression = DB::connection()->getDriverName() === 'sqlite'
                 ? "CAST(strftime('%m', sale_date) AS INTEGER)"
-                : "MONTH(sale_date)";
-                
-            $chartQuery = DB::table('sales')
+                : 'MONTH(sale_date)';
+
+            $chartQuery = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))
                 ->select('pos_type', DB::raw("$monthExpression as group_index"), DB::raw('SUM(payable_amount) as total'))
                 ->whereDate('sale_date', '>=', $startOfYear)->whereDate('sale_date', '<=', $endOfYear)
                 ->groupBy('pos_type', 'group_index');
@@ -213,11 +221,12 @@ class DashboardController extends Controller
             $chartQuery->where('store_id', $storeId);
         }
 
+        $chartQuery->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'));
         $chartData = $chartQuery->get();
 
         foreach ($chartData as $sale) {
             $index = (int) $sale->group_index;
-            
+
             if ($chartPeriod === 'week') {
                 $isSqlite = DB::connection()->getDriverName() === 'sqlite';
                 if ($isSqlite) {
@@ -226,15 +235,15 @@ class DashboardController extends Controller
                     $index = $index === 1 ? 6 : $index - 2;
                 }
             } elseif ($chartPeriod === 'month') {
-                $index = $index - 1; 
+                $index = $index - 1;
             } elseif ($chartPeriod === 'year') {
                 $index = $index - 1;
             }
-            
+
             if (isset($chartLabels[$index])) {
                 if ($sale->pos_type === 'retail') {
                     $retailSalesChart[$index] += (float) $sale->total;
-                } else {
+                } elseif (Features::wholesaleEnabled()) {
                     $wholesaleSalesChart[$index] += (float) $sale->total;
                 }
             }
@@ -243,7 +252,7 @@ class DashboardController extends Controller
         // 8. Sales by Payment Method Chart Data
         $paymentMethodsData = DB::table('sale_payments')
             ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
-            ->whereBetween('sale_payments.payment_date', [$startDate, $endDate])
+            ->whereDate('sale_payments.payment_date', '>=', $startDate)->whereDate('sale_payments.payment_date', '<=', $endDate)
             ->where('sale_payments.status', 'cleared');
 
         if ($enableMultiStore && $storeId) {
@@ -284,7 +293,7 @@ class DashboardController extends Controller
 
         // 9. Upcoming Cheques Alert
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
-        $upcomingChequesQuery = app(\App\Services\ChequeAccessService::class)->scope(\App\Models\Cheque::query(), $request->user())
+        $upcomingChequesQuery = app(ChequeAccessService::class)->scope(Cheque::query(), $request->user())
             ->whereIn('status', ['pending', 'upcoming', 'due_today', 'overdue', 'deposited'])
             ->whereDate('cheque_date', '<=', $tomorrow)
             ->orderBy('cheque_date', 'asc');
@@ -296,8 +305,8 @@ class DashboardController extends Controller
         $unreadNotifications = $canViewCheques ? (clone $upcomingChequesQuery)->count() : 0;
         $upcomingCheques = $canViewCheques ? $upcomingChequesQuery->limit(10)->get() : collect();
         $reportFilters = array_filter(['date_filter' => 'custom', 'start_date' => $today, 'end_date' => $today, 'store_id' => $enableMultiStore ? $storeId : null]);
-        $previousDate = \Carbon\Carbon::parse($today)->subDay()->toDateString();
-        $previousSales = DB::table('sales')->whereDate('sale_date', $previousDate)->when($enableMultiStore && $storeId, fn ($q) => $q->where('store_id', $storeId));
+        $previousDate = Carbon::parse($today)->subDay()->toDateString();
+        $previousSales = DB::table('sales')->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('sales.pos_type', 'retail'))->whereDate('sale_date', $previousDate)->when($enableMultiStore && $storeId, fn ($q) => $q->where('store_id', $storeId));
         $previousPurchase = DB::table('purchases')->whereDate('purchase_date', $previousDate)->when($enableMultiStore && $storeId, fn ($q) => $q->where('store_id', $storeId))->sum('total_amount');
         $comparison = function ($current, $previous) {
             return (float) $previous == 0 ? ((float) $current == 0 ? '0%' : 'No prior activity') : sprintf('%+.1f%%', ($current - $previous) / abs($previous) * 100);
@@ -305,12 +314,30 @@ class DashboardController extends Controller
         $changes = [
             $comparison($totalSalesToday, (clone $previousSales)->sum('payable_amount')),
             $comparison($retailSalesToday, (clone $previousSales)->where('pos_type', 'retail')->sum('payable_amount')),
-            $comparison($wholesaleSalesToday, (clone $previousSales)->where('pos_type', 'wholesale')->sum('payable_amount')),
+            ...(Features::wholesaleEnabled() ? [$comparison($wholesaleSalesToday, (clone $previousSales)->where('pos_type', 'wholesale')->sum('payable_amount'))] : []),
             $comparison($totalProfitToday, (clone $previousSales)->sum('total_profit_amount')),
             $comparison($totalPurchaseToday, $previousPurchase),
         ];
 
+        $salesSeries = [['name' => Features::wholesaleEnabled() ? 'Retail Sales' : 'Sales', 'data' => $retailSalesChart]];
+        if (Features::wholesaleEnabled()) {
+            $salesSeries[] = ['name' => 'Wholesale Sales', 'data' => $wholesaleSalesChart];
+        }
+
+        $repairOverview = null;
+        if (Features::repairEnabled() && auth()->user()->hasPermission('repair.view')) {
+            $repairs = RepairJob::query()->when($enableMultiStore && $storeId, fn ($q) => $q->where('store_id', $storeId));
+            $repairOverview = [
+                'Open repairs' => (clone $repairs)->whereNull('completed_at')->whereHas('repairStatus', fn ($s) => $s->where('is_cancelled', false))->count(),
+                'Ready for pickup' => (clone $repairs)->whereHas('repairStatus', fn ($s) => $s->where('is_ready', true))->count(),
+                'Overdue repairs' => (clone $repairs)->whereDate('expected_completion_date', '<', today())->whereNull('completed_at')->whereHas('repairStatus', fn ($s) => $s->where('is_cancelled', false))->count(),
+                'Repair balance' => (clone $repairs)->sum('balance_amount'),
+            ];
+        }
+
         return view('dashboard', compact(
+            'repairOverview',
+            'salesSeries',
             'dateLabel', 'reportFilters', 'changes', 'paymentTransactionCount',
             'totalSalesToday',
             'retailSalesToday',

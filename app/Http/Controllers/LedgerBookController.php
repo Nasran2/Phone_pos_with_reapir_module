@@ -1,16 +1,17 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\JournalEntryItem;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class LedgerBookController extends Controller
 {
     public function index(Request $request)
     {
-        $accounts = Account::where('status', true)->orderBy('account_name')->get();
+        $accounts = Account::available()->where('status', true)->orderBy('account_name')->get();
         $selectedAccount = null;
         $ledgerEntries = collect();
         $openingBalance = 0;
@@ -22,11 +23,11 @@ class LedgerBookController extends Controller
             $selectedAccount = Account::find($request->account_id);
             if ($selectedAccount) {
                 $query = JournalEntryItem::with('journal.creator')
-                            ->where('account_id', $selectedAccount->id)
-                            ->join('journal_entries', 'journal_entry_items.journal_entry_id', '=', 'journal_entries.id')
-                            ->orderBy('journal_entries.journal_date', 'asc')
-                            ->orderBy('journal_entries.id', 'asc')
-                            ->select('journal_entry_items.*', 'journal_entries.journal_date as date', 'journal_entries.journal_no', 'journal_entries.reference_no', 'journal_entries.description as note');
+                    ->where('account_id', $selectedAccount->id)
+                    ->join('journal_entries', 'journal_entry_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->orderBy('journal_entries.journal_date', 'asc')
+                    ->orderBy('journal_entries.id', 'asc')
+                    ->select('journal_entry_items.*', 'journal_entries.journal_date as date', 'journal_entries.journal_no', 'journal_entries.reference_no', 'journal_entries.description as note');
 
                 // Determine date range based on filter
                 $startDate = Carbon::today();
@@ -57,8 +58,12 @@ class LedgerBookController extends Controller
                             $endDate = Carbon::now()->subMonth()->endOfMonth();
                             break;
                         case 'custom':
-                            if ($request->filled('start_date')) $startDate = Carbon::parse($request->start_date);
-                            if ($request->filled('end_date')) $endDate = Carbon::parse($request->end_date);
+                            if ($request->filled('start_date')) {
+                                $startDate = Carbon::parse($request->start_date);
+                            }
+                            if ($request->filled('end_date')) {
+                                $endDate = Carbon::parse($request->end_date);
+                            }
                             break;
                     }
                 } else {
@@ -67,9 +72,9 @@ class LedgerBookController extends Controller
 
                 // Calculate opening balance before start_date
                 $openingQuery = JournalEntryItem::where('account_id', $selectedAccount->id)
-                            ->join('journal_entries', 'journal_entry_items.journal_entry_id', '=', 'journal_entries.id')
-                            ->where('journal_entries.journal_date', '<', $startDate->format('Y-m-d'));
-                
+                    ->join('journal_entries', 'journal_entry_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->where('journal_entries.journal_date', '<', $startDate->format('Y-m-d'));
+
                 $obDebit = $openingQuery->sum('debit');
                 $obCredit = $openingQuery->sum('credit');
 
@@ -80,7 +85,7 @@ class LedgerBookController extends Controller
                 }
 
                 $query->whereBetween('journal_entries.journal_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
-                
+
                 $ledgerEntries = $query->get();
                 $totalDebit = $ledgerEntries->sum('debit');
                 $totalCredit = $ledgerEntries->sum('credit');

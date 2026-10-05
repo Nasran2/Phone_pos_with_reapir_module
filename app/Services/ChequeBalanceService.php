@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cheque;
+use App\Services\Repairs\RepairPaymentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -12,6 +13,11 @@ class ChequeBalanceService
 
     public function placeOnHold(Cheque $cheque): void
     {
+        if ($cheque->repair_job_id && $cheque->invoice_payment_id && $cheque->cheque_type === 'received') {
+            app(RepairPaymentService::class)->syncCheque($cheque, 'hold');
+
+            return;
+        }
         $amount = (float) $cheque->amount;
         if ($cheque->cheque_type === 'received') {
             if ($cheque->sale) {
@@ -51,6 +57,11 @@ class ChequeBalanceService
 
     public function pass(Cheque $cheque): void
     {
+        if ($cheque->repair_job_id && $cheque->invoice_payment_id && $cheque->cheque_type === 'received') {
+            app(RepairPaymentService::class)->syncCheque($cheque, 'cleared');
+
+            return;
+        }
         $amount = (float) $cheque->hold_amount;
         if ($cheque->invoice_payment_id) {
             $cheque->invoicePayment()->update(['status' => 'cleared', 'hold_amount' => 0, 'cleared_amount' => $amount]);
@@ -91,6 +102,11 @@ class ChequeBalanceService
 
     public function releaseToDue(Cheque $cheque, float $charge = 0): void
     {
+        if ($cheque->repair_job_id && $cheque->invoice_payment_id && $cheque->cheque_type === 'received') {
+            app(RepairPaymentService::class)->syncCheque($cheque, 'returned', $charge);
+
+            return;
+        }
         $amount = (float) $cheque->hold_amount;
         if ($cheque->invoice_payment_id) {
             $cheque->invoicePayment()->update(['status' => 'returned', 'hold_amount' => 0, 'cleared_amount' => 0]);

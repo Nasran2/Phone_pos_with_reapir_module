@@ -119,10 +119,10 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 font-semibold text-black">
-                                {{ $log->module }}
+                                {{ \App\Support\Features::retailText($log->module ?? '') }}
                             </td>
-                            <td class="px-6 py-4 text-black max-w-sm truncate" title="{{ $log->description }}">
-                                {{ $log->description ?? '-' }}
+                            <td class="px-6 py-4 text-black max-w-sm truncate" title="{{ \App\Support\Features::retailText($log->description ?? '') }}">
+                                {{ \App\Support\Features::retailText($log->description ?? '-') }}
                             </td>
                             <td class="px-6 py-4 font-mono text-[10px] text-black">
                                 {{ $log->ip_address ?? '::1' }}

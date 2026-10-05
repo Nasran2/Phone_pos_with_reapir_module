@@ -10,7 +10,7 @@ class ChartOfAccountController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Account::with('parent')->orderBy('account_code');
+        $query = Account::available()->with('parent')->orderBy('account_code');
 
         if ($request->filled('type')) {
             $query->where('account_type', $request->type);

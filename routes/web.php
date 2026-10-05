@@ -1,63 +1,73 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\WholesalePosController;
-use App\Http\Controllers\RetailPosController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ActivityLogController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\BrandController;
-use App\Http\Controllers\UnitController;
-use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\PurchaseReturnController;
-use App\Http\Controllers\HsCodeController;
-use App\Http\Controllers\ImportShipmentController;
-use App\Http\Controllers\SaleController;
-use App\Http\Controllers\SaleReturnController;
-use App\Http\Controllers\HoldSaleController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\StoreStockController;
-use App\Http\Controllers\StockAdjustmentController;
-use App\Http\Controllers\DamagedStockController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\DailyClosingController;
-use App\Http\Controllers\ChartOfAccountController;
-use App\Http\Controllers\TaxRateController;
-use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\ExpenseCategoryController;
-use App\Http\Controllers\JournalEntryController;
-use App\Http\Controllers\LedgerBookController;
-use App\Http\Controllers\CapitalDrawingController;
-use App\Http\Controllers\StoreController;
-use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\BarcodeController;
-use App\Http\Controllers\DistributionController;
-use App\Http\Controllers\MyLorryController;
-use App\Http\Controllers\ChequeDashboardController;
-use App\Http\Controllers\ReceivedChequeController;
-use App\Http\Controllers\IssuedChequeController;
-use App\Http\Controllers\ChequeStatusController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CapitalDrawingController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\ChequeCalendarController;
+use App\Http\Controllers\ChequeDashboardController;
 use App\Http\Controllers\ChequeListController;
 use App\Http\Controllers\ChequeReportController;
 use App\Http\Controllers\ChequeSettingsController;
+use App\Http\Controllers\ChequeStatusController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DailyClosingController;
+use App\Http\Controllers\DamagedStockController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DistributionController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\GlobalSearchController;
+use App\Http\Controllers\HoldSaleController;
+use App\Http\Controllers\HsCodeController;
+use App\Http\Controllers\ImportShipmentController;
+use App\Http\Controllers\IssuedChequeController;
+use App\Http\Controllers\JournalEntryController;
+use App\Http\Controllers\LedgerBookController;
+use App\Http\Controllers\MyLorryController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseReturnController;
+use App\Http\Controllers\ReceivedChequeController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RetailPosController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SaleReturnController;
+use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\StoreController;
+use App\Http\Controllers\StoreStockController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\TaxAdjustmentController;
+use App\Http\Controllers\TaxDashboardController;
+use App\Http\Controllers\TaxPaymentController;
+use App\Http\Controllers\TaxPeriodController;
+use App\Http\Controllers\TaxRateController;
+use App\Http\Controllers\TaxReportController;
+use App\Http\Controllers\TaxTransactionController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WholesalePosController;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/link-storage', function () {
-    \Illuminate\Support\Facades\Artisan::call('storage:link');
+    Artisan::call('storage:link');
+
     return 'Storage linked successfully!';
 });
 
 Route::get('/cachtwinsofte', function () {
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    Artisan::call('optimize:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+
     return 'All cache cleared successfully!';
 });
 
@@ -68,7 +78,7 @@ Route::get('shared/invoices/{sale}', [SaleController::class, 'shared'])
     ->middleware('signed');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('global-search', \App\Http\Controllers\GlobalSearchController::class)->name('global-search')->middleware('throttle:60,1');
+    Route::get('global-search', GlobalSearchController::class)->name('global-search')->middleware('throttle:60,1');
 
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])
@@ -76,13 +86,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // POS Routes
     Route::get('pos/wholesale', [WholesalePosController::class, 'index'])
-        ->name('pos.wholesale')
+        ->middleware('wholesale.enabled')->name('pos.wholesale')
         ->middleware('permission:wholesale_pos.view');
     Route::post('pos/wholesale/store', [WholesalePosController::class, 'store'])
-        ->name('pos.wholesale.store')
+        ->middleware('wholesale.enabled')->name('pos.wholesale.store')
         ->middleware('permission:wholesale_pos.create_sale');
     Route::post('pos/wholesale/customer', [WholesalePosController::class, 'storeCustomer'])
-        ->name('pos.wholesale.customer')
+        ->middleware('wholesale.enabled')->name('pos.wholesale.customer')
         ->middleware('permission:customers.create');
 
     Route::get('pos/retail', [RetailPosController::class, 'index'])
@@ -258,19 +268,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Tax Management
     Route::prefix('tax')->name('tax.')->group(function () {
-        Route::get('dashboard', [\App\Http\Controllers\TaxDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('periods', \App\Http\Controllers\TaxPeriodController::class)->only(['index', 'create', 'store', 'show']);
-        Route::post('payments/{payment}/approve', [\App\Http\Controllers\TaxPaymentController::class, 'approve'])->name('payments.approve');
-        Route::post('payments/{payment}/reverse', [\App\Http\Controllers\TaxPaymentController::class, 'reverse'])->name('payments.reverse');
-        Route::resource('payments', \App\Http\Controllers\TaxPaymentController::class)->only(['index', 'create', 'store', 'show']);
-        
-        Route::post('adjustments/{adjustment}/approve', [\App\Http\Controllers\TaxAdjustmentController::class, 'approve'])->name('adjustments.approve');
-        Route::resource('adjustments', \App\Http\Controllers\TaxAdjustmentController::class)->only(['index', 'create', 'store']);
-        
-        Route::get('transactions', [\App\Http\Controllers\TaxTransactionController::class, 'index'])->name('transactions.index');
-        Route::get('reports', [\App\Http\Controllers\TaxReportController::class, 'index'])->name('reports.index');
-        Route::get('reports/vat', [\App\Http\Controllers\TaxReportController::class, 'vatReturn'])->name('reports.vat');
-        Route::get('reports/payments', [\App\Http\Controllers\TaxReportController::class, 'paymentRegister'])->name('reports.payments');
+        Route::get('dashboard', [TaxDashboardController::class, 'index'])->name('dashboard');
+        Route::resource('periods', TaxPeriodController::class)->only(['index', 'create', 'store', 'show']);
+        Route::post('payments/{payment}/approve', [TaxPaymentController::class, 'approve'])->name('payments.approve');
+        Route::post('payments/{payment}/reverse', [TaxPaymentController::class, 'reverse'])->name('payments.reverse');
+        Route::resource('payments', TaxPaymentController::class)->only(['index', 'create', 'store', 'show']);
+
+        Route::post('adjustments/{adjustment}/approve', [TaxAdjustmentController::class, 'approve'])->name('adjustments.approve');
+        Route::resource('adjustments', TaxAdjustmentController::class)->only(['index', 'create', 'store']);
+
+        Route::get('transactions', [TaxTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('reports', [TaxReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/vat', [TaxReportController::class, 'vatReturn'])->name('reports.vat');
+        Route::get('reports/payments', [TaxReportController::class, 'paymentRegister'])->name('reports.payments');
     });
 
     // Purchases
@@ -469,30 +479,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('lorry.user')->group(function () {
             Route::get('my-lorry', [MyLorryController::class, 'dashboard'])->name('my-lorry.dashboard');
             Route::get('my-lorry/stock', [MyLorryController::class, 'stock'])->name('my-lorry.stock');
-            Route::get('my-lorry/order', [MyLorryController::class, 'createOrder'])->name('my-lorry.order.create');
-            Route::post('my-lorry/order', [MyLorryController::class, 'storeOrder'])->name('my-lorry.order.store');
-            Route::get('my-lorry/sales', [MyLorryController::class, 'sales'])->name('my-lorry.sales');
+            Route::get('my-lorry/order', [MyLorryController::class, 'createOrder'])->middleware('wholesale.enabled')->name('my-lorry.order.create');
+            Route::post('my-lorry/order', [MyLorryController::class, 'storeOrder'])->middleware('wholesale.enabled')->name('my-lorry.order.store');
+            Route::get('my-lorry/sales', [MyLorryController::class, 'sales'])->middleware('wholesale.enabled')->name('my-lorry.sales');
             Route::get('my-lorry/customers', [MyLorryController::class, 'customers'])->name('my-lorry.customers');
-            Route::match(['get','post'], 'my-lorry/expenses', [MyLorryController::class, 'expenses'])->name('my-lorry.expenses');
+            Route::match(['get', 'post'], 'my-lorry/expenses', [MyLorryController::class, 'expenses'])->name('my-lorry.expenses');
         });
         Route::middleware('permission:distribution.view')->group(function () {
-        Route::get('/', [DistributionController::class, 'dashboard'])->name('dashboard')->middleware('permission:distribution.dashboard');
-        Route::match(['get', 'post'], 'lorries', [DistributionController::class, 'lorries'])->name('lorries.index')->middleware('permission:lorries.view');
-        Route::get('lorries/{lorry}', [DistributionController::class, 'showLorry'])->name('lorries.show')->middleware('permission:lorries.view');
-        Route::put('lorries/{lorry}', [DistributionController::class, 'updateLorry'])->name('lorries.update')->middleware('permission:lorries.edit');
-        Route::delete('lorries/{lorry}', [DistributionController::class, 'destroyLorry'])->name('lorries.destroy')->middleware('permission:lorries.delete');
-        Route::get('stock', [DistributionController::class, 'stock'])->name('stock.index')->middleware('permission:lorry_stock.view');
-        Route::match(['get', 'post'], 'load-stock', [DistributionController::class, 'load'])->name('load')->middleware('permission:lorry_stock.load');
-        Route::match(['get', 'post'], 'return-stock', [DistributionController::class, 'returns'])->name('returns')->middleware('permission:lorry_stock.return');
-        Route::match(['get', 'post'], 'lorry-transfer', [DistributionController::class, 'lorryTransfer'])->name('lorry-transfer')->middleware('permission:lorry_stock.transfer');
-        Route::match(['get', 'post'], 'trips', [DistributionController::class, 'trips'])->name('trips')->middleware('permission:distribution_trips.view');
-        Route::post('trips/{trip}/status', [DistributionController::class, 'updateTripStatus'])->name('trips.status')->middleware('permission:distribution_trips.edit');
-        Route::get('sales', [DistributionController::class, 'sales'])->name('sales')->middleware('permission:lorry_sales.view');
-        Route::match(['get', 'post'], 'expenses', [DistributionController::class, 'expenses'])->name('expenses')->middleware('permission:lorry_expenses.view');
-        Route::match(['get', 'post'], 'reconciliation', [DistributionController::class, 'reconciliation'])->name('reconciliation')->middleware('permission:lorry_reconciliation.view');
-        Route::get('reports', [DistributionController::class, 'reports'])->name('reports')->middleware('permission:distribution_reports.view');
-        Route::match(['get', 'post'], 'settings', [DistributionController::class, 'settings'])->name('settings')->middleware('permission:distribution.settings');
-        Route::get('product-search', [DistributionController::class, 'productSearch'])->name('product-search')->middleware('permission:lorry_stock.view');
+            Route::get('/', [DistributionController::class, 'dashboard'])->name('dashboard')->middleware('permission:distribution.dashboard');
+            Route::match(['get', 'post'], 'lorries', [DistributionController::class, 'lorries'])->name('lorries.index')->middleware('permission:lorries.view');
+            Route::get('lorries/{lorry}', [DistributionController::class, 'showLorry'])->name('lorries.show')->middleware('permission:lorries.view');
+            Route::put('lorries/{lorry}', [DistributionController::class, 'updateLorry'])->name('lorries.update')->middleware('permission:lorries.edit');
+            Route::delete('lorries/{lorry}', [DistributionController::class, 'destroyLorry'])->name('lorries.destroy')->middleware('permission:lorries.delete');
+            Route::get('stock', [DistributionController::class, 'stock'])->name('stock.index')->middleware('permission:lorry_stock.view');
+            Route::match(['get', 'post'], 'load-stock', [DistributionController::class, 'load'])->name('load')->middleware('permission:lorry_stock.load');
+            Route::match(['get', 'post'], 'return-stock', [DistributionController::class, 'returns'])->name('returns')->middleware('permission:lorry_stock.return');
+            Route::match(['get', 'post'], 'lorry-transfer', [DistributionController::class, 'lorryTransfer'])->name('lorry-transfer')->middleware('permission:lorry_stock.transfer');
+            Route::match(['get', 'post'], 'trips', [DistributionController::class, 'trips'])->name('trips')->middleware('permission:distribution_trips.view');
+            Route::post('trips/{trip}/status', [DistributionController::class, 'updateTripStatus'])->name('trips.status')->middleware('permission:distribution_trips.edit');
+            Route::get('sales', [DistributionController::class, 'sales'])->middleware('wholesale.enabled')->name('sales')->middleware('permission:lorry_sales.view');
+            Route::match(['get', 'post'], 'expenses', [DistributionController::class, 'expenses'])->name('expenses')->middleware('permission:lorry_expenses.view');
+            Route::match(['get', 'post'], 'reconciliation', [DistributionController::class, 'reconciliation'])->name('reconciliation')->middleware('permission:lorry_reconciliation.view');
+            Route::get('reports', [DistributionController::class, 'reports'])->name('reports')->middleware('permission:distribution_reports.view');
+            Route::match(['get', 'post'], 'settings', [DistributionController::class, 'settings'])->name('settings')->middleware('permission:distribution.settings');
+            Route::get('product-search', [DistributionController::class, 'productSearch'])->name('product-search')->middleware('permission:lorry_stock.view');
         });
     });
 
@@ -515,7 +525,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('issued', [IssuedChequeController::class, 'index'])->name('issued.index')->middleware('permission:cheques.issued.view');
         Route::get('issued/create', [IssuedChequeController::class, 'create'])->name('issued.create')->middleware('permission:cheques.issued.create');
         Route::post('issued', [IssuedChequeController::class, 'store'])->name('issued.store')->middleware('permission:cheques.issued.create');
-        Route::get('list/{view}', ChequeListController::class)->whereIn('view', ['upcoming','today','overdue','passed','returned'])->name('list')->middleware('permission:cheques.view');
+        Route::get('list/{view}', ChequeListController::class)->whereIn('view', ['upcoming', 'today', 'overdue', 'passed', 'returned'])->name('list')->middleware('permission:cheques.view');
         Route::get('calendar', ChequeCalendarController::class)->name('calendar')->middleware('permission:cheques.calendar');
         Route::get('reports', [ChequeReportController::class, 'index'])->name('reports')->middleware('permission:cheques.reports');
         Route::get('reports/pdf', [ChequeReportController::class, 'pdf'])->name('reports.pdf')->middleware('permission:cheques.export_pdf');
@@ -534,7 +544,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index')->middleware('permission:reports.view');
         Route::get('/sales', [ReportController::class, 'sales'])->name('sales')->middleware('permission:reports.sales');
         Route::get('/retail-sales', [ReportController::class, 'retailSales'])->name('retail_sales')->middleware('permission:reports.retail_sales');
-        Route::get('/wholesale-sales', [ReportController::class, 'wholesaleSales'])->name('wholesale_sales')->middleware('permission:reports.wholesale_sales');
+        Route::get('/wholesale-sales', [ReportController::class, 'wholesaleSales'])->middleware('wholesale.enabled')->name('wholesale_sales')->middleware('permission:reports.wholesale_sales');
         Route::get('/sales-returns', [ReportController::class, 'salesReturns'])->name('sales_returns')->middleware('permission:reports.sales_returns');
         Route::get('/purchases', [ReportController::class, 'purchases'])->name('purchases')->middleware('permission:reports.purchase');
         Route::get('/purchase-returns', [ReportController::class, 'purchaseReturns'])->name('purchase_returns')->middleware('permission:reports.purchase_returns');
@@ -552,15 +562,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/cash-bank', [ReportController::class, 'cashBank'])->name('cash_bank')->middleware('permission:reports.cash_bank');
         Route::get('/tax', [ReportController::class, 'tax'])->name('tax')->middleware('permission:reports.tax');
         Route::get('/user-activity', [ReportController::class, 'userActivity'])->name('user_activity')->middleware('permission:reports.user_activity');
-        
+
         Route::get('/daily-closing', [DailyClosingController::class, 'index'])->name('daily_closing')->middleware('permission:reports.daily_closing');
         Route::post('/daily-closing', [DailyClosingController::class, 'store'])->name('daily_closing.store')->middleware('permission:reports.daily_closing');
     });
 });
 
 Route::get('/migrate', function () {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return 'Migration completed successfully!<br><br><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    Artisan::call('migrate', ['--force' => true]);
+
+    return 'Migration completed successfully!<br><br><pre>'.Artisan::output().'</pre>';
 });
 
 require __DIR__.'/settings.php';
+
+require __DIR__.'/repairs.php';

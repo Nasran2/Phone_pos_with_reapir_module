@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Category;
 use App\Models\Brand;
-use App\Models\StockHistory;
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Setting;
+use App\Models\StockHistory;
+use App\Models\Store;
+use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,10 +21,10 @@ class StoreStockController extends Controller
             // Fallback for older links using single store_id
             $storeIds = [$request->input('store_id')];
         }
-        
-        $query = Product::with(['category', 'brand', 'storeStocks' => function($q) use ($storeIds) {
+
+        $query = Product::with(['category', 'brand', 'storeStocks' => function ($q) use ($storeIds) {
             $q->with('store');
-            if (!empty($storeIds)) {
+            if (! empty($storeIds)) {
                 $q->whereIn('store_id', $storeIds);
             }
         }])->select('products.*');
@@ -31,11 +33,11 @@ class StoreStockController extends Controller
             ->selectRaw('COALESCE(SUM(quantity), 0)')
             ->whereColumn('product_id', 'products.id');
 
-        if (!empty($storeIds)) {
+        if (! empty($storeIds)) {
             $stockSubquery->whereIn('store_id', $storeIds);
-            
+
             // Only show products assigned to at least one of the selected stores
-            $query->whereHas('storeStocks', function($q) use ($storeIds) {
+            $query->whereHas('storeStocks', function ($q) use ($storeIds) {
                 $q->whereIn('store_id', $storeIds);
             });
         }
@@ -47,8 +49,8 @@ class StoreStockController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%");
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('barcode', 'like', "%{$search}%");
             });
         }
 
@@ -65,14 +67,14 @@ class StoreStockController extends Controller
         // Filter by low stock / out of stock status
         if ($request->filled('stock_status')) {
             $status = $request->input('stock_status');
-            $subSql = '(' . $stockSubquery->toSql() . ')';
+            $subSql = '('.$stockSubquery->toSql().')';
             $bindings = $stockSubquery->getBindings();
 
             if ($status === 'low') {
-                $query->whereRaw($subSql . ' <= products.stock_alert_quantity', $bindings)
-                      ->whereRaw($subSql . ' > 0', $bindings);
+                $query->whereRaw($subSql.' <= products.stock_alert_quantity', $bindings)
+                    ->whereRaw($subSql.' > 0', $bindings);
             } elseif ($status === 'out') {
-                $query->whereRaw($subSql . ' <= 0', $bindings);
+                $query->whereRaw($subSql.' <= 0', $bindings);
             }
         }
 
@@ -86,7 +88,7 @@ class StoreStockController extends Controller
             ->join('products', 'products.id', '=', 'product_store_stock.product_id')
             ->whereNull('products.deleted_at');
 
-        if (!empty($storeIds)) {
+        if (! empty($storeIds)) {
             $stockValueQuery->whereIn('product_store_stock.store_id', $storeIds);
         }
 
@@ -94,13 +96,13 @@ class StoreStockController extends Controller
 
         // Low stock count based on selected store
         $lowStockQuery = DB::table('products')->whereNull('deleted_at');
-        $lowStockQuery->whereRaw('(' . $stockSubquery->toSql() . ') <= products.stock_alert_quantity', $stockSubquery->getBindings());
-        $lowStockQuery->whereRaw('(' . $stockSubquery->toSql() . ') > 0', $stockSubquery->getBindings());
+        $lowStockQuery->whereRaw('('.$stockSubquery->toSql().') <= products.stock_alert_quantity', $stockSubquery->getBindings());
+        $lowStockQuery->whereRaw('('.$stockSubquery->toSql().') > 0', $stockSubquery->getBindings());
         $lowStockItems = $lowStockQuery->count();
 
         // Out of stock count based on selected store
         $outOfStockQuery = DB::table('products')->whereNull('deleted_at');
-        $outOfStockQuery->whereRaw('(' . $stockSubquery->toSql() . ') <= 0', $stockSubquery->getBindings());
+        $outOfStockQuery->whereRaw('('.$stockSubquery->toSql().') <= 0', $stockSubquery->getBindings());
         $outOfStockItems = $outOfStockQuery->count();
 
         $summary = [
@@ -112,7 +114,7 @@ class StoreStockController extends Controller
 
         $categories = Category::orderBy('name')->get();
         $brands = Brand::orderBy('name')->get();
-        $stores = \App\Models\Store::orderBy('name')->get();
+        $stores = Store::orderBy('name')->get();
 
         return view('stock.index', compact('products', 'summary', 'categories', 'brands', 'stores'));
     }
@@ -155,8 +157,8 @@ class StoreStockController extends Controller
                         'new_quantity' => $newQuantity,
                         'type' => ucfirst(str_replace('_', ' ', (string) $history->type)),
                         'reference_no' => $history->reference_no ?: '-',
-                        'note' => $history->note ?: '-',
-                        'description' => $history->description ?: ($history->note ?: '-'),
+                        'note' => Features::retailText($history->note ?: '-'),
+                        'description' => Features::retailText($history->description ?: ($history->note ?: '-')),
                         'creator' => $history->creator ? $history->creator->name : 'System',
                         'date' => $history->created_at ? $history->created_at->format('Y-m-d H:i') : '-',
                     ];

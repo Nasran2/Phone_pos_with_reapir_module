@@ -14,12 +14,14 @@ use App\Models\PurchaseReturn;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
+use App\Models\Setting;
 use App\Models\StockHistory;
 use App\Models\Supplier;
 use App\Models\SupplierTransaction;
 use App\Services\ExcelExportService;
 use App\Services\PdfExportService;
 use App\Services\ReportService;
+use App\Support\Features;
 use App\Support\SystemSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -118,9 +120,10 @@ class ReportController extends Controller
 
     private function applyStoreFilter(Request $request, Builder $query, string $table): Builder
     {
-        if ($request->filled('store_id') && $this->hasColumn($table, 'store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
+        if ($request->filled('store_id') && $this->hasColumn($table, 'store_id') && Setting::get('enable_multi_store', false)) {
             $query->where("{$table}.store_id", $request->store_id);
         }
+
         return $query;
     }
 
@@ -206,7 +209,7 @@ class ReportController extends Controller
             ->all();
 
         $mix = [];
-        if ($this->hasColumn('sales', 'pos_type')) {
+        if (Features::wholesaleEnabled() && $this->hasColumn('sales', 'pos_type')) {
             $mix = (clone $query)
                 ->selectRaw("pos_type as label, SUM({$totalColumn}) as value")
                 ->groupBy('pos_type')
@@ -228,10 +231,13 @@ class ReportController extends Controller
                 'items' => $trend,
             ],
             'donut' => [
-                'title' => 'Retail vs Wholesale',
+                'title' => Features::wholesaleEnabled() ? 'Retail vs Wholesale' : 'Payments',
                 'subtitle' => 'Sales value by channel',
                 'type' => 'money',
-                'items' => $mix,
+                'items' => Features::wholesaleEnabled() ? $mix : [
+                    ['label' => 'Paid', 'value' => $totalPaid, 'color' => '#10B981'],
+                    ['label' => 'Due', 'value' => $totalDue, 'color' => '#F59E0B'],
+                ],
             ],
             'progress' => [
                 'title' => 'Payment Health',
@@ -256,6 +262,7 @@ class ReportController extends Controller
     public function sales(Request $request)
     {
         $query = Sale::with(['customer', 'cashier']);
+        $query->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'));
         $query = $this->applyDate($request, $query, 'sales', ['sale_date', 'created_at']);
         $query = $this->applyStoreFilter($request, $query, 'sales');
 
@@ -304,12 +311,12 @@ class ReportController extends Controller
             $totalProfit
         );
 
-        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Sales Report', ['Invoice No', 'Date', 'Customer', 'Type', 'Subtotal', 'Discount', 'Tax', 'Grand Total', 'Paid', 'Due', 'Profit', 'Cashier'], (clone $query)->get()->map(function ($sale) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Sales Report', ['Invoice No', 'Date', 'Customer', ...(Features::wholesaleEnabled() ? ['Type'] : []), 'Subtotal', 'Discount', 'Tax', 'Grand Total', 'Paid', 'Due', 'Profit', 'Cashier'], (clone $query)->get()->map(function ($sale) {
             return [
                 $sale->invoice_no,
                 optional($this->value($sale, ['sale_date', 'created_at']))->format('Y-m-d'),
                 $sale->customer->name ?? 'Walk-in',
-                ucfirst((string) $this->value($sale, ['pos_type'], 'retail')),
+                ...(Features::wholesaleEnabled() ? [ucfirst((string) $this->value($sale, ['pos_type'], 'retail'))] : []),
                 $this->value($sale, ['total_amount'], 0),
                 $this->value($sale, ['discount_amount'], 0),
                 $this->value($sale, ['total_tax_amount', 'tax_amount'], 0),
@@ -335,6 +342,7 @@ class ReportController extends Controller
 
     public function wholesaleSales(Request $request)
     {
+        abort_unless(Features::wholesaleEnabled(), 404);
         $request->merge(['sale_type' => 'wholesale']);
 
         return $this->sales($request);
@@ -342,11 +350,11 @@ class ReportController extends Controller
 
     public function salesReturns(Request $request)
     {
-        $query = SaleReturn::with(['customer', 'sale']);
+        $query = SaleReturn::with(['customer', 'sale'])->when(! Features::wholesaleEnabled(), fn ($q) => $q->whereHas('sale', fn ($sale) => $sale->where('pos_type', 'retail')));
         $query = $this->applyDate($request, $query, 'sale_returns', ['return_date', 'created_at']);
         // Store filter applied through joined sale table or natively if exists. But sale_returns doesn't have store_id. It's on sales.
-        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
-            $query->whereHas('sale', function($q) use ($request) {
+        if ($request->filled('store_id') && Setting::get('enable_multi_store', false)) {
+            $query->whereHas('sale', function ($q) use ($request) {
                 $q->where('store_id', $request->store_id);
             });
         }
@@ -423,8 +431,8 @@ class ReportController extends Controller
     {
         $query = PurchaseReturn::with(['supplier']);
         $query = $this->applyDate($request, $query, 'purchase_returns', ['return_date', 'created_at']);
-        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
-            $query->whereHas('purchase', function($q) use ($request) {
+        if ($request->filled('store_id') && Setting::get('enable_multi_store', false)) {
+            $query->whereHas('purchase', function ($q) use ($request) {
                 $q->where('store_id', $request->store_id);
             });
         }
@@ -459,11 +467,11 @@ class ReportController extends Controller
 
     public function stock(Request $request)
     {
-        $stockStore = $request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false) ? $request->integer('store_id') : (int) \App\Models\Setting::get('default_store_id', 1);
+        $stockStore = $request->filled('store_id') && Setting::get('enable_multi_store', false) ? $request->integer('store_id') : (int) Setting::get('default_store_id', 1);
         $query = Product::with(['category', 'brand'])->withSum(['storeStocks as report_stock_quantity' => fn ($stock) => $stock->where('store_id', $stockStore)], 'quantity');
-        
-        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
-            $query->with(['storeStocks' => function($q) use ($request) {
+
+        if ($request->filled('store_id') && Setting::get('enable_multi_store', false)) {
+            $query->with(['storeStocks' => function ($q) use ($request) {
                 $q->where('store_id', $request->store_id);
             }]);
         }
@@ -489,14 +497,14 @@ class ReportController extends Controller
         ];
         $chartData = $this->summaryChartData($summary, 'Stock Position', 'Stock Mix', 'Inventory Health');
 
-        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Stock Report', ['Product', 'Category', 'Stock', 'Cost', 'Retail', 'Wholesale'], (clone $query)->get()->map(function ($product) {
+        if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'Stock Report', ['Product', 'Category', 'Stock', 'Cost', 'Retail', ...(Features::wholesaleEnabled() ? ['Wholesale'] : [])], (clone $query)->get()->map(function ($product) {
             return [
                 $product->name,
                 $product->category->name ?? '-',
                 $product->report_stock_quantity ?? 0,
                 $product->cost_price,
                 $product->retail_price,
-                $product->wholesale_price,
+                ...(Features::wholesaleEnabled() ? [$product->wholesale_price] : []),
             ];
         }))) {
             return $export;
@@ -507,11 +515,11 @@ class ReportController extends Controller
 
     public function lowStock(Request $request)
     {
-        $stockStore = $request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false) ? $request->integer('store_id') : (int) \App\Models\Setting::get('default_store_id', 1);
+        $stockStore = $request->filled('store_id') && Setting::get('enable_multi_store', false) ? $request->integer('store_id') : (int) Setting::get('default_store_id', 1);
         $query = Product::with(['category', 'brand'])->withSum(['storeStocks as report_stock_quantity' => fn ($stock) => $stock->where('store_id', $stockStore)], 'quantity');
-        
-        if ($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false)) {
-            $query->with(['storeStocks' => function($q) use ($request) {
+
+        if ($request->filled('store_id') && Setting::get('enable_multi_store', false)) {
+            $query->with(['storeStocks' => function ($q) use ($request) {
                 $q->where('store_id', $request->store_id);
             }])->where(function (Builder $productQuery) use ($request) {
                 $productQuery
@@ -619,7 +627,7 @@ class ReportController extends Controller
                 DB::raw("SUM({$profitExpr}) as profit")
             )
             ->when($dateColumn, fn ($query) => $this->reportService->applyDateFilter($query, 'sales.'.$dateColumn, $request->date_filter, $request->start_date, $request->end_date))
-            ->when($request->filled('store_id') && \App\Models\Setting::get('enable_multi_store', false), function($query) use ($request) {
+            ->when($request->filled('store_id') && Setting::get('enable_multi_store', false), function ($query) use ($request) {
                 $query->where('sales.store_id', $request->store_id);
             })
             ->groupBy('products.id', 'products.name')
@@ -671,8 +679,10 @@ class ReportController extends Controller
         $netProfit = $grossProfit - $expenses;
 
         $data = collect([
-            (object) ['date' => '-', 'category' => 'Income', 'description' => 'Retail Sales', 'amount' => $retailSales],
-            (object) ['date' => '-', 'category' => 'Income', 'description' => 'Wholesale Sales', 'amount' => $wholesaleSales],
+            ...(Features::wholesaleEnabled() ? [
+                (object) ['date' => '-', 'category' => 'Income', 'description' => 'Retail Sales', 'amount' => $retailSales],
+                (object) ['date' => '-', 'category' => 'Income', 'description' => 'Wholesale Sales', 'amount' => $wholesaleSales],
+            ] : [(object) ['date' => '-', 'category' => 'Income', 'description' => 'Sales Revenue', 'amount' => $retailSales + $wholesaleSales]]),
             (object) ['date' => '-', 'category' => 'COGS', 'description' => 'Cost of Goods Sold', 'amount' => $cogs],
             (object) ['date' => '-', 'category' => 'Expenses', 'description' => 'Operating Expenses', 'amount' => $expenses],
             (object) ['date' => '-', 'category' => 'Net Profit', 'description' => 'Gross Profit minus Expenses', 'amount' => $netProfit],
@@ -890,9 +900,9 @@ class ReportController extends Controller
         if (in_array($request->query('type'), ['pdf', 'excel'], true) && $export = $this->handleExport($request, 'User Activity Report', ['Date', 'User', 'Module', 'Action', 'Description'], (clone $query)->get()->map(fn ($log) => [
             optional($log->created_at)->format('Y-m-d H:i'),
             $log->user->name ?? '-',
-            $log->module,
+            Features::retailText($log->module ?? ''),
             $log->action,
-            $log->description,
+            Features::retailText($log->description ?? ''),
         ]))) {
             return $export;
         }

@@ -23,7 +23,7 @@
                 <select name="sale_type" class="px-3 py-2.5 border border-slate-900 rounded-lg text-sm bg-white">
                     <option value="">All Types</option>
                     <option value="retail" @selected(request('sale_type') === 'retail')>Retail</option>
-                    <option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>
+                    @if(\App\Support\Features::wholesaleEnabled())<option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>@endif
                 </select>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2.5 border border-slate-900 rounded-lg text-sm">
                 <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2.5 border border-slate-900 rounded-lg text-sm">

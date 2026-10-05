@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Features;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,17 @@ class Product extends Model
 {
     use LogsActivity;
     use SoftDeletes;
+
+    /** @return array<string, mixed> */
+    public function attributesToArray(): array
+    {
+        $attributes = parent::attributesToArray();
+        if (! Features::wholesaleEnabled()) {
+            unset($attributes['wholesale_price']);
+        }
+
+        return $attributes;
+    }
 
     protected $fillable = [
         'category_id', 'brand_id', 'unit_id', 'name', 'sku', 'barcode',

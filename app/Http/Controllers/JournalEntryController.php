@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\JournalEntry;
 use App\Models\Account;
+use App\Models\JournalEntry;
 use App\Services\JournalService;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class JournalEntryController extends Controller
 {
@@ -52,7 +53,7 @@ class JournalEntryController extends Controller
         }
 
         $journals = $query->paginate(20)->withQueryString();
-        $accounts = Account::where('status', true)->get();
+        $accounts = Account::available()->where('status', true)->get();
 
         return view('accounting.journal.index', compact('journals', 'accounts'));
     }
@@ -67,7 +68,7 @@ class JournalEntryController extends Controller
             'items.*.account_id' => 'required|exists:accounts,id',
             'items.*.debit' => 'nullable|numeric|min:0',
             'items.*.credit' => 'nullable|numeric|min:0',
-            'items.*.notes' => 'nullable|string'
+            'items.*.notes' => 'nullable|string',
         ]);
 
         $totalDebit = collect($validated['items'])->sum('debit');
@@ -101,6 +102,7 @@ class JournalEntryController extends Controller
         }
 
         $this->journalService->deleteEntry($journal_entry);
+
         return back()->with('success', 'Journal entry deleted.');
     }
 }

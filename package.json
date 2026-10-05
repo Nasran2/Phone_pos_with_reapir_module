@@ -5,7 +5,8 @@
     "scripts": {
         "test:pos": "node --test tests/Browser/pos-cart.test.cjs",
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:repair": "node --test tests/Browser/repair-pattern.test.js"
     },
     "dependencies": {
         "@laravel/passkeys": "^0.2.0",

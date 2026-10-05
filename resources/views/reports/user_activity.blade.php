@@ -49,9 +49,9 @@
                 <tr class="hover:bg-slate-50 transition">
                     <td class="p-4">{{ $item->created_at->format("Y-m-d H:i") }}</td>
                     <td class="p-4">{{ $item->user->name ?? "-" }}</td>
-                    <td class="p-4">{{ $item->module }}</td>
+                    <td class="p-4">{{ \App\Support\Features::retailText($item->module ?? '') }}</td>
                     <td class="p-4">{{ $item->action }}</td>
-                    <td class="p-4">{{ $item->description }}</td>
+                    <td class="p-4">{{ \App\Support\Features::retailText($item->description ?? '') }}</td>
 
                 </tr>
             @empty

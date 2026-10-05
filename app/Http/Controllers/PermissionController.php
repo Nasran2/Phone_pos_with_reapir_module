@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permission;
-use Illuminate\Http\Request;
+use App\Support\Features;
 
 class PermissionController extends Controller
 {
@@ -23,8 +23,9 @@ class PermissionController extends Controller
             'damaged_stock' => 'Damaged Stock',
             'activity_logs' => 'Activity Logs',
         ];
-        $permissions = Permission::orderBy('name')->get()->groupBy(function($item) use ($moduleLabels) {
+        $permissions = Permission::orderBy('name')->get()->filter(fn ($permission) => Features::permissionEnabled($permission->name))->groupBy(function ($item) use ($moduleLabels) {
             $parts = explode('.', $item->name);
+
             return $moduleLabels[$parts[0] ?? ''] ?? ucwords(str_replace('_', ' ', $parts[0] ?? 'Other'));
         })->sortKeys();
 

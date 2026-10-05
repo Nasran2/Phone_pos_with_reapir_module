@@ -35,11 +35,11 @@
                     confirmButtonText: 'Yes, edit it'
                 }).then((result) => {
                     if(result.isConfirmed) {
-                        window.location.href = posType === 'wholesale' ? `/pos/wholesale?edit_sale_id=${id}` : `/pos/retail?edit_sale_id=${id}`;
+                        window.location.href = @if(\App\Support\Features::wholesaleEnabled())posType === 'wholesale' ? `/pos/wholesale?edit_sale_id=${id}` : @endif`/pos/retail?edit_sale_id=${id}`;
                     }
                 });
             } else {
-                window.location.href = posType === 'wholesale' ? `/pos/wholesale?edit_sale_id=${id}` : `/pos/retail?edit_sale_id=${id}`;
+                window.location.href = @if(\App\Support\Features::wholesaleEnabled())posType === 'wholesale' ? `/pos/wholesale?edit_sale_id=${id}` : @endif`/pos/retail?edit_sale_id=${id}`;
             }
         }
     }" @keydown.escape.window="closePayment()">
@@ -64,11 +64,11 @@
         <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-800 text-xs font-semibold">{{ session('error') }}</div>
         @endif
 
-        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 {{ \App\Support\Features::wholesaleEnabled() ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} gap-4">
             @foreach([
                 ['Today Sales', $summary['today_sales'], 'blue'],
                 ['Retail Sales', $summary['retail_sales'], 'emerald'],
-                ['Wholesale Sales', $summary['wholesale_sales'], 'indigo'],
+                ...(\App\Support\Features::wholesaleEnabled() ? [['Wholesale Sales', $summary['wholesale_sales'], 'indigo']] : []),
                 ['Due Sales', $summary['due_sales'], 'red'],
                 ['Total Profit', $summary['total_profit'], 'amber'],
                 ['Pending Orders', $summary['pending_orders'], 'orange'],
@@ -89,7 +89,7 @@
                 <select name="sale_type" class="px-3 py-2.5 border border-slate-900 rounded-lg text-sm bg-white">
                     <option value="">All Types</option>
                     <option value="retail" @selected(request('sale_type') === 'retail')>Retail</option>
-                    <option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>
+                    @if(\App\Support\Features::wholesaleEnabled())<option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>@endif
                 </select>
                 <label class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-white cursor-pointer">
                     <input type="checkbox" name="pending_only" value="1" onchange="this.form.submit()" @checked(request()->boolean('pending_only'))>

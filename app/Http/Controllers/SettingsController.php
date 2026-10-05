@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
+use App\Support\Features;
+use App\Support\SystemSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use App\Support\SystemSettings;
 
 class SettingsController extends Controller
 {
@@ -50,7 +52,7 @@ class SettingsController extends Controller
         cache()->forget('pos_settings');
         cache()->forget('tax_settings');
 
-        $successMessage = $section['label'] . ' saved successfully.';
+        $successMessage = $section['label'].' saved successfully.';
 
         if ($section['slug'] === 'tax') {
             if ($request->has('apply_to_all_products')) {
@@ -59,24 +61,24 @@ class SettingsController extends Controller
                 if ($onlyUseGlobal) {
                     $query->where('tax_mode', 'use_global');
                 }
-                
+
                 $count = $query->count();
                 $query->update(['tax_mode' => 'use_global']);
-                
+
                 $taxMode = $request->input('default_tax_mode', 'exclusive');
                 $modeLabel = $taxMode === 'inclusive' ? 'Tax Inclusive' : 'Tax Exclusive';
-                
+
                 if ($count === 0) {
-                    $successMessage = "Global tax mode was saved successfully. No products were available to update.";
+                    $successMessage = 'Global tax mode was saved successfully. No products were available to update.';
                 } else {
                     $successMessage = "{$modeLabel} has been applied as the global default to {$count} products.";
                 }
-                
-                if (class_exists(\App\Models\ActivityLog::class)) {
-                    $logMessage = "Applied {$modeLabel} as the global default to {$count} products" . 
+
+                if (class_exists(ActivityLog::class)) {
+                    $logMessage = "Applied {$modeLabel} as the global default to {$count} products".
                                   ($onlyUseGlobal ? ' (only for products already using global default).' : ' and removed individual product tax-mode overrides.');
-                    
-                    \App\Models\ActivityLog::create([
+
+                    ActivityLog::create([
                         'user_id' => auth()->id(),
                         'action' => 'apply_global_tax_mode',
                         'module' => 'Settings',
@@ -115,7 +117,7 @@ class SettingsController extends Controller
         cache()->forget('settings');
         cache()->forget('business_settings');
 
-        return back()->with('success', $section['label'] . ' reset to defaults.');
+        return back()->with('success', $section['label'].' reset to defaults.');
     }
 
     private function findSection(string $path): array
@@ -123,23 +125,21 @@ class SettingsController extends Controller
         $section = collect(config('settings_sections'))->firstWhere('path', $path);
         abort_unless($section, 404);
 
-        return $section;
+        return Features::settingsSection($section);
     }
 
     private function authorizeSection(array $section, string $ability): void
     {
-        $permission = 'settings.' . $section['route'] . '.' . $ability;
+        $permission = 'settings.'.$section['route'].'.'.$ability;
 
-        abort_unless(auth()->user()->hasPermission($permission), 403, 'Unauthorized action. You do not have permission: ' . $permission);
+        abort_unless(auth()->user()->hasPermission($permission), 403, 'Unauthorized action. You do not have permission: '.$permission);
     }
 
     private function valuesFor(array $section): array
     {
-        $stored = DB::table($section['table'])->pluck('value', 'key');
-
         return $this->fieldsFor($section)
-            ->mapWithKeys(function (array $field) use ($stored) {
-                $rawValue = $stored->has($field['key']) ? $stored[$field['key']] : ($field['default'] ?? null);
+            ->mapWithKeys(function (array $field) use ($section) {
+                $rawValue = SystemSettings::get($field['key'], $field['default'] ?? null, $section['table']);
 
                 return [$field['key'] => $this->castValue($rawValue, $field)];
             })
@@ -168,7 +168,7 @@ class SettingsController extends Controller
         }
 
         if ($type === 'file') {
-            if (!$request->hasFile($key)) {
+            if (! $request->hasFile($key)) {
                 return null;
             }
 

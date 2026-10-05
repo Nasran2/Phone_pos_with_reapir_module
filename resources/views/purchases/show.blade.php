@@ -64,7 +64,9 @@
                             <th class="px-5 py-3 text-right">Discount</th>
                             <th class="px-5 py-3 text-right">Tax</th>
                             <th class="px-5 py-3 text-right">Retail</th>
+                            @if(\App\Support\Features::wholesaleEnabled())
                             <th class="px-5 py-3 text-right">Wholesale</th>
+                            @endif
                             <th class="px-5 py-3 text-right">Line Total</th>
                         </tr>
                     </thead>
@@ -77,7 +79,9 @@
                             <td class="px-5 py-4 text-right">Rs. {{ number_format((float) $item->discount_amount, 2) }}</td>
                             <td class="px-5 py-4 text-right">Rs. {{ number_format((float) $item->tax_amount, 2) }}</td>
                             <td class="px-5 py-4 text-right">Rs. {{ number_format((float) $item->retail_price, 2) }}</td>
+                            @if(\App\Support\Features::wholesaleEnabled())
                             <td class="px-5 py-4 text-right">Rs. {{ number_format((float) $item->wholesale_price, 2) }}</td>
+                            @endif
                             <td class="px-5 py-4 text-right font-black">Rs. {{ number_format((float) $item->line_total, 2) }}</td>
                         </tr>
                         @empty

@@ -7,13 +7,15 @@ use App\Models\ActivityLog;
 use App\Models\CustomerTransaction;
 use App\Models\Sale;
 use App\Models\Setting;
-use App\Services\JournalService;
 use App\Services\InvoiceNumberService;
+use App\Services\JournalService;
 use App\Services\LorryAccessService;
 use App\Services\MixedPaymentService;
 use App\Services\SaleInventoryService;
 use App\Services\TaxCalculationService;
+use App\Support\Features;
 use App\Support\SystemSettings;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -26,6 +28,7 @@ class WholesalePosController extends Controller
      */
     public function index(LorryAccessService $access)
     {
+        abort_unless(Features::wholesaleEnabled(), 404);
         abort_unless(SystemSettings::bool('enable_wholesale_pos', true, 'pos_settings'), 403, 'Wholesale POS is disabled in Settings.');
 
         // Fetch Categories
@@ -200,6 +203,7 @@ class WholesalePosController extends Controller
      */
     public function store(Request $request, LorryAccessService $access, MixedPaymentService $mixedPayments, JournalService $journalService, InvoiceNumberService $invoiceNumbers)
     {
+        abort_unless(Features::wholesaleEnabled(), 404);
         if ($access->isLorryUser($request->user()) && ! $access->isUnrestricted($request->user())) {
             $assignment = $access->currentAssignment($request->user(), $request->integer('lorry_id') ?: null);
             abort_unless($assignment->can_sell, 403, 'Your lorry assignment does not allow sales.');
@@ -210,7 +214,7 @@ class WholesalePosController extends Controller
         }
         $request->validate([
             'customer_id' => 'required',
-            'pos_type' => 'required|in:retail,wholesale',
+            'pos_type' => 'nullable|in:wholesale',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.variant_id' => 'nullable|integer|exists:product_variants,id',
@@ -236,7 +240,9 @@ class WholesalePosController extends Controller
             'edit_sale_id' => 'nullable|integer|exists:sales,id',
         ]);
 
-        if ($request->filled('edit_sale_id')) abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
+        if ($request->filled('edit_sale_id')) {
+            abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
+        }
         DB::beginTransaction();
 
         try {
@@ -246,28 +252,28 @@ class WholesalePosController extends Controller
             $invoiceNo = null;
 
             if ($isEditing) {
-                $editSale = Sale::with('customer')->lockForUpdate()->findOrFail($request->edit_sale_id);
+                $editSale = Sale::with('customer')->where('pos_type', 'wholesale')->lockForUpdate()->findOrFail($request->edit_sale_id);
                 if ($editSale->customer_id != $request->customer_id || $editSale->returns()->exists() || $editSale->cheques()->exists()) {
                     throw ValidationException::withMessages(['edit_sale_id' => 'Keep the original customer. Invoices with returns or cheques cannot be edited; use their reversal workflow.']);
                 }
                 $invoiceNo = $editSale->invoice_no;
-                
+
                 // Revert existing stock
-                app(\App\Services\SaleInventoryService::class)->restore($editSale, 'Sale edited');
-                
+                app(SaleInventoryService::class)->restore($editSale, 'Sale edited');
+
                 // Delete previous items
                 $editSale->items()->delete();
-                
+
                 // Delete previous tax transactions
                 DB::table('tax_transactions')->where('reference_type', Sale::class)->where('reference_id', $editSale->id)->delete();
-                
+
                 // Delete previous journal entries
-                $journalService = app(\App\Services\JournalService::class);
+                $journalService = app(JournalService::class);
                 $journalService->deleteEntryByReference('Sale', $editSale->id);
             } else {
                 $invoiceNo = $invoiceNumbers->next('wholesale');
             }
-            
+
             $today = $isEditing ? $editSale->sale_date->format('Y-m-d') : date('Y-m-d');
 
             // --- TAX CALCULATION BEGIN ---
@@ -405,7 +411,7 @@ class WholesalePosController extends Controller
             $saleData = [
                 'customer_id' => $request->customer_id,
                 'sale_date' => $isEditing ? $editSale->sale_date : $today,
-                'pos_type' => $request->pos_type,
+                'pos_type' => 'wholesale',
                 'total_amount' => $calculatedTotalAmount,
                 'discount_type' => $invoiceDiscountType,
                 'discount_amount' => $invoiceDiscountAmount,
@@ -470,7 +476,7 @@ class WholesalePosController extends Controller
                     'quantity' => $calc['quantity'],
                     'cost_price' => $item['cost_price'],
                     'selling_price' => $calc['unit_price'],
-                    'price_type' => $request->pos_type,
+                    'price_type' => 'wholesale',
                     'discount_type' => $calc['discount_type'],
                     'discount_amount' => $calc['discount_value'],
                     'line_total' => $calc['line_total'],
@@ -546,11 +552,11 @@ class WholesalePosController extends Controller
                 }
                 $allocation = ['hold' => (float) $editSale->cheque_hold_amount];
             } else {
-            $allocation = $mixedPayments->allocateSale(Sale::findOrFail($saleId), $paymentRows, [
-                'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
-                'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,
-                'trip_id' => $sourceType === 'lorry' ? $request->trip_id : null,
-            ]);
+                $allocation = $mixedPayments->allocateSale(Sale::findOrFail($saleId), $paymentRows, [
+                    'store_id' => $request->store_id ?? Setting::get('default_store_id', 1),
+                    'lorry_id' => $sourceType === 'lorry' ? $request->lorry_id : null,
+                    'trip_id' => $sourceType === 'lorry' ? $request->trip_id : null,
+                ]);
             }
             $sale = Sale::findOrFail($saleId);
             app(SaleInventoryService::class)->finalizeIfPaid($sale);
@@ -598,8 +604,9 @@ class WholesalePosController extends Controller
             throw $e;
         } catch (\RuntimeException $e) {
             DB::rollBack();
-            if ($e instanceof \Illuminate\Database\QueryException) {
+            if ($e instanceof QueryException) {
                 report($e);
+
                 return response()->json(['success' => false, 'message' => 'Unable to save checkout. Please try again or contact support.'], 500);
             }
 
@@ -623,6 +630,7 @@ class WholesalePosController extends Controller
      */
     public function storeCustomer(Request $request)
     {
+        abort_unless(Features::wholesaleEnabled(), 404);
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string',
@@ -737,7 +745,7 @@ class WholesalePosController extends Controller
     private function editSalePayload(int $saleId): ?array
     {
         abort_unless(auth()->user()->hasPermission('sales.edit'), 403);
-        $sale = \App\Models\Sale::with(['customer', 'items.product', 'items.variant', 'items.productSerial'])->find($saleId);
+        $sale = Sale::with(['customer', 'items.product', 'items.variant', 'items.productSerial'])->where('pos_type', 'wholesale')->find($saleId);
 
         if (! $sale) {
             return null;

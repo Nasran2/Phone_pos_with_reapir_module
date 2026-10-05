@@ -15,7 +15,9 @@
                 <th class="p-4 font-bold text-center">Stock</th>
                 <th class="p-4 font-bold text-right">Cost Price</th>
                 <th class="p-4 font-bold text-right">Retail Price</th>
+                @if(\App\Support\Features::wholesaleEnabled())
                 <th class="p-4 font-bold text-right">Wholesale Price</th>
+                @endif
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 text-sm text-black">
@@ -28,7 +30,9 @@
                     </td>
                     <td class="p-4 text-right">Rs. {{ number_format($product->cost_price, 2) }}</td>
                     <td class="p-4 text-right">Rs. {{ number_format($product->retail_price, 2) }}</td>
+                    @if(\App\Support\Features::wholesaleEnabled())
                     <td class="p-4 text-right">Rs. {{ number_format($product->wholesale_price, 2) }}</td>
+                    @endif
                 </tr>
             @empty
                 <tr><td colspan="6" class="p-8 text-center text-black">No products found.</td></tr>

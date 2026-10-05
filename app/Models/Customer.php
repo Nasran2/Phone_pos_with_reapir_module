@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property numeric-string $cheque_hold_balance
+ */
 class Customer extends Model
 {
-    use \App\Traits\LogsActivity;
-
+    use LogsActivity;
     use SoftDeletes;
 
     protected $fillable = [
@@ -36,6 +40,12 @@ class Customer extends Model
         'status' => 'boolean',
         'points' => 'integer',
     ];
+
+    /** @return HasMany<RepairJob, $this> */
+    public function repairJobs(): HasMany
+    {
+        return $this->hasMany(RepairJob::class);
+    }
 
     public function sales()
     {

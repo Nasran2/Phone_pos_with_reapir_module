@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SaleReturn extends Model
 {
-    use \App\Traits\LogsActivity;
+    use LogsActivity;
 
     protected $fillable = [
         'sale_id',
@@ -35,7 +37,8 @@ class SaleReturn extends Model
         'refund_amount' => 'decimal:2',
     ];
 
-    public function sale()
+    /** @return BelongsTo<Sale, $this> */
+    public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
     }

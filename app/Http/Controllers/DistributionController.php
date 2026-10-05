@@ -4,18 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Services\LorryStockService;
+use App\Support\Features;
 use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Throwable;
 
 class DistributionController extends Controller
 {
-    public function __construct(private readonly LorryStockService $stockService)
-    {
-    }
+    public function __construct(private readonly LorryStockService $stockService) {}
 
     public function dashboard(Request $request)
     {
@@ -236,6 +234,7 @@ class DistributionController extends Controller
 
     public function sales(Request $request)
     {
+        abort_unless(Features::wholesaleEnabled(), 404);
         $sales = DB::table('sales')
             ->leftJoin('customers', 'customers.id', '=', 'sales.customer_id')
             ->leftJoin('lorries', 'lorries.id', '=', 'sales.lorry_id')
@@ -437,7 +436,7 @@ class DistributionController extends Controller
             ->when($lorryId, fn ($q) => $q->where('lorry_id', $lorryId))
             ->whereBetween('collection_date', [$from, $to])
             ->sum('amount');
-        
+
         $salesCollections = DB::table('sale_payments')
             ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
             ->where('sales.source_type', 'lorry')
@@ -445,7 +444,7 @@ class DistributionController extends Controller
             ->whereBetween('sales.sale_date', [$from, $to])
             ->where('sale_payments.status', '!=', 'cancelled')
             ->sum('sale_payments.amount');
-            
+
         $collectionsTotal += $salesCollections;
         $expensesTotal = DB::table('expenses')
             ->when($lorryId, fn ($q) => $q->where('lorry_id', $lorryId))
@@ -615,8 +614,8 @@ class DistributionController extends Controller
                     ->orWhere('products.sku', 'like', "%{$q}%")
                     ->orWhere('products.barcode', 'like', "%{$q}%");
             }))
-            ->select('products.id', 'products.name', 'products.sku', 'products.barcode', 'products.cost_price', 'products.wholesale_price', 'products.retail_price',
-                DB::raw($stockSelect))
+            ->select(['products.id', 'products.name', 'products.sku', 'products.barcode', 'products.cost_price', ...(Features::wholesaleEnabled() ? ['products.wholesale_price'] : []), 'products.retail_price',
+                DB::raw($stockSelect)])
             ->orderBy('products.name')
             ->limit(30)
             ->get();
@@ -750,7 +749,7 @@ class DistributionController extends Controller
             ->join('lorries', 'lorries.id', '=', 'lorry_stocks.lorry_id')
             ->join('products', 'products.id', '=', 'lorry_stocks.product_id')
             ->leftJoin('product_variants', 'product_variants.id', '=', 'lorry_stocks.variant_id')
-            ->select('lorry_stocks.*', 'lorries.lorry_no', 'lorries.name as lorry_name', 'products.name as product_name', 'products.sku', 'products.barcode', 'products.cost_price', 'products.wholesale_price', 'product_variants.sku as variant_sku', 'product_variants.color', 'product_variants.storage', 'product_variants.ram');
+            ->select(['lorry_stocks.*', 'lorries.lorry_no', 'lorries.name as lorry_name', 'products.name as product_name', 'products.sku', 'products.barcode', 'products.cost_price', ...(Features::wholesaleEnabled() ? ['products.wholesale_price'] : []), 'product_variants.sku as variant_sku', 'product_variants.color', 'product_variants.storage', 'product_variants.ram']);
     }
 
     private function tripQuery()
@@ -789,7 +788,7 @@ class DistributionController extends Controller
         $last = DB::table($table)->where($column, 'like', "{$prefix}-%")->orderByDesc('id')->value($column);
         $next = $last && preg_match('/-(\d+)$/', $last, $m) ? ((int) $m[1]) + 1 : 1;
 
-        return $prefix . '-' . now()->format('ymd') . '-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.now()->format('ymd').'-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     private function money(float|int|string|null $amount): string

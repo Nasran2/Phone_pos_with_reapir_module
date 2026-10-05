@@ -6,17 +6,20 @@ use App\Models\ActivityLog;
 use App\Models\Product;
 use App\Models\ProductStoreStock;
 use App\Models\Purchase;
-use App\Models\PurchaseItem;
 use App\Models\PurchasePayment;
+use App\Models\Setting;
 use App\Models\StockHistory;
 use App\Models\Supplier;
 use App\Models\SupplierTransaction;
+use App\Services\TaxCalculationService;
+use App\Support\Features;
 use App\Support\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseController extends Controller
 {
@@ -107,7 +110,7 @@ class PurchaseController extends Controller
                 'paid_amount' => $totals['paid_amount'],
                 'due_amount' => $totals['due_amount'],
                 'status' => $validated['status'],
-                'store_id' => $validated['store_id'] ?? \App\Models\Setting::get('default_store_id', 1),
+                'store_id' => $validated['store_id'] ?? Setting::get('default_store_id', 1),
                 'document_path' => $documentPath,
                 'notes' => $validated['notes'] ?? null,
                 'stock_updated' => false,
@@ -127,7 +130,7 @@ class PurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('purchases.show', $purchase)->with('success', 'Purchase saved successfully.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
             throw $e;
         } catch (\Throwable $e) {
@@ -204,7 +207,7 @@ class PurchaseController extends Controller
                 'paid_amount' => $totals['paid_amount'],
                 'due_amount' => $totals['due_amount'],
                 'status' => $validated['status'],
-                'store_id' => $validated['store_id'] ?? \App\Models\Setting::get('default_store_id', 1),
+                'store_id' => $validated['store_id'] ?? Setting::get('default_store_id', 1),
                 'document_path' => $documentPath,
                 'notes' => $validated['notes'] ?? null,
                 'stock_updated' => false,
@@ -229,7 +232,7 @@ class PurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('purchases.show', $purchase)->with('success', 'Purchase updated successfully.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
             throw $e;
         } catch (\Throwable $e) {
@@ -273,7 +276,7 @@ class PurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('purchases.index')->with('success', 'Purchase deleted successfully.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
             throw $e;
         } catch (\Throwable $e) {
@@ -299,22 +302,22 @@ class PurchaseController extends Controller
 
         $purchase->load(['supplier', 'items.product']);
         $lines = [
-            'Supplier: ' . ($purchase->supplier->name ?? '-'),
-            'Date: ' . optional($purchase->purchase_date)->format('Y-m-d'),
-            'Reference: ' . ($purchase->reference_no ?: '-'),
-            'Status: ' . $purchase->status,
-            'Grand Total: ' . SystemSettings::money((float) $purchase->grand_total),
-            'Paid: ' . SystemSettings::money((float) $purchase->paid_amount),
-            'Due: ' . SystemSettings::money((float) $purchase->due_amount),
+            'Supplier: '.($purchase->supplier->name ?? '-'),
+            'Date: '.optional($purchase->purchase_date)->format('Y-m-d'),
+            'Reference: '.($purchase->reference_no ?: '-'),
+            'Status: '.$purchase->status,
+            'Grand Total: '.SystemSettings::money((float) $purchase->grand_total),
+            'Paid: '.SystemSettings::money((float) $purchase->paid_amount),
+            'Due: '.SystemSettings::money((float) $purchase->due_amount),
         ];
 
         foreach ($purchase->items as $item) {
-            $lines[] = ($item->product->name ?? 'Product') . ' x ' . (float) $item->quantity . ' = ' . SystemSettings::money((float) $item->line_total);
+            $lines[] = ($item->product->name ?? 'Product').' x '.(float) $item->quantity.' = '.SystemSettings::money((float) $item->line_total);
         }
 
-        return response($this->simplePdf('Purchase Invoice ' . $purchase->displayNo(), $lines), 200, [
+        return response($this->simplePdf('Purchase Invoice '.$purchase->displayNo(), $lines), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $purchase->displayNo() . '.pdf"',
+            'Content-Disposition' => 'attachment; filename="'.$purchase->displayNo().'.pdf"',
         ]);
     }
 
@@ -350,7 +353,7 @@ class PurchaseController extends Controller
                 'barcode' => $product->barcode,
                 'cost_price' => (float) $product->cost_price,
                 'retail_price' => (float) $product->retail_price,
-                'wholesale_price' => (float) $product->wholesale_price,
+                ...(Features::wholesaleEnabled() ? ['wholesale_price' => (float) ($product->wholesale_price ?? 0)] : []),
                 'stock' => (float) ($product->stock->quantity ?? 0),
             ])
             ->values();
@@ -361,8 +364,8 @@ class PurchaseController extends Controller
             'products' => $products,
             'statuses' => $this->statuses,
             'paymentMethods' => ['Cash', 'Bank Transfer', 'Card', 'Cheque', 'Credit / Due'],
-            'enableMultiStore' => \App\Models\Setting::get('enable_multi_store', false),
-            'stores' => \App\Models\Setting::get('enable_multi_store', false) ? DB::table('stores')->where('status', true)->get() : [],
+            'enableMultiStore' => Setting::get('enable_multi_store', false),
+            'stores' => Setting::get('enable_multi_store', false) ? DB::table('stores')->where('status', true)->get() : [],
         ];
     }
 
@@ -383,7 +386,7 @@ class PurchaseController extends Controller
             'items.*.tax_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'items.*.profit_margin' => ['nullable', 'numeric', 'min:0'],
             'items.*.retail_price' => ['nullable', 'numeric', 'min:0'],
-            'items.*.wholesale_price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.wholesale_price' => [Features::wholesaleEnabled() ? 'nullable' : 'exclude', 'numeric', 'min:0'],
             'discount_type' => ['required', Rule::in(['none', 'fixed', 'percentage'])],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'purchase_tax' => ['nullable', 'numeric', 'min:0'],
@@ -399,48 +402,49 @@ class PurchaseController extends Controller
 
     private function calculateTotals(array $items, array $validated): array
     {
-        $taxService = app(\App\Services\TaxCalculationService::class);
-        $globalTaxMode = \App\Support\SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
-        
+        $taxService = app(TaxCalculationService::class);
+        $globalTaxMode = SystemSettings::get('default_tax_mode', 'exclusive', 'tax_settings');
+
         $calculatedItems = [];
         $calculatedSubtotal = 0;
         $calculatedAddedTaxTotal = 0;
         $calculatedIncludedTaxTotal = 0;
-        
+
         $shippingCost = (float) ($validated['shipping_cost'] ?? 0);
         $divideShipping = ($validated['shipping_handling'] ?? 'purchase_total') === 'divide_product_cost';
         $totalQty = max(collect($items)->sum(fn ($item) => (float) ($item['quantity'] ?? 0)), 1);
         $shippingPerUnit = $divideShipping ? ($shippingCost / $totalQty) : 0;
-        
+
         $invoiceDiscountType = $validated['discount_type'] ?? 'none';
         $invoiceDiscountAmount = (float) ($validated['discount_amount'] ?? 0);
-        
-        $preDiscountGrossTotal = collect($items)->sum(function($item) use ($shippingPerUnit) {
+
+        $preDiscountGrossTotal = collect($items)->sum(function ($item) use ($shippingPerUnit) {
             $qty = (float) ($item['quantity'] ?? 0);
             $unitCost = (float) ($item['unit_cost'] ?? 0);
+
             return $qty * ($unitCost + $shippingPerUnit);
         });
 
         foreach ($items as $item) {
-            $product = \App\Models\Product::find($item['product_id']);
+            $product = Product::findOrFail((int) $item['product_id']);
             $qty = (float) $item['quantity'];
             $unitCost = (float) $item['unit_cost'];
             $effectiveUnitCost = round($unitCost + $shippingPerUnit, 6);
-            
+
             $itemGross = $qty * $effectiveUnitCost;
             $itemShare = $preDiscountGrossTotal > 0 ? ($itemGross / $preDiscountGrossTotal) : 0;
-            
+
             $proRatedInvoiceDiscount = 0;
             if ($invoiceDiscountType === 'percentage' && $invoiceDiscountAmount > 0) {
                 $proRatedInvoiceDiscount = $itemGross * ($invoiceDiscountAmount / 100);
             } elseif ($invoiceDiscountType === 'fixed' && $invoiceDiscountAmount > 0) {
                 $proRatedInvoiceDiscount = $invoiceDiscountAmount * $itemShare;
             }
-            
+
             $discountPercent = (float) ($item['discount_percent'] ?? 0);
             $itemDiscountType = $discountPercent > 0 ? 'percentage' : 'fixed';
             $itemDiscountValue = $discountPercent > 0 ? $discountPercent : (float) ($item['discount_amount'] ?? 0);
-            
+
             $itemTaxOverride = $item['tax_mode'] ?? null;
             $productTaxMode = $product->tax_mode ?? 'use_global';
             $resolvedTaxMode = $taxService->resolveTaxMode(
@@ -448,7 +452,7 @@ class PurchaseController extends Controller
                 $productTaxMode === 'use_global' ? null : $productTaxMode,
                 $globalTaxMode
             );
-            
+
             $taxStatus = $item['tax_status'] ?? ($product->tax_status ?? 'taxable');
             $taxRate = (float) ($item['tax_percent'] ?? 0);
 
@@ -475,7 +479,7 @@ class PurchaseController extends Controller
                 'line_total' => $calc['line_total'],
                 'profit_margin' => (float) ($item['profit_margin'] ?? 0),
                 'retail_price' => (float) ($item['retail_price'] ?? 0),
-                'wholesale_price' => (float) ($item['wholesale_price'] ?? 0),
+                'wholesale_price' => Features::wholesaleEnabled() ? (float) ($item['wholesale_price'] ?? 0) : (float) ($product->wholesale_price ?? 0),
                 'subtotal' => $calc['line_total'],
                 'gross_amount' => $calc['gross_amount'],
                 'discount_type' => $calc['discount_type'],
@@ -487,7 +491,7 @@ class PurchaseController extends Controller
                 'included_tax_amount' => $calc['included_tax_amount'],
                 'added_tax_amount' => $calc['added_tax_amount'],
             ];
-            
+
             $calculatedSubtotal += $calc['line_total'];
             $calculatedAddedTaxTotal += $calc['added_tax_amount'];
             $calculatedIncludedTaxTotal += $calc['included_tax_amount'];
@@ -498,7 +502,7 @@ class PurchaseController extends Controller
             'fixed' => min($invoiceDiscountAmount, $preDiscountGrossTotal),
             default => 0,
         };
-        
+
         $purchaseTax = (float) ($validated['purchase_tax'] ?? 0);
         // calculatedSubtotal already subtracted item discounts + prorated invoice discounts and added item taxes
         $grandTotal = round($calculatedSubtotal + $purchaseTax + ($divideShipping ? 0 : $shippingCost), 2);
@@ -555,13 +559,13 @@ class PurchaseController extends Controller
 
         foreach ($purchase->items as $item) {
             $product = $item->product;
-            if (!$product) {
+            if (! $product) {
                 continue;
             }
 
             $stock = ProductStoreStock::firstOrCreate([
                 'product_id' => $product->id,
-                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+                'store_id' => $purchase->store_id ?? Setting::get('default_store_id', 1),
             ], ['quantity' => 0]);
             $stock->quantity = (float) $stock->quantity + (float) $item->quantity;
             $stock->save();
@@ -570,7 +574,7 @@ class PurchaseController extends Controller
             $product->update([
                 'cost_price' => $effectiveCost,
                 'retail_price' => (float) $item->retail_price > 0 ? $item->retail_price : $product->retail_price,
-                'wholesale_price' => (float) $item->wholesale_price > 0 ? $item->wholesale_price : $product->wholesale_price,
+                ...(Features::wholesaleEnabled() ? ['wholesale_price' => (float) $item->wholesale_price > 0 ? $item->wholesale_price : $product->wholesale_price] : []),
                 'updated_by' => auth()->id(),
             ]);
 
@@ -582,7 +586,7 @@ class PurchaseController extends Controller
                 'reference_no' => $purchase->displayNo(),
                 'note' => 'Purchase received',
                 'created_by' => auth()->id(),
-                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+                'store_id' => $purchase->store_id ?? Setting::get('default_store_id', 1),
             ]);
 
             $this->recordStockMovement($product->id, (float) $item->quantity, 'purchase', $purchase->id, $purchase->displayNo());
@@ -598,10 +602,10 @@ class PurchaseController extends Controller
         foreach ($purchase->items as $item) {
             $stock = ProductStoreStock::firstOrCreate([
                 'product_id' => $item->product_id,
-                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1)
+                'store_id' => $purchase->store_id ?? Setting::get('default_store_id', 1),
             ], ['quantity' => 0]);
             if ((float) $stock->quantity < (float) $item->quantity) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['purchase' => 'This purchase stock has already been used. Reverse the related stock movements before editing or deleting it.']);
+                throw ValidationException::withMessages(['purchase' => 'This purchase stock has already been used. Reverse the related stock movements before editing or deleting it.']);
             }
             $stock->quantity = (float) $stock->quantity - (float) $item->quantity;
             $stock->save();
@@ -614,7 +618,7 @@ class PurchaseController extends Controller
                 'reference_no' => $purchase->displayNo(),
                 'note' => $note,
                 'created_by' => auth()->id(),
-                'store_id' => $purchase->store_id ?? \App\Models\Setting::get('default_store_id', 1),
+                'store_id' => $purchase->store_id ?? Setting::get('default_store_id', 1),
             ]);
         }
 
@@ -647,7 +651,7 @@ class PurchaseController extends Controller
 
     private function recordStockMovement(int $productId, float $quantity, string $type, int $referenceId, string $referenceNo): void
     {
-        if (!Schema::hasTable('stock_movements')) {
+        if (! Schema::hasTable('stock_movements')) {
             return;
         }
 
@@ -665,11 +669,11 @@ class PurchaseController extends Controller
 
     private function generatePurchaseNo(): string
     {
-        $prefix = SystemSettings::get('purchase_invoice_prefix', 'PO', 'invoice_settings') . '-' . now()->format('Ymd') . '-';
-        $next = Purchase::where('purchase_no', 'like', $prefix . '%')->count() + 1;
+        $prefix = SystemSettings::get('purchase_invoice_prefix', 'PO', 'invoice_settings').'-'.now()->format('Ymd').'-';
+        $next = Purchase::where('purchase_no', 'like', $prefix.'%')->count() + 1;
 
         do {
-            $number = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+            $number = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
             $next++;
         } while (Purchase::where('purchase_no', $number)->orWhere('invoice_no', $number)->exists());
 
@@ -683,18 +687,18 @@ class PurchaseController extends Controller
 
     private function simplePdf(string $title, array $lines): string
     {
-        $text = "BT\n/F1 18 Tf\n50 780 Td\n(" . $this->pdfText($title) . ") Tj\n/F1 11 Tf\n0 -28 Td\n";
+        $text = "BT\n/F1 18 Tf\n50 780 Td\n(".$this->pdfText($title).") Tj\n/F1 11 Tf\n0 -28 Td\n";
         foreach ($lines as $line) {
-            $text .= '(' . $this->pdfText($line) . ") Tj\n0 -18 Td\n";
+            $text .= '('.$this->pdfText($line).") Tj\n0 -18 Td\n";
         }
-        $text .= "ET";
+        $text .= 'ET';
 
         $objects = [
             "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n",
             "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n",
             "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj\n",
             "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n",
-            "5 0 obj << /Length " . strlen($text) . " >> stream\n{$text}\nendstream endobj\n",
+            '5 0 obj << /Length '.strlen($text)." >> stream\n{$text}\nendstream endobj\n",
         ];
 
         $pdf = "%PDF-1.4\n";
@@ -704,11 +708,11 @@ class PurchaseController extends Controller
             $pdf .= $object;
         }
         $xref = strlen($pdf);
-        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n0000000000 65535 f \n";
+        $pdf .= "xref\n0 ".(count($objects) + 1)."\n0000000000 65535 f \n";
         for ($i = 1; $i <= count($objects); $i++) {
-            $pdf .= str_pad((string) $offsets[$i], 10, '0', STR_PAD_LEFT) . " 00000 n \n";
+            $pdf .= str_pad((string) $offsets[$i], 10, '0', STR_PAD_LEFT)." 00000 n \n";
         }
-        $pdf .= "trailer << /Size " . (count($objects) + 1) . " /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
+        $pdf .= 'trailer << /Size '.(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
 
         return $pdf;
     }

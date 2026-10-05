@@ -1,4 +1,28 @@
 <?php
+
 namespace App\Http\Controllers;
-use App\Models\Account;use App\Models\Setting;use Illuminate\Http\Request;
-class ChequeSettingsController extends Controller { public function index(){return view('cheques.settings',['settings'=>Setting::where('key','like','cheque_%')->pluck('value','key'),'accounts'=>Account::where('status',true)->get()]);} public function update(Request$r){$data=$r->validate(['cheque_reminder_days'=>'required|integer|min:0|max:30','cheque_auto_grace_days'=>'required|integer|min:0|max:365','cheque_auto_action'=>'required|in:passed,returned,pending,reminder','cheque_auto_apply_to'=>'required|in:received,issued,both','cheque_default_return_charge'=>'required|numeric|min:0','cheque_received_prefix'=>'required|string|max:20','cheque_issued_prefix'=>'required|string|max:20']);$booleans=['cheque_enabled','cheque_received_enabled','cheque_issued_enabled','cheque_require_attachment','cheque_allow_backdated','cheque_allow_future','cheque_reminders_enabled','cheque_repeat_reminders','cheque_dashboard_reminders','cheque_auto_enabled','cheque_auto_manager_approval','cheque_require_return_reason','cheque_add_return_charge_to_due','cheque_allow_replacement'];foreach($booleans as$key)$data[$key]=$r->boolean($key)?'1':'0';foreach($data as$key=>$value)Setting::set($key,$value);return back()->with('success','Cheque settings saved.');} }
+
+use App\Models\Account;
+use App\Models\Setting;
+use Illuminate\Http\Request;
+
+class ChequeSettingsController extends Controller
+{
+    public function index()
+    {
+        return view('cheques.settings', ['settings' => Setting::where('key', 'like', 'cheque_%')->pluck('value', 'key'), 'accounts' => Account::available()->where('status', true)->get()]);
+    }
+
+    public function update(Request $r)
+    {
+        $data = $r->validate(['cheque_reminder_days' => 'required|integer|min:0|max:30', 'cheque_auto_grace_days' => 'required|integer|min:0|max:365', 'cheque_auto_action' => 'required|in:passed,returned,pending,reminder', 'cheque_auto_apply_to' => 'required|in:received,issued,both', 'cheque_default_return_charge' => 'required|numeric|min:0', 'cheque_received_prefix' => 'required|string|max:20', 'cheque_issued_prefix' => 'required|string|max:20']);
+        $booleans = ['cheque_enabled', 'cheque_received_enabled', 'cheque_issued_enabled', 'cheque_require_attachment', 'cheque_allow_backdated', 'cheque_allow_future', 'cheque_reminders_enabled', 'cheque_repeat_reminders', 'cheque_dashboard_reminders', 'cheque_auto_enabled', 'cheque_auto_manager_approval', 'cheque_require_return_reason', 'cheque_add_return_charge_to_due', 'cheque_allow_replacement'];
+        foreach ($booleans as $key) {
+            $data[$key] = $r->boolean($key) ? '1' : '0';
+        }foreach ($data as $key => $value) {
+            Setting::set($key, $value);
+        }
+
+        return back()->with('success', 'Cheque settings saved.');
+    }
+}

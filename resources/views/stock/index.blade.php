@@ -177,7 +177,9 @@
                             <th class="px-6 py-4 text-center">Current Stock</th>
                             <th class="px-6 py-4 text-right">Cost Price</th>
                             <th class="px-6 py-4 text-right">Retail Price</th>
+                            @if(\App\Support\Features::wholesaleEnabled())
                             <th class="px-6 py-4 text-right">Wholesale Price</th>
+                            @endif
                             <th class="px-6 py-4 text-right">Stock Value</th>
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4 text-right">Action</th>
@@ -240,9 +242,11 @@
                             <td class="px-6 py-4 text-right font-medium text-black">
                                 {{ \App\Support\SystemSettings::money((float) $product->retail_price) }}
                             </td>
+                            @if(\App\Support\Features::wholesaleEnabled())
                             <td class="px-6 py-4 text-right font-medium text-black">
                                 {{ \App\Support\SystemSettings::money((float) $product->wholesale_price) }}
                             </td>
+                            @endif
                             <td class="px-6 py-4 text-right font-bold text-black">
                                 {{ \App\Support\SystemSettings::money((float) $valCost) }}
                             </td>

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use App\Models\Permission;
 use App\Models\ActivityLog;
+use App\Models\Permission;
+use App\Models\Role;
+use App\Support\Features;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -15,7 +16,11 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::withCount('users')->with('permissions')->get();
-        
+        foreach ($roles as $role) {
+            $role->setRelation('permissions', $role->permissions->filter(fn ($permission) => Features::permissionEnabled($permission->name))->values());
+            $role->description = Features::retailText($role->description ?? '');
+        }
+
         // Group permissions by their prefix/module to present a nice visual grid in UI
         $moduleLabels = [
             'reports' => 'Reports',
@@ -27,8 +32,9 @@ class RoleController extends Controller
             'damaged_stock' => 'Damaged Stock',
             'activity_logs' => 'Activity Logs',
         ];
-        $permissions = Permission::orderBy('name')->get()->groupBy(function($item) use ($moduleLabels) {
+        $permissions = Permission::orderBy('name')->get()->filter(fn ($permission) => Features::permissionEnabled($permission->name))->groupBy(function ($item) use ($moduleLabels) {
             $parts = explode('.', $item->name);
+
             return $moduleLabels[$parts[0] ?? ''] ?? ucwords(str_replace('_', ' ', $parts[0] ?? 'Other'));
         })->sortKeys();
 
@@ -53,7 +59,7 @@ class RoleController extends Controller
             'guard_name' => 'web',
         ]);
 
-        if (!empty($validated['permissions'])) {
+        if (! empty($validated['permissions'])) {
             $role->permissions()->sync($validated['permissions']);
         }
 
@@ -77,8 +83,8 @@ class RoleController extends Controller
             'permissions.*' => ['exists:permissions,id'],
         ];
 
-        if (!$isDefaultRole) {
-            $rules['name'] = ['required', 'string', 'max:255', 'unique:roles,name,' . $role->id];
+        if (! $isDefaultRole) {
+            $rules['name'] = ['required', 'string', 'max:255', 'unique:roles,name,'.$role->id];
         }
 
         $validated = $request->validate($rules);
@@ -87,7 +93,7 @@ class RoleController extends Controller
             'description' => $validated['description'] ?? '',
         ];
 
-        if (!$isDefaultRole) {
+        if (! $isDefaultRole) {
             $updateData['name'] = $validated['name'];
         }
 
@@ -100,7 +106,9 @@ class RoleController extends Controller
             $allPerms = Permission::pluck('id')->toArray();
             $role->permissions()->sync($allPerms);
         } elseif (! $role->is_fixed) {
-            $role->permissions()->sync($request->input('permissions', []));
+            $visibleIds = Permission::all()->filter(fn ($permission) => Features::permissionEnabled($permission->name))->pluck('id');
+            $preservedIds = $role->permissions()->whereNotIn('permissions.id', $visibleIds)->pluck('permissions.id');
+            $role->permissions()->sync($visibleIds->intersect($validated['permissions'] ?? [])->merge($preservedIds)->all());
         }
 
         // Log activity

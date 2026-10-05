@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cheque;
+use App\Models\RepairJob;
 use App\Services\ChequeAccessService;
+use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -37,6 +39,9 @@ class GlobalSearchController extends Controller
                     $query->orWhereIn('id', DB::table('product_serials')->select('product_id')->where('serial_number', 'like', $term));
                 }
             });
+            if ($table === 'sales' && ! Features::wholesaleEnabled()) {
+                $query->where('pos_type', 'retail');
+            }
             foreach ($query->limit(5)->get(['id', $label]) as $row) {
                 $results->push(['label' => $row->$label, 'type' => $type, 'url' => route($route, $table === 'products' ? ['search' => $row->$label] : $row->id)]);
             }
@@ -44,6 +49,12 @@ class GlobalSearchController extends Controller
         if ($request->user()->hasPermission('cheques.view')) {
             foreach (app(ChequeAccessService::class)->scope(Cheque::query(), $request->user())->where('cheque_number', 'like', $term)->limit(5)->get() as $cheque) {
                 $results->push(['label' => $cheque->cheque_number, 'type' => 'Cheque', 'url' => route('cheques.show', $cheque)]);
+            }
+        }
+
+        if (Features::repairEnabled() && $request->user()->hasPermission('repair.view')) {
+            foreach (RepairJob::query()->search($request->string('q')->trim()->toString())->with(['customer', 'device'])->limit(5)->get() as $job) {
+                $results->push(['label' => $job->job_no.' · '.$job->customer->name.' · '.$job->device?->model, 'type' => 'Repair', 'url' => route('repairs.show', $job)]);
             }
         }
 

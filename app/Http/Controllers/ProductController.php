@@ -15,6 +15,7 @@ use App\Models\StockHistory;
 use App\Models\Store;
 use App\Models\TaxRate;
 use App\Models\Unit;
+use App\Support\Features;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -160,7 +161,7 @@ class ProductController extends Controller
             'unit_id' => ['nullable', 'exists:units,id'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'retail_price' => ['required', 'numeric', 'min:0'],
-            'wholesale_price' => ['required', 'numeric', 'min:0'],
+            'wholesale_price' => [Features::wholesaleEnabled() ? 'required' : 'exclude', 'numeric', 'min:0'],
             'opening_stock' => ['nullable', 'array'],
             'opening_stock.*' => ['nullable', 'numeric', 'min:0'],
             'stock_alert_quantity' => ['nullable', 'integer', 'min:0'],
@@ -180,7 +181,7 @@ class ProductController extends Controller
             'variants.*.sku' => ['nullable', 'string', 'unique:product_variants,sku'],
             'variants.*.cost_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.retail_price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.wholesale_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.wholesale_price' => [Features::wholesaleEnabled() ? 'nullable' : 'exclude', 'numeric', 'min:0'],
             'variants.*.stock_quantity' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -188,12 +189,12 @@ class ProductController extends Controller
 
         try {
             // Generate SKU if missing
-            $sku = ($validated['sku'] ?? null) ?: 'PROD-' . strtoupper(Str::random(8));
+            $sku = ($validated['sku'] ?? null) ?: 'PROD-'.strtoupper(Str::random(8));
 
             // Barcode Auto Generate
             $barcode = $validated['barcode'] ?? null;
             if (empty($barcode)) {
-                $barcode = 'ING-' . time() . rand(100, 999);
+                $barcode = 'ING-'.time().rand(100, 999);
             }
 
             $logoPath = null;
@@ -212,7 +213,7 @@ class ProductController extends Controller
                 'image' => $logoPath,
                 'cost_price' => $validated['cost_price'],
                 'retail_price' => $validated['retail_price'],
-                'wholesale_price' => $validated['wholesale_price'],
+                'wholesale_price' => Features::wholesaleEnabled() ? $validated['wholesale_price'] : 0,
                 'stock_alert_quantity' => $validated['stock_alert_quantity'] ?? 5,
                 'sales_tax_profile_id' => $validated['sales_tax_profile_id'] ?? null,
                 'purchase_tax_profile_id' => $validated['purchase_tax_profile_id'] ?? null,
@@ -306,7 +307,7 @@ class ProductController extends Controller
                         'sku' => $v['sku'],
                         'cost_price' => $v['cost_price'] ?: $product->cost_price,
                         'retail_price' => $v['retail_price'] ?: $product->retail_price,
-                        'wholesale_price' => $v['wholesale_price'] ?: $product->wholesale_price,
+                        'wholesale_price' => Features::wholesaleEnabled() ? (($v['wholesale_price'] ?? null) ?: $product->wholesale_price) : 0,
                         'stock_quantity' => floatval($v['stock_quantity'] ?? 0),
                         'is_active' => true,
                     ]);
@@ -331,11 +332,11 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Product created successfully.');
+            return redirect()->route('products.index')->with('success', 'Product created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Failed to create product: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to create product: '.$e->getMessage()]);
         }
     }
 
@@ -353,7 +354,7 @@ class ProductController extends Controller
             'unit_id' => ['nullable', 'exists:units,id'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'retail_price' => ['required', 'numeric', 'min:0'],
-            'wholesale_price' => ['required', 'numeric', 'min:0'],
+            'wholesale_price' => [Features::wholesaleEnabled() ? 'required' : 'exclude', 'numeric', 'min:0'],
             'stock_alert_quantity' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
             'default_sales_tax_profile_id' => ['nullable', 'exists:tax_rates,id'],
@@ -373,7 +374,7 @@ class ProductController extends Controller
             'variants.*.sku' => ['nullable', 'string'],
             'variants.*.cost_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.retail_price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.wholesale_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.wholesale_price' => [Features::wholesaleEnabled() ? 'nullable' : 'exclude', 'numeric', 'min:0'],
             'variants.*.stock_quantity' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -386,7 +387,7 @@ class ProductController extends Controller
                 }
 
                 $duplicateVariant = ProductVariant::where('sku', $variantInput['sku'])
-                    ->when(! empty($variantInput['id']), fn($query) => $query->where('id', '!=', $variantInput['id']))
+                    ->when(! empty($variantInput['id']), fn ($query) => $query->where('id', '!=', $variantInput['id']))
                     ->exists();
 
                 if ($duplicateVariant) {
@@ -404,7 +405,7 @@ class ProductController extends Controller
                 'description' => $validated['description'] ?? null,
                 'cost_price' => $validated['cost_price'],
                 'retail_price' => $validated['retail_price'],
-                'wholesale_price' => $validated['wholesale_price'],
+                'wholesale_price' => Features::wholesaleEnabled() ? $validated['wholesale_price'] : $product->wholesale_price,
                 'stock_alert_quantity' => $validated['stock_alert_quantity'] ?? 5,
                 'sales_tax_profile_id' => $validated['sales_tax_profile_id'] ?? null,
                 'purchase_tax_profile_id' => $validated['purchase_tax_profile_id'] ?? null,
@@ -437,13 +438,16 @@ class ProductController extends Controller
                     'sku' => $variantInput['sku'],
                     'cost_price' => $variantInput['cost_price'] ?: $product->cost_price,
                     'retail_price' => $variantInput['retail_price'] ?: $product->retail_price,
-                    'wholesale_price' => $variantInput['wholesale_price'] ?: $product->wholesale_price,
+                    'wholesale_price' => Features::wholesaleEnabled() ? (($variantInput['wholesale_price'] ?? null) ?: $product->wholesale_price) : 0,
                     'stock_quantity' => floatval($variantInput['stock_quantity'] ?? 0),
                     'is_active' => true,
                 ];
 
                 if (! empty($variantInput['id'])) {
                     $variant = ProductVariant::where('product_id', $product->id)->findOrFail($variantInput['id']);
+                    if (! Features::wholesaleEnabled()) {
+                        unset($variantData['wholesale_price']);
+                    }
                     $variant->update($variantData);
                 } else {
                     $variant = ProductVariant::create($variantData);
@@ -453,7 +457,7 @@ class ProductController extends Controller
             }
 
             ProductVariant::where('product_id', $product->id)
-                ->when(! empty($keptVariantIds), fn($query) => $query->whereNotIn('id', $keptVariantIds))
+                ->when(! empty($keptVariantIds), fn ($query) => $query->whereNotIn('id', $keptVariantIds))
                 ->delete();
 
             // Handle Store assignments
@@ -536,11 +540,11 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Product updated successfully.');
+            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Failed to update product: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to update product: '.$e->getMessage()]);
         }
     }
 
@@ -557,7 +561,7 @@ class ProductController extends Controller
             ActivityLog::log('Delete', 'Products Module', "Soft deleted product: {$productName}");
             DB::commit();
 
-            return redirect()->back()->with('success', 'Product deleted successfully.');
+            return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -582,7 +586,7 @@ class ProductController extends Controller
                     'new_quantity' => $item->new_quantity,
                     'type' => ucwords(str_replace('_', ' ', $item->type)),
                     'reference_no' => $item->reference_no ?: '-',
-                    'note' => $item->note ?: '-',
+                    'note' => Features::retailText($item->note ?: '-'),
                     'creator' => $item->creator->name ?? 'System',
                     'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-',
                 ];
@@ -607,12 +611,12 @@ class ProductController extends Controller
         $callback = function () {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['ID', 'Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Cost Price', 'Retail Price', 'Wholesale Price', 'Stock Alert Qty', 'Status', 'Opening Stock']);
+            fputcsv($file, [...(Features::wholesaleEnabled() ? ['ID'] : []), 'Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Cost Price', 'Retail Price', ...(Features::wholesaleEnabled() ? ['Wholesale Price'] : []), 'Stock Alert Qty', ...(Features::wholesaleEnabled() ? ['Status'] : []), 'Opening Stock']);
 
             $products = Product::with(['category', 'brand', 'unit', 'stock'])->get();
             foreach ($products as $product) {
                 fputcsv($file, [
-                    $product->id,
+                    ...(Features::wholesaleEnabled() ? [$product->id] : []),
                     $product->name,
                     $product->sku,
                     $product->barcode,
@@ -621,9 +625,9 @@ class ProductController extends Controller
                     $product->unit->name ?? '',
                     $product->cost_price,
                     $product->retail_price,
-                    $product->wholesale_price,
+                    ...(Features::wholesaleEnabled() ? [$product->wholesale_price] : []),
                     $product->stock_alert_quantity,
-                    $product->is_active ? 'Active' : 'Inactive',
+                    ...(Features::wholesaleEnabled() ? [$product->is_active ? 'Active' : 'Inactive'] : []),
                     $product->stock->quantity ?? 0,
                 ]);
             }
@@ -685,7 +689,7 @@ class ProductController extends Controller
         try {
             DB::transaction(function () use ($rows, $columns, $value, &$importedCount, &$skippedCount) {
                 foreach ($rows as $rowOffset => $row) {
-                    if (! collect($row)->contains(fn($cell) => filled($cell))) {
+                    if (! collect($row)->contains(fn ($cell) => filled($cell))) {
                         continue;
                     }
 
@@ -716,7 +720,7 @@ class ProductController extends Controller
                     }
 
                     if ($sku === '') {
-                        $sku = 'PROD-' . strtoupper(Str::random(8));
+                        $sku = 'PROD-'.strtoupper(Str::random(8));
                     }
 
                     $categoryName = trim((string) $value($row, $columns, 'category'));
@@ -750,7 +754,7 @@ class ProductController extends Controller
                         $product->restore();
                     }
 
-                    $barcodeToSave = $barcode !== '' ? $barcode : ($product?->barcode ?: 'ING-' . Str::upper(Str::random(12)));
+                    $barcodeToSave = $barcode !== '' ? $barcode : ($product?->barcode ?: 'ING-'.Str::upper(Str::random(12)));
 
                     if ($barcodeToSave !== '') {
                         $existingBarcode = Product::withTrashed()->where('barcode', $barcodeToSave)->where('sku', '!=', $sku)->first();
@@ -768,7 +772,7 @@ class ProductController extends Controller
                         'unit_id' => $unit?->id,
                         'cost_price' => $costPrice,
                         'retail_price' => $retailPrice,
-                        'wholesale_price' => $wholesalePrice,
+                        'wholesale_price' => Features::wholesaleEnabled() ? (array_key_exists('wholesale_price', $columns) ? $wholesalePrice : ($product->wholesale_price ?? 0)) : ($product->wholesale_price ?? 0),
                         'stock_alert_quantity' => $alertQty,
                         'is_active' => $isActive,
                     ];
@@ -780,11 +784,11 @@ class ProductController extends Controller
                     }
 
                     $storeId = (int) Setting::get('default_store_id', 1);
-                    $storeExists = \App\Models\Store::where('id', $storeId)->exists();
-                    if (!$storeExists) {
-                        $store = \App\Models\Store::first();
-                        if (!$store) {
-                            throw \Illuminate\Validation\ValidationException::withMessages(['file' => 'No stores found in the system. Please create a store first before importing products.']);
+                    $storeExists = Store::where('id', $storeId)->exists();
+                    if (! $storeExists) {
+                        $store = Store::first();
+                        if (! $store) {
+                            throw ValidationException::withMessages(['file' => 'No stores found in the system. Please create a store first before importing products.']);
                         }
                         $storeId = $store->id;
                     }
@@ -818,13 +822,13 @@ class ProductController extends Controller
                 $message .= " Skipped {$skippedCount} reference or empty rows.";
             }
 
-            return redirect()->back()->with('success', $message);
+            return redirect()->route('products.index')->with('success', $message);
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
             report($e);
 
-            return redirect()->back()->with('error', 'Product import failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Product import failed: '.$e->getMessage());
         }
     }
 
@@ -834,7 +838,7 @@ class ProductController extends Controller
         if (in_array($extension, ['xlsx', 'xls'], true)) {
             $sheets = Excel::toArray(new \stdClass, $file);
             foreach ($sheets as $sheet) {
-                $headings = array_map(fn($heading) => $this->normalizeImportHeading((string) $heading), $sheet[0] ?? []);
+                $headings = array_map(fn ($heading) => $this->normalizeImportHeading((string) $heading), $sheet[0] ?? []);
                 if (in_array('name', $headings, true)) {
                     return $sheet;
                 }
@@ -884,7 +888,7 @@ class ProductController extends Controller
         $suffix = 2;
 
         while ((clone $query)->where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $suffix++;
+            $slug = $base.'-'.$suffix++;
         }
 
         return $slug;

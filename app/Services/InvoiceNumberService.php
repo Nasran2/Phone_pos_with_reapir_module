@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Features;
 use App\Support\SystemSettings;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +14,7 @@ class InvoiceNumberService
      */
     public function next(string $posType): string
     {
+        abort_if($posType === 'wholesale' && ! Features::wholesaleEnabled(), 404);
         $posType = $posType === 'wholesale' ? 'wholesale' : 'retail';
         $settingKey = $posType === 'wholesale' ? 'wholesale_invoice_prefix' : 'retail_invoice_prefix';
         $fallback = $posType === 'wholesale' ? 'WSL' : 'RSL';

@@ -31,7 +31,7 @@
     <div id="printable-ledger" class="w-full">
         <!-- Print Only Header -->
         <div class="hidden print-show text-center mb-6 pb-4 border-b-2 border-slate-800">
-            <h2 class="text-2xl font-bold text-black">Phone Shop POS - Retail & Wholesale</h2>
+            <h2 class="text-2xl font-bold text-black">Phone Shop POS - {{ \App\Support\Features::wholesaleEnabled() ? 'Retail & Wholesale' : 'Retail & Repair' }}</h2>
             <h3 class="text-xl font-semibold text-black mt-1">Ledger Book Report</h3>
             <p class="text-sm text-black mt-2">Date Printed: {{ \Carbon\Carbon::now()->format('M d, Y h:i A') }}</p>
         </div>
@@ -144,9 +144,9 @@
                                 <td class="p-4 text-sm font-medium text-black">{{ $entry->journal_no }}</td>
                                 <td class="p-4 text-sm text-black">{{ $entry->reference_no ?? '-' }}</td>
                                 <td class="p-4 text-sm text-black">
-                                    {{ $entry->note }}
+                                    {{ \App\Support\Features::retailText($entry->note ?? '') }}
                                     @if($entry->notes)
-                                        <br><span class="text-xs text-black">{{ $entry->notes }}</span>
+                                        <br><span class="text-xs text-black">{{ \App\Support\Features::retailText($entry->notes ?? '') }}</span>
                                     @endif
                                 </td>
                                 <td class="p-4 text-sm text-black text-right">{{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}</td>

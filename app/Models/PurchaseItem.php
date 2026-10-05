@@ -2,11 +2,24 @@
 
 namespace App\Models;
 
+use App\Support\Features;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class PurchaseItem extends Model
 {
-    use \App\Traits\LogsActivity;
+    use LogsActivity;
+
+    /** @return array<string, mixed> */
+    public function attributesToArray(): array
+    {
+        $attributes = parent::attributesToArray();
+        if (! Features::wholesaleEnabled()) {
+            unset($attributes['wholesale_price']);
+        }
+
+        return $attributes;
+    }
 
     protected $fillable = [
         'purchase_id',

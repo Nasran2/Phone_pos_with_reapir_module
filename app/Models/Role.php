@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property Collection<int, Permission> $permissions */
 class Role extends Model
 {
-    use \App\Traits\LogsActivity;
+    use LogsActivity;
 
     protected $fillable = ['name', 'slug', 'guard_name', 'description', 'is_system_role', 'is_fixed', 'is_deletable', 'is_renamable'];
 

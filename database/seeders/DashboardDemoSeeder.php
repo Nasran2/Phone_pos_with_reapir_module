@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\Features;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -27,10 +28,7 @@ class DashboardDemoSeeder extends Seeder
         ];
         DB::table('brands')->insert($brands);
 
-        $units = [
-            ['id' => 1, 'name' => 'Pieces', 'short_name' => 'pcs', 'created_at' => now(), 'updated_at' => now()],
-        ];
-        DB::table('units')->insert($units);
+        // Units are handled by UnitSeeder
 
         // 3. Products
         $products = [
@@ -79,17 +77,23 @@ class DashboardDemoSeeder extends Seeder
         ];
         DB::table('products')->insert($products);
  
+        // 2.5 Default Store
+        $stores = [
+            ['id' => 1, 'code' => 'MAIN', 'name' => 'Main Store', 'status' => 1, 'is_default' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ];
+        DB::table('stores')->insertOrIgnore($stores);
+
         // Product Stocks
         $stocks = [
-            ['product_id' => 1, 'quantity' => 3.00, 'created_at' => now(), 'updated_at' => now()],
-            ['product_id' => 2, 'quantity' => 2.00, 'created_at' => now(), 'updated_at' => now()],
-            ['product_id' => 3, 'quantity' => 4.00, 'created_at' => now(), 'updated_at' => now()],
-            ['product_id' => 4, 'quantity' => 1.00, 'created_at' => now(), 'updated_at' => now()],
-            ['product_id' => 5, 'quantity' => 5.00, 'created_at' => now(), 'updated_at' => now()],
-            ['product_id' => 6, 'quantity' => 5.00, 'created_at' => now(), 'updated_at' => now()],
-            ['product_id' => 7, 'quantity' => 4.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 1, 'store_id' => 1, 'quantity' => 3.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 2, 'store_id' => 1, 'quantity' => 2.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 3, 'store_id' => 1, 'quantity' => 4.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 4, 'store_id' => 1, 'quantity' => 1.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 5, 'store_id' => 1, 'quantity' => 5.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 6, 'store_id' => 1, 'quantity' => 5.00, 'created_at' => now(), 'updated_at' => now()],
+            ['product_id' => 7, 'store_id' => 1, 'quantity' => 4.00, 'created_at' => now(), 'updated_at' => now()],
         ];
-        DB::table('product_stock')->insert($stocks);
+        DB::table('product_store_stock')->insert($stocks);
 
         // Product Serials / IMEIs
         $serials = [
@@ -113,6 +117,12 @@ class DashboardDemoSeeder extends Seeder
             ['id' => 3, 'name' => 'Saman Mobile Store', 'phone' => '0719876543', 'balance' => 25800.00, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 4, 'name' => 'Tech Solutions (Pvt) Ltd', 'phone' => '0112345678', 'balance' => 48500.00, 'created_at' => now(), 'updated_at' => now()],
         ];
+        if (! Features::wholesaleEnabled()) {
+            foreach ($customers as &$customer) {
+                $customer['balance'] = 0;
+            }
+            unset($customer);
+        }
         DB::table('customers')->insert($customers);
 
         $suppliers = [
@@ -158,9 +168,10 @@ class DashboardDemoSeeder extends Seeder
                 'total_profit_amount' => 4950.00, 'status' => 'final', 'created_at' => now(), 'updated_at' => now()
             ],
         ];
+        $sales = array_values(array_filter($sales, fn ($sale) => Features::wholesaleEnabled() || $sale['pos_type'] !== 'wholesale'));
         DB::table('sales')->insert($sales);
 
-        DB::table('sale_items')->insert([
+        $saleItems = [
             [
                 'sale_id' => 1, 'product_id' => 7, 'quantity' => 1, 'cost_price' => 30000.00,
                 'selling_price' => 48500.00, 'unit_price' => 48500.00, 'price_type' => 'wholesale',
@@ -221,7 +232,8 @@ class DashboardDemoSeeder extends Seeder
                 'discount_type' => 'fixed', 'discount_amount' => 0, 'line_total' => 2950.00,
                 'profit_amount' => 1350.00, 'subtotal' => 2950.00, 'created_at' => now(), 'updated_at' => now(),
             ],
-        ]);
+        ];
+        DB::table('sale_items')->insert(array_values(array_filter($saleItems, fn ($item) => Features::wholesaleEnabled() || $item['price_type'] !== 'wholesale')));
 
         // Sales payments
         $salePayments = [
@@ -283,22 +295,19 @@ class DashboardDemoSeeder extends Seeder
         DB::table('purchase_payments')->insert($purchasePayments);
 
         // 7. Expenses
-        DB::table('expense_categories')->insert([
-            ['id' => 1, 'name' => 'Utility', 'description' => 'Electricity, water', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'Rent', 'description' => 'Shop rent', 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        DB::table('expenses')->insert([
-            ['id' => 1, 'expense_category_id' => 1, 'amount' => 12450.00, 'expense_date' => $today, 'reference_no' => 'EXP-001', 'note' => 'Today expenses', 'created_at' => now(), 'updated_at' => now()]
-        ]);
+        // Expense categories are seeded by AccountingSeeder
+        // DB::table('expenses')->insert([
+        //     ['id' => 1, 'expense_category_id' => 1, 'amount' => 12450.00, 'expense_date' => $today, 'reference_no' => 'EXP-001', 'note' => 'Today expenses', 'created_at' => now(), 'updated_at' => now()]
+        // ]);
 
         // 8. Daily Summaries
         DB::table('daily_summaries')->insert([
             'date' => $today,
-            'total_sales' => 256850.00,
-            'retail_sales' => 145230.00,
-            'wholesale_sales' => 111620.00,
+            'total_sales' => Features::wholesaleEnabled() ? 256850.00 : array_sum(array_column($sales, 'payable_amount')),
+            'retail_sales' => Features::wholesaleEnabled() ? 145230.00 : array_sum(array_column($sales, 'payable_amount')),
+            'wholesale_sales' => Features::wholesaleEnabled() ? 111620.00 : 0,
             'total_purchases' => 182600.00,
-            'total_profit' => 58450.00,
+            'total_profit' => Features::wholesaleEnabled() ? 58450.00 : array_sum(array_column($sales, 'total_profit_amount')),
             'total_expenses' => 12450.00,
             'customer_due_collected' => 0.00,
             'supplier_due_paid' => 0.00,

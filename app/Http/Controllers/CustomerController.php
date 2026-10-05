@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\Cheque;
 use App\Models\Customer;
 use App\Models\CustomerTransaction;
 use App\Services\CustomerTransactionService;
+use App\Services\LorryAccessService;
+use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,8 +30,8 @@ class CustomerController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -44,7 +47,7 @@ class CustomerController extends Controller
         $totalCustomers = Customer::count();
         $activeCustomers = Customer::where('status', true)->count();
         $totalDue = Customer::where('balance', '>', 0)->sum('balance');
-        
+
         // Today's Payments from customer transactions (credits registered under payments)
         $todayPayments = CustomerTransaction::whereDate('transaction_date', now()->toDateString())
             ->where('type', 'payment')
@@ -62,7 +65,7 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        if (!auth()->user()->hasPermission('customers.view') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+        if (! auth()->user()->hasPermission('customers.view') && ! app(LorryAccessService::class)->isLorryUser(auth()->user())) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -76,17 +79,20 @@ class CustomerController extends Controller
             ->withQueryString();
 
         // Fetch sales history
-        $sales = $customer->sales()
+        $sales = $customer->sales()->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'))
             ->latest()
             ->paginate(10, ['*'], 'sales_page')
             ->withQueryString();
 
-        $holdAmount = \App\Models\Cheque::where('customer_id', $customer->id)
+        $holdAmount = Cheque::where('customer_id', $customer->id)
             ->where('cheque_type', 'received')
             ->open()
             ->sum('hold_amount');
 
-        return view('customers.show', compact('customer', 'transactions', 'sales', 'holdAmount'));
+        $repairJobs = Features::repairEnabled() && auth()->user()->hasPermission('repair.view')
+            ? $customer->repairJobs()->with(['device', 'repairStatus'])->latest()->paginate(10, ['*'], 'repair_page')->withQueryString() : null;
+
+        return view('customers.show', compact('customer', 'transactions', 'sales', 'holdAmount', 'repairJobs'));
     }
 
     public function store(Request $request)
@@ -113,7 +119,7 @@ class CustomerController extends Controller
                     $customer,
                     $openingBalance,
                     'opening_balance',
-                    'OB-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+                    'OB-'.str_pad($customer->id, 5, '0', STR_PAD_LEFT),
                     'Initial opening balance'
                 );
             }
@@ -143,7 +149,7 @@ class CustomerController extends Controller
                 'credit_limit' => isset($validated['credit_limit']) ? floatval($validated['credit_limit']) : null,
                 'status' => filter_var($validated['status'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'notes' => $validated['notes'] ?? null,
-                'updated_by' => auth()->id()
+                'updated_by' => auth()->id(),
             ]);
 
             // Adjust balance if opening balance changed
@@ -153,8 +159,8 @@ class CustomerController extends Controller
                     $customer,
                     $difference,
                     'opening_balance_adjustment',
-                    'OBA-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
-                    "Opening balance adjusted from Rs. " . number_format($oldOpening, 2) . " to Rs. " . number_format($newOpening, 2)
+                    'OBA-'.str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+                    'Opening balance adjusted from Rs. '.number_format($oldOpening, 2).' to Rs. '.number_format($newOpening, 2)
                 );
             }
         });
@@ -171,7 +177,7 @@ class CustomerController extends Controller
         }
 
         $name = $customer->name;
-        
+
         DB::transaction(function () use ($customer) {
             // Keep the transaction history when soft-deleting a party.
             $customer->delete();
@@ -184,7 +190,7 @@ class CustomerController extends Controller
 
     public function storePayment(Request $request, Customer $customer)
     {
-        if (!auth()->user()->hasPermission('customers.payment') && !app(\App\Services\LorryAccessService::class)->isLorryUser(auth()->user())) {
+        if (! auth()->user()->hasPermission('customers.payment') && ! app(LorryAccessService::class)->isLorryUser(auth()->user())) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -202,12 +208,12 @@ class CustomerController extends Controller
             $customer,
             -$amount, // Negative decreases due balance
             'payment',
-            $validated['reference_no'] ?? 'PAY-' . strtoupper(uniqid()),
-            $validated['note'] ?? ('Recorded payment via ' . $validated['payment_method']),
+            $validated['reference_no'] ?? 'PAY-'.strtoupper(uniqid()),
+            $validated['note'] ?? ('Recorded payment via '.$validated['payment_method']),
             null
         );
 
-        return back()->with('success', 'Payment of Rs. ' . number_format($amount, 2) . ' recorded successfully.');
+        return back()->with('success', 'Payment of Rs. '.number_format($amount, 2).' recorded successfully.');
     }
 
     private function validateCustomer(Request $request, ?Customer $customer = null): array

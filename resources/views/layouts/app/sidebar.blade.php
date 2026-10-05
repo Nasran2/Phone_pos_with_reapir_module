@@ -101,7 +101,9 @@
     <aside class="hidden min-h-screen w-64 shrink-0 self-stretch flex-col border-r border-[#182647] bg-[#0c1630] text-white lg:flex">
         <div class="flex items-center gap-3 border-b border-[#182647] bg-[#091024] px-5 py-5"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20"><svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="12" rx="2"/><path d="M12 15v4M9 19h6"/></svg></div><div><h2 class="text-sm font-bold">{{ $systemName }}</h2><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lorry Workspace</p></div></div>
         <div class="border-b border-[#182647] p-5"><p class="text-[10px] font-bold uppercase tracking-widest text-blue-400">Assigned Lorry</p><h2 class="mt-2 text-sm font-bold">{{ $myAssignment->lorry_name }}</h2><p class="text-[10px] text-slate-400">{{ $myAssignment->plate_no ?: $myAssignment->lorry_no }}</p></div>
-        <nav class="flex-1 space-y-2 overflow-y-auto p-4"><a href="{{ route('distribution.my-lorry.dashboard') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.dashboard') ? 'bg-blue-600':'hover:bg-white/10' }}">Dashboard</a><a href="{{ route('distribution.my-lorry.stock') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.stock') ? 'bg-blue-600':'hover:bg-white/10' }}">Lorry Stock</a>@if(auth()->user()->hasPermission('my_lorry.orders.create'))<a href="{{ route('distribution.my-lorry.order.create') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.order.*') ? 'bg-blue-600':'hover:bg-white/10' }}">Create Order / POS</a>@endif<a href="{{ route('distribution.my-lorry.sales') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.sales') ? 'bg-blue-600':'hover:bg-white/10' }}">Sales</a><a href="{{ route('distribution.my-lorry.customers') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.customers') ? 'bg-blue-600':'hover:bg-white/10' }}">Customers</a>@if(auth()->user()->hasPermission('my_lorry.expenses.create'))<a href="{{ route('distribution.my-lorry.expenses') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.expenses') ? 'bg-blue-600':'hover:bg-white/10' }}">Expenses</a>@endif @if($canAccessCheques)<a href="{{ route('cheques.received.index') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('cheques.*') ? 'bg-blue-600':'hover:bg-white/10' }}">Cheques @if($chequeBadge)<span class="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px]">{{ $chequeBadge }}</span>@endif</a>@endif <a href="{{ route('profile.edit') }}" class="block rounded-xl px-4 py-3 font-bold hover:bg-white/10">Profile</a></nav>
+        <nav class="flex-1 space-y-2 overflow-y-auto p-4"><a href="{{ route('distribution.my-lorry.dashboard') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.dashboard') ? 'bg-blue-600':'hover:bg-white/10' }}">Dashboard</a><a href="{{ route('distribution.my-lorry.stock') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.stock') ? 'bg-blue-600':'hover:bg-white/10' }}">Lorry Stock</a>@if(auth()->user()->hasPermission('my_lorry.orders.create'))<a href="{{ route('distribution.my-lorry.order.create') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.order.*') ? 'bg-blue-600':'hover:bg-white/10' }}">Create Order / POS</a>@endif@if(\App\Support\Features::wholesaleEnabled())
+<a href="{{ route('distribution.my-lorry.sales') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.sales') ? 'bg-blue-600':'hover:bg-white/10' }}">Sales</a>
+@endif<a href="{{ route('distribution.my-lorry.customers') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.customers') ? 'bg-blue-600':'hover:bg-white/10' }}">Customers</a>@if(auth()->user()->hasPermission('my_lorry.expenses.create'))<a href="{{ route('distribution.my-lorry.expenses') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('distribution.my-lorry.expenses') ? 'bg-blue-600':'hover:bg-white/10' }}">Expenses</a>@endif @if($canAccessCheques)<a href="{{ route('cheques.received.index') }}" class="block rounded-xl px-4 py-3 font-bold {{ request()->routeIs('cheques.*') ? 'bg-blue-600':'hover:bg-white/10' }}">Cheques @if($chequeBadge)<span class="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px]">{{ $chequeBadge }}</span>@endif</a>@endif <a href="{{ route('profile.edit') }}" class="block rounded-xl px-4 py-3 font-bold hover:bg-white/10">Profile</a></nav>
         <form method="POST" action="{{ route('logout') }}" class="sticky bottom-0 mt-auto border-t border-[#182647] bg-[#0c1630] p-4">@csrf<button class="w-full rounded-xl bg-rose-500/15 px-4 py-3 font-bold text-rose-300 transition hover:bg-rose-500/25">Logout</button></form>
     </aside>
     @else
@@ -253,6 +255,8 @@
                     </div>
                 </div>
                 @endif
+
+                @include('repairs.partials.menu')
 
                 <!-- Customers Link -->
                 @if (auth()->user()->hasPermission('customers.view'))
@@ -508,6 +512,7 @@
                 </a>
                 @endif
                 @if ($moduleSettings['wholesale_pos'] && auth()->user()->hasPermission('wholesale_pos.view'))
+                @if(\App\Support\Features::wholesaleEnabled())
                 <a href="{{ route('pos.wholesale') }}" class="flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition text-xs shadow-lg shadow-emerald-500/10">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <rect x="2" y="3" width="20" height="12" rx="2" />
@@ -519,6 +524,7 @@
                     </svg>
                     <span>Wholesale POS</span>
                 </a>
+                @endif
                 @endif
             </div>
             @endif
@@ -606,6 +612,7 @@
             <div class="flex-1 overflow-y-auto custom-scrollbar pt-12">
                 <!-- Nav Links replicated inside mobile panel -->
                 <nav class="p-4 space-y-1">
+                @include('repairs.partials.menu')
                     @if (auth()->user()->hasPermission('dashboard.view'))
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-500/10' : 'text-slate-400 hover:bg-[#182647] hover:text-white' }}">
                         <span>Dashboard</span>
@@ -764,7 +771,9 @@
                     <a href="{{ route('pos.retail') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">Retail POS</a>
                     @endif
                     @if ($moduleSettings['wholesale_pos'] && auth()->user()->hasPermission('wholesale_pos.view'))
+                    @if(\App\Support\Features::wholesaleEnabled())
                     <a href="{{ route('pos.wholesale') }}" class="flex items-center justify-center gap-1 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Wholesale POS</a>
+                    @endif
                     @endif
                 </div>
                 @endif

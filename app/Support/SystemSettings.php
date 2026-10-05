@@ -20,6 +20,17 @@ class SystemSettings
 
     public static function get(string $key, mixed $default = null, ?string $table = null): mixed
     {
+        if (! Features::wholesaleEnabled()) {
+            if (str_contains($key, 'wholesale')) {
+                return false;
+            }
+            if (in_array($key, ['default_pos_type', 'login_landing_page'], true)) {
+                $value = $table ? self::tableValue($table, $key, $default) : self::tableValue('pos_settings', $key, self::tableValue('business_settings', $key, $default));
+
+                return str_contains((string) $value, 'wholesale') ? ($key === 'default_pos_type' ? 'retail' : 'pos/retail') : $value;
+            }
+        }
+
         if ($table) {
             return self::tableValue($table, $key, $default);
         }
@@ -52,7 +63,7 @@ class SystemSettings
         $symbol = self::get('currency_symbol', 'Rs.', 'business_settings');
         $decimals = (int) self::number('decimal_places', 2, 'business_settings');
 
-        return trim($symbol . ' ' . number_format((float) $amount, $decimals));
+        return trim($symbol.' '.number_format((float) $amount, $decimals));
     }
 
     public static function currencySymbol(): string
@@ -89,7 +100,7 @@ class SystemSettings
 
     private static function tableValue(string $table, string $key, mixed $default = null): mixed
     {
-        if (!isset(self::$cache[$table])) {
+        if (! isset(self::$cache[$table])) {
             self::$cache[$table] = DB::table($table)->pluck('value', 'key')->all();
         }
 

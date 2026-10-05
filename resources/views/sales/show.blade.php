@@ -2,7 +2,7 @@
     <div class="bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 w-full">
         <div class="min-w-0">
             <h2 class="text-lg font-bold text-slate-900 break-all">Invoice {{ $sale->invoice_no }}</h2>
-            <p class="mt-1 text-xs text-slate-500">{{ $sale->created_at->format('Y-m-d h:i A') }} &bull; {{ ucfirst($sale->pos_type) }}</p>
+            <p class="mt-1 text-xs text-slate-500">{{ $sale->created_at->format('Y-m-d h:i A') }} &bull; {{ \App\Support\Features::wholesaleEnabled() ? ucfirst($sale->pos_type) : 'Sale' }}</p>
         </div>
         <div class="flex flex-wrap gap-2 justify-end">
             <a href="{{ route('sales.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-black rounded-lg text-xs font-bold">Back</a>
@@ -19,7 +19,7 @@
             @endphp
             <a href="https://wa.me/?text={{ $message }}" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">WhatsApp</a>
             @endif
-            @if(auth()->user()->hasPermission('sales_return.create') && $sale->stock_deducted_at)
+            @if((\App\Support\Features::wholesaleEnabled() || $sale->pos_type === 'retail') && auth()->user()->hasPermission('sales_return.create') && $sale->stock_deducted_at)
             <a href="{{ route('sales-returns.create', ['sale_id' => $sale->id]) }}" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold">Return Sale</a>
             @endif
         </div>
@@ -70,7 +70,7 @@
                 </div>
 
                 <div class="p-3 sm:p-6">
-                    @if(auth()->user()->hasPermission('sales.edit_payment') && (float) $sale->due_amount > 0 && $sale->status !== 'cancelled')
+                    @if((\App\Support\Features::wholesaleEnabled() || $sale->pos_type === 'retail') && auth()->user()->hasPermission('sales.edit_payment') && (float) $sale->due_amount > 0 && $sale->status !== 'cancelled')
                     <form id="receive-payment-form" method="POST" action="{{ route('sales.payments.store', $sale) }}" class="space-y-2 sm:space-y-4">
                         @csrf
                         <div>
@@ -124,7 +124,7 @@
                     @else
                     <div class="py-8"><h3 class="text-lg font-bold text-slate-900">Payment details</h3><p class="mt-2 text-sm text-slate-500">View the balance and payment records for this invoice.</p></div>
                     @endif
-                    @if(auth()->user()->hasPermission('sales.edit_payment') && $sale->status !== 'cancelled' && ($sale->stock_deducted_at || (float) $sale->due_amount <= 0.009))
+                    @if((\App\Support\Features::wholesaleEnabled() || $sale->pos_type === 'retail') && auth()->user()->hasPermission('sales.edit_payment') && $sale->status !== 'cancelled' && ($sale->stock_deducted_at || (float) $sale->due_amount <= 0.009))
                         @include('sales.partials.stock-release-editor')
                     @endif
                 </div>
@@ -138,7 +138,7 @@
                     <div>
                         <p class="text-[11px] font-bold uppercase text-slate-500">Business</p>
                         <p class="mt-1 font-black text-black">Phone Shop POS</p>
-                        <p class="text-xs text-slate-500">Retail & Wholesale</p>
+                        <p class="text-xs text-slate-500">{{ \App\Support\Features::wholesaleEnabled() ? 'Retail & Wholesale' : 'Retail & Repair' }}</p>
                     </div>
                     <div>
                         <p class="text-[11px] font-bold uppercase text-slate-500">Customer</p>

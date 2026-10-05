@@ -31,15 +31,17 @@
                             <input type="number" step="any" name="opening_cash" value="{{ old('opening_cash', $openingCash) }}" class="w-32 text-right rounded-md border-slate-900 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
                         <div class="flex justify-between py-2 border-b border-slate-100">
-                            <span class="text-black font-medium">Retail Sales</span>
-                            <span class="font-bold text-black">Rs. {{ number_format($retailSales, 2) }}</span>
+                            <span class="text-black font-medium">{{ \App\Support\Features::wholesaleEnabled() ? 'Retail Sales' : 'Sales Receipts' }}</span>
+                            <span class="font-bold text-black">Rs. {{ number_format(\App\Support\Features::wholesaleEnabled() ? $retailSales : $salesReceipts, 2) }}</span>
                             <input type="hidden" name="retail_sales" value="{{ $retailSales }}">
                         </div>
+                        @if(\App\Support\Features::wholesaleEnabled())
                         <div class="flex justify-between py-2 border-b border-slate-100">
                             <span class="text-black font-medium">Wholesale Sales</span>
                             <span class="font-bold text-black">Rs. {{ number_format($wholesaleSales, 2) }}</span>
                             <input type="hidden" name="wholesale_sales" value="{{ $wholesaleSales }}">
                         </div>
+                        @endif
                         <div class="flex justify-between py-2 border-b border-slate-100">
                             <span class="text-black font-medium">Customer Due Collections</span>
                             <span class="font-bold text-black">Rs. {{ number_format($customerCollections, 2) }}</span>

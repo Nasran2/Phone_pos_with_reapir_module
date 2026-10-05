@@ -23,6 +23,36 @@
         </div>
     </div>
 
+    @if($repairJobs !== null)
+        <section class="m-6 min-w-0 rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 class="font-bold mb-3">Repair history</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left" style="min-width:680px">
+                    <thead class="text-slate-500 border-b border-slate-200"><tr>
+                        @foreach(['Job No', 'Date', 'Device', 'Problems', 'Status', 'Total', 'Balance'] as $heading)
+                            <th class="py-3 pr-4 font-semibold">{{ $heading }}</th>
+                        @endforeach
+                    </tr></thead>
+                    <tbody>
+                        @forelse($repairJobs as $repairJob)
+                            <tr class="border-b border-slate-100">
+                                <td class="py-3 pr-4"><a class="text-blue-600 font-semibold" href="{{ route('repairs.show', $repairJob) }}">{{ $repairJob->job_no }}</a></td>
+                                <td class="py-3 pr-4 whitespace-nowrap">{{ $repairJob->created_at->format('M j, Y') }}</td>
+                                <td class="py-3 pr-4">{{ $repairJob->device?->brand }} {{ $repairJob->device?->model }}</td>
+                                <td class="py-3 pr-4">{{ implode(', ', $repairJob->problem_snapshot ?? []) }}</td>
+                                <td class="py-3 pr-4">{{ $repairJob->status_label }}</td>
+                                <td class="py-3 pr-4 whitespace-nowrap">{{ \App\Support\SystemSettings::money((float) $repairJob->total_amount) }}</td>
+                                <td class="py-3 whitespace-nowrap">{{ \App\Support\SystemSettings::money((float) $repairJob->balance_amount) }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="7" class="py-4 text-slate-500">No repair visits recorded.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            {{ $repairJobs->links() }}
+        </section>
+    @endif
     <!-- Main Grid Content -->
     <div class="p-6 md:p-8 space-y-6 flex-1 w-full overflow-y-auto bg-slate-50">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -213,7 +243,7 @@
                                         {{ $sale->created_at ? $sale->created_at->format('Y-m-d') : '-' }}
                                     </td>
                                     <td class="px-6 py-4 font-semibold uppercase text-[10px] text-black">
-                                        {{ $sale->pos_type }}
+                                        {{ \App\Support\Features::wholesaleEnabled() ? $sale->pos_type : 'Sale' }}
                                     </td>
                                     <td class="px-6 py-4 text-right font-medium text-black">
                                         Rs. {{ number_format($sale->payable_amount, 2) }}

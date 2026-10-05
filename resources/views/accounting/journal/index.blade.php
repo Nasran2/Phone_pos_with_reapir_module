@@ -80,7 +80,7 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-black mb-1">Manual Entry</span>
                                     @endif
                                 </div>
-                                <div class="text-sm text-black mt-1">{{ $journal->description }}</div>
+                                <div class="text-sm text-black mt-1">{{ \App\Support\Features::retailText($journal->description ?? '') }}</div>
                             </td>
                             <td class="p-4">
                                 <div class="bg-slate-50 rounded border border-slate-100 p-2 text-sm">

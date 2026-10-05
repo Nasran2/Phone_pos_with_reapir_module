@@ -1,3 +1,4 @@
+import './repairs.js';
 function initializeWorkspace() {
     document.querySelectorAll('.global-search').forEach(root => {
         if (root.dataset.ready) return;

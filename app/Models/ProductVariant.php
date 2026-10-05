@@ -2,15 +2,31 @@
 
 namespace App\Models;
 
+use App\Support\Features;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property numeric-string $stock_quantity
+ */
 class ProductVariant extends Model
 {
-    use \App\Traits\LogsActivity;
+    use LogsActivity;
+
+    /** @return array<string, mixed> */
+    public function attributesToArray(): array
+    {
+        $attributes = parent::attributesToArray();
+        if (! Features::wholesaleEnabled()) {
+            unset($attributes['wholesale_price']);
+        }
+
+        return $attributes;
+    }
 
     protected $fillable = [
-        'product_id', 'color', 'storage', 'ram', 'sku', 
-        'cost_price', 'retail_price', 'wholesale_price', 'stock_quantity', 'is_active'
+        'product_id', 'color', 'storage', 'ram', 'sku',
+        'cost_price', 'retail_price', 'wholesale_price', 'stock_quantity', 'is_active',
     ];
 
     protected $casts = [
@@ -18,7 +34,7 @@ class ProductVariant extends Model
         'retail_price' => 'decimal:2',
         'wholesale_price' => 'decimal:2',
         'stock_quantity' => 'decimal:2',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     public function product()

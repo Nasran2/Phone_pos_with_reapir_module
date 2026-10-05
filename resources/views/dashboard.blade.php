@@ -5,6 +5,15 @@
     <!-- ApexCharts Library (Gives beautiful interactive charts with smooth curves) -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+    @if($repairOverview !== null)
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 p-6" aria-label="Repair overview">
+            @foreach($repairOverview as $label=>$value)
+                <a href="{{ route('repairs.dashboard', ['store_id'=>$storeId]) }}" class="rounded-xl bg-white border border-slate-200 p-4 hover:border-blue-400">
+                    <span class="block text-xs text-slate-500">{{ $label }}</span><strong class="block text-xl mt-2">{{ $loop->last ? \App\Support\SystemSettings::money((float)$value) : $value }}</strong>
+                </a>
+            @endforeach
+        </section>
+    @endif
     <!-- Top Dashboard Header Bar -->
     <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-6 sticky top-0 z-20 w-full shrink-0">
         <!-- Breadcrumb / Section Header -->
@@ -164,13 +173,13 @@
             $cards = [
                 ['Total Sales', $totalSalesToday, route('reports.sales', $reportFilters), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'],
                 ['Retail Sales', $retailSalesToday, route('reports.sales', $reportFilters + ['sale_type' => 'retail']), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>'],
-                ['Wholesale Sales', $wholesaleSalesToday, route('reports.sales', $reportFilters + ['sale_type' => 'wholesale']), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'],
+                ...(\App\Support\Features::wholesaleEnabled() ? [['Wholesale Sales', $wholesaleSalesToday, route('reports.sales', $reportFilters + ['sale_type' => 'wholesale']), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>']] : []),
                 ['Gross Profit', $totalProfitToday, route('reports.profit_loss', $reportFilters), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'],
                 ['Total Purchase', $totalPurchaseToday, route('reports.purchases', $reportFilters), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'],
             ];
         @endphp
         <p class="text-sm font-semibold text-black">Selected date: {{ $dateLabel }}</p>
-        <div class="dashboard-stats grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+        <div class="dashboard-stats grid grid-cols-1 sm:grid-cols-2 {{ \App\Support\Features::wholesaleEnabled() ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }} gap-3">
             @foreach($cards as [$label, $amount, $target, $icon])
                 <a href="{{ $target }}" class="dashboard-stat group block bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-sm transition duration-300">
                     <div class="flex justify-between items-start gap-2">
@@ -513,16 +522,7 @@
             const dashboardCurrency = @json($currencySymbol);
             // A. Sales overview line chart
             const salesLineOptions = {
-                series: [
-                    {
-                        name: 'Retail Sales',
-                        data: @json($retailSalesChart)
-                    },
-                    {
-                        name: 'Wholesale Sales',
-                        data: @json($wholesaleSalesChart)
-                    }
-                ],
+                series: @json($salesSeries),
                 chart: {
                     height: 280,
                     type: 'area',

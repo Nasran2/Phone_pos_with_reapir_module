@@ -322,7 +322,7 @@
                 </td>
                 <td class="brand-copy">
                     <h1>{{ $businessName }}</h1>
-                    <div class="tagline">Mobile Phones • Accessories • Wholesale & Retail</div>
+                    <div class="tagline">Mobile Phones • Accessories • {{ \App\Support\Features::wholesaleEnabled() ? 'Wholesale & Retail' : 'Retail & Repair' }}</div>
                     <div class="contact">
                         @if($businessAddress)<div>{{ $businessAddress }}</div>@endif
                         @if($businessPhone || $businessEmail)<div>{{ $businessPhone }}{{ $businessPhone && $businessEmail ? '  •  ' : '' }}{{ $businessEmail }}</div>@endif
@@ -340,7 +340,7 @@
             </td>
             <td class="invoice-heading">
                 <div class="eyebrow">{{ $sale->is_tax_invoice ? 'Tax Invoice' : 'Sales Invoice' }}</div>
-                <h2>{{ strtoupper($sale->pos_type) }}</h2>
+                <h2>{{ \App\Support\Features::wholesaleEnabled() ? strtoupper($sale->pos_type) : 'SALE' }}</h2>
                 <div class="invoice-number"># {{ $sale->invoice_no }}</div>
                 @if($sale->tax_invoice_number)<div class="detail-line">Tax invoice: {{ $sale->tax_invoice_number }}</div>@endif
                 <div class="status-pill {{ $statusClass }}">{{ $statusLabel }}</div>
@@ -362,7 +362,7 @@
                     <div class="meta-row"><span>Date</span><span>{{ $sale->created_at->format($dateFormat) }}</span></div>
                     <div class="meta-row"><span>Time</span><span>{{ $sale->created_at->format($timeFormat) }}</span></div>
                     <div class="meta-row"><span>Cashier</span><span>{{ $sale->cashier->name ?? '-' }}</span></div>
-                    <div class="meta-row"><span>Sale type</span><span>{{ ucfirst($sale->pos_type) }}</span></div>
+                    <div class="meta-row"><span>Sale type</span><span>{{ \App\Support\Features::wholesaleEnabled() ? ucfirst($sale->pos_type) : 'Sale' }}</span></div>
                     @if($sale->source_type)<div class="meta-row"><span>Source</span><span>{{ ucfirst($sale->source_type) }}</span></div>@endif
                 </div>
             </div></div>
@@ -485,7 +485,7 @@
         <script>
             (() => {
                 const shouldReturnToPos = @json(request()->boolean('return_to_pos'));
-                const posUrl = @json(route($sale->pos_type === 'wholesale' ? 'pos.wholesale' : 'pos.retail'));
+                const posUrl = @json(route(\App\Support\Features::wholesaleEnabled() && $sale->pos_type === 'wholesale' ? 'pos.wholesale' : 'pos.retail'));
                 let printFinished = false;
 
                 const returnToPos = () => {

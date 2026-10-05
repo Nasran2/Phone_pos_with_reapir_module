@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
+use App\Models\User;
+use App\Support\Features;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -80,21 +83,15 @@ class UserManagementSeeder extends Seeder
             'activity_logs.view',
         ];
 
-        // Clear existing permissions and roles in dependency order (cross-db compatible)
-        DB::table('role_permissions')->delete();
-        DB::table('user_roles')->delete();
-        DB::table('permissions')->delete();
-        DB::table('roles')->delete();
+        $permissions = array_values(array_filter($permissions, fn ($name) => Features::permissionEnabled($name)));
 
         // Insert permissions
         $permissionIds = [];
         foreach ($permissions as $permName) {
-            $id = DB::table('permissions')->insertGetId([
-                'name' => $permName,
-                'guard_name' => 'web',
-                'created_at' => now(),
-                'updated_at' => now(),
+            DB::table('permissions')->updateOrInsert(['name' => $permName], [
+                'guard_name' => 'web', 'updated_at' => now(), 'created_at' => now(),
             ]);
+            $id = DB::table('permissions')->where('name', $permName)->value('id');
             $permissionIds[$permName] = $id;
         }
 
@@ -111,17 +108,17 @@ class UserManagementSeeder extends Seeder
             'Cashier' => [
                 'desc' => 'Access to retail & wholesale POS billing and sales view.',
                 'perms' => [
-                    'dashboard.view', 'retail_pos.view', 'retail_pos.create_sale', 'retail_pos.discount', 
+                    'dashboard.view', 'retail_pos.view', 'retail_pos.create_sale', 'retail_pos.discount',
                     'retail_pos.hold_bill', 'wholesale_pos.view', 'wholesale_pos.create_sale',
                     'sales.view', 'sales.invoice_view', 'sales.print', 'sales.edit_payment', 'sales.return',
                     'sales_return.view', 'sales_return.create', 'hold_sales.view', 'hold_sales.resume',
-                    'customers.view', 'customers.create', 'customers.edit'
-                ]
+                    'customers.view', 'customers.create', 'customers.edit',
+                ],
             ],
             'Stock Manager' => [
                 'desc' => 'Access to product stock, adjustments, purchases and transfers.',
                 'perms' => [
-                    'dashboard.view', 'products.view', 'products.create', 'products.edit', 'products.delete', 
+                    'dashboard.view', 'products.view', 'products.create', 'products.edit', 'products.delete',
                     'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
                     'brands.view', 'brands.create', 'brands.edit', 'brands.delete',
                     'units.view', 'units.create', 'units.edit', 'units.delete',
@@ -130,14 +127,14 @@ class UserManagementSeeder extends Seeder
                     'suppliers.view', 'suppliers.statement',
                     'stock.view', 'stock.adjust', 'stock.transfer', 'stock.history',
                     'stock.adjustment.view', 'stock.adjustment.create', 'stock.adjustment.edit', 'stock.adjustment.delete',
-                    'damaged_stock.view', 'damaged_stock.create', 'damaged_stock.edit', 'damaged_stock.delete', 'damaged_stock.return'
-                ]
+                    'damaged_stock.view', 'damaged_stock.create', 'damaged_stock.edit', 'damaged_stock.delete', 'damaged_stock.return',
+                ],
             ],
             'Accountant' => [
                 'desc' => 'Access to expenses, banking, cashbook, reports and general ledger.',
                 'perms' => [
-                    'dashboard.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 
-                    'accounting.view', 'cashbook.view', 'bank.view', 't_account.view', 'reports.view', 
+                    'dashboard.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete',
+                    'accounting.view', 'cashbook.view', 'bank.view', 't_account.view', 'reports.view',
                     'reports.sales', 'reports.retail_sales', 'reports.wholesale_sales', 'reports.sales_returns',
                     'reports.purchase', 'reports.purchase_returns', 'reports.stock', 'reports.low_stock',
                     'reports.stock_movement', 'reports.damaged_stock', 'reports.product_profit', 'reports.profit_loss',
@@ -145,35 +142,33 @@ class UserManagementSeeder extends Seeder
                     'reports.supplier_payment', 'reports.cash_bank', 'reports.daily_closing', 'reports.tax',
                     'reports.user_activity', 'reports.export_pdf', 'reports.export_excel',
                     'customers.view', 'customers.statement', 'customers.payment',
-                    'suppliers.view', 'suppliers.statement', 'suppliers.payment'
-                ]
+                    'suppliers.view', 'suppliers.statement', 'suppliers.payment',
+                ],
             ],
             'Sales Staff' => [
                 'desc' => 'Access to billing and viewing sales ledger records.',
                 'perms' => [
                     'dashboard.view', 'retail_pos.view', 'retail_pos.create_sale', 'retail_pos.hold_bill',
                     'sales.view', 'sales.invoice_view', 'sales.print', 'sales.whatsapp_share',
-                    'sales_return.view', 'hold_sales.view', 'hold_sales.resume'
-                ]
+                    'sales_return.view', 'hold_sales.view', 'hold_sales.resume',
+                ],
             ],
         ];
 
         // Insert roles and map permissions
         $roleIds = [];
         foreach ($roles as $roleName => $roleData) {
-            $roleId = DB::table('roles')->insertGetId([
-                'name' => $roleName,
-                'description' => $roleData['desc'],
+            $role = Role::firstOrCreate(['name' => $roleName], [
+                'description' => Features::retailText($roleData['desc']),
                 'guard_name' => 'web',
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
+            $roleId = $role->id;
             $roleIds[$roleName] = $roleId;
 
             // Map permissions to role
             foreach ($roleData['perms'] as $permName) {
                 if (isset($permissionIds[$permName])) {
-                    DB::table('role_permissions')->insert([
+                    DB::table('role_permissions')->updateOrInsert([
                         'role_id' => $roleId,
                         'permission_id' => $permissionIds[$permName],
                     ]);
@@ -240,26 +235,14 @@ class UserManagementSeeder extends Seeder
         ];
 
         foreach ($demoUsers as $user) {
-            // Delete existing user if exists (to avoid duplicate key collisions)
-            DB::table('user_roles')->whereIn('user_id', function ($query) use ($user) {
-                $query->select('id')->from('users')->where('username', $user['username']);
-            })->delete();
-
-            DB::table('users')->where('username', $user['username'])->delete();
-
-            $userId = DB::table('users')->insertGetId([
-                'name' => $user['name'],
-                'username' => $user['username'],
-                'email' => $user['email'],
-                'phone' => $user['phone'],
-                'password' => $user['password'],
-                'is_active' => $user['is_active'],
-                'created_at' => now(),
-                'updated_at' => now(),
+            $existingUser = User::firstOrCreate(['username' => $user['username']], [
+                'name' => $user['name'], 'email' => $user['email'], 'phone' => $user['phone'],
+                'password' => $user['password'], 'is_active' => $user['is_active'],
             ]);
+            $userId = $existingUser->id;
 
             // Assign role
-            DB::table('user_roles')->insert([
+            DB::table('user_roles')->updateOrInsert([
                 'user_id' => $userId,
                 'role_id' => $roleIds[$user['role']],
             ]);

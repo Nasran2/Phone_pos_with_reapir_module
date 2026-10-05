@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\Features;
+use App\Traits\LogsActivity;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -32,10 +34,10 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
-    use \App\Traits\LogsActivity;
-
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    use LogsActivity;
 
     /**
      * Get the attributes that should be cast.
@@ -84,6 +86,7 @@ class User extends Authenticatable implements PasskeyUser
         if ($this->roles->contains('name', 'Super Admin') || $this->roles->contains('name', 'Admin') || $this->roles->contains('name', 'Administrator')) {
             return true;
         }
+
         return $this->roles->contains('name', $roleName);
     }
 
@@ -92,6 +95,10 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function hasPermission(string $permissionName): bool
     {
+        if (! Features::permissionEnabled($permissionName)) {
+            return false;
+        }
+
         // Super Admin and Admin have all permissions
         if ($this->roles->contains('name', 'Super Admin') || $this->roles->contains('name', 'Admin') || $this->roles->contains('name', 'Administrator')) {
             return true;

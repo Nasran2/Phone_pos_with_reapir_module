@@ -199,7 +199,7 @@
                                     @if(auth()->user()->hasPermission('users.edit'))
                                     <!-- Edit details -->
                                     <button 
-                                        onclick="openEditModal({{ json_encode($user) }}, {{ $user->roles->first()->id ?? 'null' }})"
+                                        onclick="openEditModal({{ json_encode(\App\Support\Features::wholesaleEnabled() ? $user : $user->makeHidden('roles')) }}, {{ $user->roles->first()->id ?? 'null' }})"
                                         class="p-1.5 text-black hover:text-blue-600 hover:bg-blue-50 transition rounded-lg cursor-pointer"
                                         title="Edit Details"
                                     >
@@ -210,7 +210,7 @@
 
                                     <!-- Reset password -->
                                     <button 
-                                        onclick="openPasswordModal({{ json_encode($user) }})"
+                                        onclick="openPasswordModal({{ json_encode(\App\Support\Features::wholesaleEnabled() ? $user : $user->makeHidden('roles')) }})"
                                         class="p-1.5 text-black hover:text-amber-600 hover:bg-amber-50 transition rounded-lg cursor-pointer"
                                         title="Change Password"
                                     >

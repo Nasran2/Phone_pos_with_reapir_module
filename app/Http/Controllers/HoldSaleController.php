@@ -7,6 +7,7 @@ use App\Models\HoldSale;
 use App\Models\Sale;
 use App\Models\User;
 use App\Services\LorryAccessService;
+use App\Support\Features;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -15,12 +16,14 @@ class HoldSaleController extends Controller
     public function index(Request $request, LorryAccessService $access)
     {
         $query = HoldSale::query();
+        $query->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'));
         $user = $request->user();
         $isLorryUser = $access->isLorryUser($user);
         $allocatedQuery = null;
 
         if ($user->hasPermission('sales.invoice_view') || $isLorryUser) {
             $allocatedQuery = Sale::whereNull('stock_deducted_at')->whereIn('status', ['final', 'completed']);
+            $allocatedQuery->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'));
             if ($isLorryUser && ! $access->isUnrestricted($user)) {
                 $allocatedQuery->where('source_type', 'lorry')->whereIn('lorry_id', $access->allowedIds($user));
             }
@@ -78,6 +81,7 @@ class HoldSaleController extends Controller
 
     public function show(HoldSale $holdSale)
     {
+        abort_if(! Features::wholesaleEnabled() && $holdSale->pos_type === 'wholesale', 404);
         $holdSale->load(['customer', 'cashier', 'items.product', 'items.variant']);
 
         return view('sales.holds.show', compact('holdSale'));
@@ -85,6 +89,7 @@ class HoldSaleController extends Controller
 
     public function resume(HoldSale $holdSale)
     {
+        abort_if(! Features::wholesaleEnabled() && $holdSale->pos_type === 'wholesale', 404);
         $route = $holdSale->pos_type === 'wholesale' ? 'pos.wholesale' : 'pos.retail';
 
         return redirect()->route($route, ['hold_id' => $holdSale->id])
@@ -93,6 +98,7 @@ class HoldSaleController extends Controller
 
     public function destroy(HoldSale $holdSale)
     {
+        abort_if(! Features::wholesaleEnabled() && $holdSale->pos_type === 'wholesale', 404);
         $referenceNo = $holdSale->reference_no;
         $holdSale->items()->delete();
         $holdSale->delete();

@@ -1,10 +1,11 @@
 <?php
+
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Account;
 use App\Models\ExpenseCategory;
-use Illuminate\Support\Facades\DB;
+use App\Support\Features;
+use Illuminate\Database\Seeder;
 
 class AccountingSeeder extends Seeder
 {
@@ -13,7 +14,7 @@ class AccountingSeeder extends Seeder
         // 1. Expense Categories
         $categories = [
             'Rent', 'Salary', 'Transport', 'Electricity', 'Internet',
-            'Repair & Maintenance', 'Office Expenses', 'Marketing', 'Staff Food', 'Other'
+            'Repair & Maintenance', 'Office Expenses', 'Marketing', 'Staff Food', 'Other',
         ];
         foreach ($categories as $cat) {
             ExpenseCategory::firstOrCreate(['name' => $cat]);
@@ -51,6 +52,9 @@ class AccountingSeeder extends Seeder
         ];
 
         foreach ($accounts as $acc) {
+            if (! Features::wholesaleEnabled() && $acc['account_code'] === '4002') {
+                continue;
+            }
             Account::firstOrCreate(['account_code' => $acc['account_code']], [
                 'account_name' => $acc['account_name'],
                 'account_type' => $acc['account_type'],

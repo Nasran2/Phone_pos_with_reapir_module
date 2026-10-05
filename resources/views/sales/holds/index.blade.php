@@ -20,7 +20,7 @@
                 <select name="sale_type" class="px-3 py-2.5 border border-slate-900 rounded-lg text-sm bg-white">
                     <option value="">All Types</option>
                     <option value="retail" @selected(request('sale_type') === 'retail')>Retail</option>
-                    <option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>
+                    @if(\App\Support\Features::wholesaleEnabled())<option value="wholesale" @selected(request('sale_type') === 'wholesale')>Wholesale</option>@endif
                 </select>
                 <select name="cashier_id" class="px-3 py-2.5 border border-slate-900 rounded-lg text-sm bg-white">
                     <option value="">All Cashiers</option>

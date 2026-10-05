@@ -35,7 +35,7 @@
                 <select name="sale_type" class="w-full rounded-lg border-slate-900 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
                     <option value="all" {{ request('sale_type') == 'all' ? 'selected' : '' }}>All</option>
                     <option value="retail" {{ request('sale_type') == 'retail' ? 'selected' : '' }}>Retail</option>
-                    <option value="wholesale" {{ request('sale_type') == 'wholesale' ? 'selected' : '' }}>Wholesale</option>
+                    @if(\App\Support\Features::wholesaleEnabled())<option value="wholesale" {{ request('sale_type') == 'wholesale' ? 'selected' : '' }}>Wholesale</option>@endif
                 </select>
             </div>
             <div>
@@ -56,7 +56,9 @@
                 <th class="p-4 font-bold">Invoice No</th>
                 <th class="p-4 font-bold">Date</th>
                 <th class="p-4 font-bold">Customer</th>
+                @if(\App\Support\Features::wholesaleEnabled())
                 <th class="p-4 font-bold">Type</th>
+                @endif
                 <th class="p-4 font-bold text-right">Grand Total</th>
                 <th class="p-4 font-bold text-right">Paid</th>
                 <th class="p-4 font-bold text-right">Due</th>
@@ -73,7 +75,9 @@
                     <td class="p-4 font-medium text-black"><a href="{{ route('sales.show', $sale) }}" class="text-blue-600 underline">{{ $sale->invoice_no }}</a></td>
                     <td class="p-4">{{ $sale->sale_date->format('Y-m-d') }} · {{ $sale->created_at->format('H:i') }}</td>
                     <td class="p-4">{{ $sale->customer->name ?? 'Walk-in Customer' }}</td>
+                    @if(\App\Support\Features::wholesaleEnabled())
                     <td class="p-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $saleType === 'retail' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">{{ ucfirst($saleType) }}</span></td>
+                    @endif
                     <td class="p-4 text-right font-bold text-black">Rs. {{ number_format((float) ($sale->payable_amount ?? $sale->grand_total ?? $sale->total_amount ?? 0), 2) }}</td>
                     <td class="p-4 text-right text-emerald-600 font-medium">Rs. {{ number_format($sale->paid_amount, 2) }}</td>
                     <td class="p-4 text-right text-rose-600 font-medium">Rs. {{ number_format($sale->due_amount, 2) }}</td>

@@ -11,7 +11,7 @@
         'tax_percent' => (float) $item->tax_percent,
         'profit_margin' => (float) $item->profit_margin,
         'retail_price' => (float) $item->retail_price,
-        'wholesale_price' => (float) $item->wholesale_price,
+        ...(\App\Support\Features::wholesaleEnabled() ? ['wholesale_price' => (float) $item->wholesale_price] : []),
     ])->values()->all() : []))->values();
 @endphp
 
@@ -126,7 +126,9 @@
                                 <th class="px-3 py-3 text-right">Line Total</th>
                                 <th class="px-3 py-3 text-right">Profit %</th>
                                 <th class="px-3 py-3 text-right">Retail Price</th>
+                                @if(\App\Support\Features::wholesaleEnabled())
                                 <th class="px-3 py-3 text-right">Wholesale Price</th>
+                                @endif
                                 <th class="px-3 py-3 text-center">Remove</th>
                             </tr>
                         </thead>
@@ -282,7 +284,7 @@
                     <td class="px-3 py-3 text-right font-black text-black" id="line_${index}">Rs. 0.00</td>
                     ${numberInput(index, 'profit_margin', row.profit_margin || 0)}
                     ${numberInput(index, 'retail_price', row.retail_price ?? product.retail_price ?? 0)}
-                    ${numberInput(index, 'wholesale_price', row.wholesale_price ?? product.wholesale_price ?? 0)}
+                    @if(\App\Support\Features::wholesaleEnabled())${numberInput(index, 'wholesale_price', row.wholesale_price ?? product.wholesale_price ?? 0)}@endif
                     <td class="px-3 py-3 text-center"><button type="button" onclick="removeRow(${index})" class="p-1.5 rounded-lg text-red-600 hover:bg-red-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></td>
                 `;
                 body.appendChild(tr);
@@ -343,7 +345,9 @@
                     tax_percent: 0,
                     profit_margin: 0,
                     retail_price: product.retail_price || 0,
+                    @if(\App\Support\Features::wholesaleEnabled())
                     wholesale_price: product.wholesale_price || 0
+                    @endif
                 });
             }
             document.getElementById('product_search').value = '';

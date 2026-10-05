@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property-read Customer|null $customer */
 class Sale extends Model
 {
     use LogsActivity;

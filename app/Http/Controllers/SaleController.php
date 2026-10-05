@@ -10,8 +10,10 @@ use App\Models\Sale;
 use App\Models\SalePayment;
 use App\Models\Setting;
 use App\Models\StockHistory;
+use App\Services\JournalService;
 use App\Services\LorryAccessService;
 use App\Services\SaleInventoryService;
+use App\Support\Features;
 use App\Support\SystemSettings;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DOMElement;
@@ -26,6 +28,7 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $query = Sale::with('customer')->withCount('items');
+        $query->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'));
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -268,7 +271,7 @@ class SaleController extends Controller
             }
 
             $invoiceNo = $sale->invoice_no;
-            $journals = app(\App\Services\JournalService::class);
+            $journals = app(JournalService::class);
             $journals->deleteEntryByReference('Sale', $sale->id);
             foreach ($sale->invoicePayments as $payment) {
                 $journals->deleteEntryByReference('SalePayment', $payment->id);
@@ -289,11 +292,12 @@ class SaleController extends Controller
     {
         $today = now()->toDateString();
         $base = Sale::query()->where('status', '!=', 'cancelled');
+        $base->when(! Features::wholesaleEnabled(), fn ($q) => $q->where('pos_type', 'retail'));
 
         return [
             'today_sales' => (clone $base)->whereDate('created_at', $today)->sum('payable_amount'),
             'retail_sales' => (clone $base)->where('pos_type', 'retail')->sum('payable_amount'),
-            'wholesale_sales' => (clone $base)->where('pos_type', 'wholesale')->sum('payable_amount'),
+            ...(Features::wholesaleEnabled() ? ['wholesale_sales' => (clone $base)->where('pos_type', 'wholesale')->sum('payable_amount')] : []),
             'due_sales' => (clone $base)->sum('due_amount'),
             'total_profit' => (clone $base)->sum('total_profit_amount'),
             'pending_orders' => (clone $base)->whereNull('stock_deducted_at')->count(),

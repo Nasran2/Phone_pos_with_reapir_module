@@ -343,7 +343,9 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-slate-50 text-[11px] uppercase tracking-wide text-black">
-                            <tr><th class="text-left px-5 py-3">Lorry</th><th class="text-left px-5 py-3">Product</th><th class="text-right px-5 py-3">Qty</th><th class="text-right px-5 py-3">Cost Value</th><th class="text-right px-5 py-3">Wholesale Value</th></tr>
+                            <tr><th class="text-left px-5 py-3">Lorry</th><th class="text-left px-5 py-3">Product</th><th class="text-right px-5 py-3">Qty</th><th class="text-right px-5 py-3">Cost Value</th>@if(\App\Support\Features::wholesaleEnabled())
+<th class="text-right px-5 py-3">Wholesale Value</th>
+@endif</tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($stocks as $stock)
@@ -352,7 +354,9 @@
                                     <td class="px-5 py-4"><div class="font-bold text-black">{{ $stock->product_name }}</div><div class="text-xs text-black">{{ $stock->sku }} {{ $stock->variant_sku ? '/ '.$stock->variant_sku : '' }}</div></td>
                                     <td class="px-5 py-4 text-right font-black {{ $stock->quantity <= $stock->minimum_stock && $stock->minimum_stock > 0 ? 'text-rose-600' : 'text-black' }}">{{ number_format($stock->quantity, 2) }}</td>
                                     <td class="px-5 py-4 text-right font-bold">{{ $money($stock->quantity * $stock->cost_price) }}</td>
+                                    @if(\App\Support\Features::wholesaleEnabled())
                                     <td class="px-5 py-4 text-right font-bold text-emerald-700">{{ $money($stock->quantity * $stock->wholesale_price) }}</td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="px-5 py-10 text-center text-black">No lorry stock found.</td></tr>
@@ -426,7 +430,7 @@
                                 <template x-for="product in results" :key="product.id">
                                     <button type="button" @click="add(product)" class="w-full px-5 py-3 text-left hover:bg-blue-50 border-b border-slate-200">
                                         <span class="block font-bold text-black" x-text="product.name"></span>
-                                        <span class="text-xs text-black" x-text="`${product.sku || ''} / Available ${Number(product.stock).toFixed(2)} / ${Number(product.wholesale_price || product.retail_price || 0).toFixed(2)}`"></span>
+                                        <span class="text-xs text-black" x-text="`${product.sku || ''} / Available ${Number(product.stock).toFixed(2)}@if(\App\Support\Features::wholesaleEnabled()) / ${Number(product.wholesale_price || product.retail_price || 0).toFixed(2)}@endif`"></span>
                                     </button>
                                 </template>
                             </div>

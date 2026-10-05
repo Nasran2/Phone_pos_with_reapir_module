@@ -17,7 +17,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserManagementSeeder::class,
-            // DashboardDemoSeeder::class,
+            CurrencySeeder::class,
+            UnitSeeder::class,
+            AccountingSeeder::class,
+            TaxPermissionsSeeder::class,
+            DashboardDemoSeeder::class,
         ]);
     }
 }

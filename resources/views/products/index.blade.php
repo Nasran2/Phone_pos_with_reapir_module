@@ -169,7 +169,9 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             <th class="px-6 py-4">Category / Brand</th>
                             <th class="px-6 py-4">Cost Price</th>
                             <th class="px-6 py-4">Retail Price</th>
+                            @if(\App\Support\Features::wholesaleEnabled())
                             <th class="px-6 py-4">Wholesale Price</th>
+                            @endif
                             <th class="px-6 py-4">Available Stock</th>
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4 text-right">Actions</th>
@@ -212,10 +214,12 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             <td class="px-6 py-4 text-blue-600 font-bold">
                                 {{ \App\Support\SystemSettings::money((float) $product->retail_price) }}
                             </td>
-                            <!-- Wholesale Price -->
+                            {{-- Wholesale Price --}}
+                            @if(\App\Support\Features::wholesaleEnabled())
                             <td class="px-6 py-4 text-emerald-600 font-bold">
                                 {{ \App\Support\SystemSettings::money((float) $product->wholesale_price) }}
                             </td>
+                            @endif
                             <!-- Stock -->
                             <td class="px-6 py-4">
                                 @php
@@ -426,7 +430,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 {{ \App\Support\Features::wholesaleEnabled() ? 'md:grid-cols-4' : 'md:grid-cols-3' }} gap-4">
                         <div>
                             <label class="block text-sm font-bold text-black mb-1.5">Cost Price *</label>
                             <input type="number" step="any" name="cost_price" id="prod_cost_price" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
@@ -435,10 +439,12 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                             <label class="block text-sm font-bold text-black mb-1.5">Retail Selling Price *</label>
                             <input type="number" step="any" name="retail_price" id="prod_retail_price" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                         </div>
+                        @if(\App\Support\Features::wholesaleEnabled())
                         <div>
                             <label class="block text-sm font-bold text-black mb-1.5">Wholesale Selling Price *</label>
                             <input type="number" step="any" name="wholesale_price" id="prod_wholesale_price" required class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="0.00">
                         </div>
+                        @endif
                         <div>
                             <label class="block text-sm font-bold text-black mb-1.5">Low Stock Alert Qty</label>
                             <input type="number" name="stock_alert_quantity" id="prod_alert_qty" class="w-full px-3 py-2.5 border border-slate-900 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 text-black" placeholder="5" value="5">
@@ -575,7 +581,9 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                                         <th class="pb-2 pr-2">Variant SKU *</th>
                                         <th class="pb-2 pr-2">Cost Price</th>
                                         <th class="pb-2 pr-2">Retail Price</th>
+                                        @if(\App\Support\Features::wholesaleEnabled())
                                         <th class="pb-2 pr-2">Wholesale</th>
+                                        @endif
                                         <th class="pb-2 pr-2">Opening Stock</th>
                                         <th class="pb-2"></th>
                                     </tr>
@@ -764,7 +772,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                     <a href="{{ route('products.import-template') }}" class="inline-flex rounded-lg bg-emerald-600 px-3 py-2 font-bold text-white hover:bg-emerald-700">Download Excel Template</a>
                     <div class="font-bold">Columns structure:</div>
                     <div class="font-mono bg-slate-50 border border-slate-100 p-1.5 rounded select-all break-words">
-                        Name, SKU, Barcode, Category, Brand, Unit, Cost Price, Retail Price, Wholesale Price, Stock Alert Qty, Opening Stock
+                        {{ implode(', ', (new \App\Exports\ProductImportProductsSheet(collect()))->headings()) }}
                     </div>
                 </div>
                 <div>
@@ -929,7 +937,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
             document.getElementById('prod_unit_id').value = defaultUnitId || '';
             document.getElementById('prod_cost_price').value = '';
             document.getElementById('prod_retail_price').value = '';
-            document.getElementById('prod_wholesale_price').value = '';
+            @if(\App\Support\Features::wholesaleEnabled())document.getElementById('prod_wholesale_price').value = '';@endif
             document.getElementById('prod_alert_qty').value = '5';
             document.getElementById('prod_sales_tax_profile_id').value = '';
             document.getElementById('prod_purchase_tax_profile_id').value = '';
@@ -973,7 +981,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
             document.getElementById('prod_unit_id').value = product.unit_id || '';
             document.getElementById('prod_cost_price').value = product.cost_price;
             document.getElementById('prod_retail_price').value = product.retail_price;
-            document.getElementById('prod_wholesale_price').value = product.wholesale_price;
+            @if(\App\Support\Features::wholesaleEnabled())document.getElementById('prod_wholesale_price').value = product.wholesale_price;@endif
             document.getElementById('prod_alert_qty').value = product.stock_alert_quantity;
             document.getElementById('prod_sales_tax_profile_id').value = product.sales_tax_profile_id || '';
             document.getElementById('prod_purchase_tax_profile_id').value = product.purchase_tax_profile_id || '';
@@ -1034,7 +1042,7 @@ $defaultUnit = $units->first(fn($unit) => strtolower($unit->short_name) === 'pcs
                 <td class="py-2 pr-2"><input type="text" name="variants[${variantIndex}][sku]" value="${variant.sku || ''}" required class="w-full px-2 py-1 border rounded text-sm" placeholder="SKU-VAR-${variantIndex}"></td>
                 <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][cost_price]" value="${variant.cost_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Cost"></td>
                 <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][retail_price]" value="${variant.retail_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Retail"></td>
-                <td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Wholesale"></td>
+                @if(\App\Support\Features::wholesaleEnabled())<td class="py-2 pr-2"><input type="number" step="any" name="variants[${variantIndex}][wholesale_price]" value="${variant.wholesale_price || ''}" class="w-full px-2 py-1 border rounded text-sm" placeholder="Wholesale"></td>@endif
                 <td class="py-2 pr-2"><input type="number" name="variants[${variantIndex}][stock_quantity]" class="w-full px-2 py-1 border rounded text-sm text-center" placeholder="0" value="${variant.stock_quantity || 0}"></td>
                 <td class="py-2 text-right">
                     <button type="button" onclick="removeVariantRow(${variantIndex})" class="text-red-500 hover:text-red-700 text-sm font-bold">✕</button>

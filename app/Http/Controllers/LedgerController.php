@@ -1,10 +1,13 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\LedgerEntry;
-use Illuminate\Http\Request;
 use App\Services\PdfExportService;
+use App\Support\Features;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class LedgerController extends Controller
 {
@@ -17,7 +20,7 @@ class LedgerController extends Controller
 
     public function index(Request $request)
     {
-        $accounts = Account::where('is_active', 1)->orderBy('code')->get();
+        $accounts = Account::available()->where('is_active', 1)->orderBy('code')->get();
         $selectedAccount = null;
         $ledgerEntries = collect();
         $openingBalance = 0;
@@ -26,17 +29,17 @@ class LedgerController extends Controller
             $selectedAccount = Account::find($request->account_id);
             if ($selectedAccount) {
                 $query = LedgerEntry::with('journalEntry.user')
-                            ->where('chart_of_account_id', $selectedAccount->id)
-                            ->join('journal_entries', 'ledger_entries.journal_entry_id', '=', 'journal_entries.id')
-                            ->orderBy('journal_entries.entry_date', 'asc')
-                            ->orderBy('journal_entries.id', 'asc')
-                            ->select('ledger_entries.*', 'journal_entries.entry_date as date', 'journal_entries.reference_no', 'journal_entries.narration as note');
+                    ->where('chart_of_account_id', $selectedAccount->id)
+                    ->join('journal_entries', 'ledger_entries.journal_entry_id', '=', 'journal_entries.id')
+                    ->orderBy('journal_entries.entry_date', 'asc')
+                    ->orderBy('journal_entries.id', 'asc')
+                    ->select('ledger_entries.*', 'journal_entries.entry_date as date', 'journal_entries.reference_no', 'journal_entries.narration as note');
 
                 if ($request->has('start_date') && $request->start_date) {
                     $openingQuery = LedgerEntry::where('chart_of_account_id', $selectedAccount->id)
-                            ->join('journal_entries', 'ledger_entries.journal_entry_id', '=', 'journal_entries.id')
-                            ->where('journal_entries.entry_date', '<', $request->start_date);
-                    
+                        ->join('journal_entries', 'ledger_entries.journal_entry_id', '=', 'journal_entries.id')
+                        ->where('journal_entries.entry_date', '<', $request->start_date);
+
                     if (in_array(strtolower($selectedAccount->type), ['asset', 'expense'])) {
                         $openingBalance = $openingQuery->sum('debit') - $openingQuery->sum('credit');
                     } else {
@@ -58,11 +61,11 @@ class LedgerController extends Controller
             $headers = ['Date', 'Journal No', 'Reference', 'Description', 'Debit (Rs)', 'Credit (Rs)', 'Balance'];
             $rows = [];
             $rows[] = ['-', '-', '-', 'Opening Balance', '-', '-', number_format($openingBalance, 2)];
-            
+
             $runningBalance = $openingBalance;
             $totalDebit = 0;
             $totalCredit = 0;
-            
+
             foreach ($ledgerEntries as $entry) {
                 if (in_array($selectedAccount->account_type, ['Asset', 'Expense'])) {
                     $runningBalance = $runningBalance + $entry->debit - $entry->credit;
@@ -71,18 +74,18 @@ class LedgerController extends Controller
                 }
                 $totalDebit += $entry->debit;
                 $totalCredit += $entry->credit;
-                
+
                 $rows[] = [
-                    \Carbon\Carbon::parse($entry->date)->format('M d, Y'),
+                    Carbon::parse($entry->date)->format('M d, Y'),
                     $entry->journal_no ?? '-',
                     $entry->reference_no ?? '-',
-                    $entry->note,
+                    Features::retailText($entry->note ?? ''),
                     $entry->debit > 0 ? number_format($entry->debit, 2) : '-',
                     $entry->credit > 0 ? number_format($entry->credit, 2) : '-',
-                    number_format($runningBalance, 2)
+                    number_format($runningBalance, 2),
                 ];
             }
-            
+
             $totals = [
                 'Date' => 'Closing Balance',
                 'Journal No' => '',
@@ -94,11 +97,11 @@ class LedgerController extends Controller
             ];
 
             return $this->pdfService->export(
-                $selectedAccount->account_name . ' - Ledger Book', 
-                $headers, 
-                $rows, 
-                $totals, 
-                ['Date Filter' => $request->start_date . ' to ' . $request->end_date]
+                $selectedAccount->account_name.' - Ledger Book',
+                $headers,
+                $rows,
+                $totals,
+                ['Date Filter' => $request->start_date.' to '.$request->end_date]
             );
         }
 
